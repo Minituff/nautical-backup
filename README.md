@@ -73,13 +73,3 @@ Containers are meant to be ephemeral, and essentially meaniningless. The goal is
 If something bad happened to our entier docker stack, we only need the `docker-compose` files and the data they referenced. This would allow us to be back online in no time!
 
 If you would like to save data or changes within the docker container, consider making a new image. This would save the modification steps and allow it to be easily replicated.
-
-## Useful commands
-
-```bash
-docker run -e CRON_SCHEDULE="* * * * *" -d nautical-backup
-```
-
-```bash
-docker run --detach --name watchtower --volume /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower
-```

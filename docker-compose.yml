@@ -12,4 +12,6 @@ services:
     - C:\Users\James-PC\Desktop\destination:/app/destination # Create destination directory
     environment:
       - TZ=America/Los_Angeles
-      - CRON_SCHEDULE=* * * * * # Do not use quotes
+      # Do not use quotes on these variables
+      - CRON_SCHEDULE=* * * * * # Schedule for to run backups
+      - SKIP_CONTAINERS=example1,example2,example3 # Container name or IDs to skip
