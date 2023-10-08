@@ -6,14 +6,20 @@ echo "Starting backup script..."
 source_location=/app/source # Do not include a trailing slash
 dest_location=/app/destination  # Do not include a trailing slash
 
-default_skips=("nautical-backup" "container2" "default_container3")  # Containers to skips
-
 echo "Container backup starting..."
 
 # Get the container ID of the current container
 SELF_CONTAINER_ID=$(cat /proc/self/cgroup | grep 'docker' | sed 's/^.*\///' | tail -n1)
 
-containers=$(docker ps --format="{{.Names}}")  # Only get docker container names
+default_skips=("container1" "container2" "default_container3")  # Containers to skips
+
+# Add the self container ID to the default skips
+default_skips+=("$SELF_CONTAINER_ID")
+
+echo "Conatainers to skip: ${default_skips[@]}"
+
+# Fetch both container names and IDs
+containers=$(docker ps --no-trunc --format="{{.ID}}:{{.Names}}")
 
 # Define the name for the report file
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
@@ -45,7 +51,7 @@ log_entry() {
     echo "$(date) - $message" >> "$dest_location/$report_file"
 }
 
-StopContainers() {
+BackupContainer() {
     local container=$1
 
     if [ -d "$source_location/$container" ]; then
@@ -114,18 +120,25 @@ else
     exit 1
 fi
 
-shift $((OPTIND - 1))
-for container in $containers; do
+
+# Loop through all running containers
+IFS=$'\n'
+for entry in $containers; do
+    id=${entry%%:*}
+    name=${entry##*:}
+
     skip=0
-    for cur in "${currs[@]}"; do
-        if [ "$cur" == "$container" ]; then
+    for cur in "${default_skips[@]}"; do
+        if [ "$cur" == "$name" ] || [ "$cur" == "$id" ]; then
             skip=1
+            break
         fi
     done
+
     if [ $skip -eq 0 ]; then
-        StopContainers "$container"
+        BackupContainer "$name"
     else
-        echo "Skipping $container."
+        echo "Skipping $name."
     fi
 done
 
