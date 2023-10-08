@@ -1,0 +1,15 @@
+---
+version: '3.3'
+services:
+  nautical-backup:
+    image: nautical-backup
+    container_name: nautical-backup
+    hostname: nautical-backup
+    restart: unless-stopped
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - C:\Users\James-PC\Desktop\source:/app/source # Mount source directory
+    - C:\Users\James-PC\Desktop\destination:/app/destination # Create destination directory
+    environment:
+      - TZ=America/Los_Angeles
+      - CRON_SCHEDULE=* * * * * # Do not use quotes
