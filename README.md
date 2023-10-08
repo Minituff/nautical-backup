@@ -1,8 +1,9 @@
 <div align="center">
     <img width="400" alt="Title" src="./media/Logo-transparent.png"/>
     
----
 A simple container to backup your container volumes.
+
+---
 <br/><br/>
     
 </div>
