@@ -1,7 +1,7 @@
 <div align="center">
     <img width="400" alt="Title" src="./media/Logo-transparent.png"/>
     
-# Nautical backup
+---
 A simple container to backup your container volumes.
 <br/><br/>
     
