@@ -1,9 +1,12 @@
 name: Create and publish a Docker image
 
-# Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
   push:
-    branches: ['dev']
+    branches:
+        - 'main'
+        # - 'dev'
+    tags:
+        - 'v*'
 
 jobs:
   push_to_registries:
@@ -45,11 +48,9 @@ jobs:
           ${{ github.repository }}  # minituff/nautical-backup
           ghcr.io/${{ github.repository }}
         tags: |
-          type=schedule
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=semver,pattern={{major}}
-          type=sha
     
     # This step uses the docker/build-push-action action to build the image, based on your repository's Dockerfile. 
     # If the build succeeds, it pushes the image to GitHub Packages. 
