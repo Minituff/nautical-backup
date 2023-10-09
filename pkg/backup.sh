@@ -48,40 +48,35 @@ BackupContainer() {
     local container=$1
 
     if [ -d "$SOURCE_LOCATION/$container" ]; then
-        log_entry "Directory $SOURCE_LOCATION/$container exists."
 
         log_entry "Stopping $container..."
-        docker stop $container
+        docker stop $container 2>&1 >/dev/null
         if [ $? -ne 0 ]; then
             log_entry "Error stopping container $container. Skipping backup for this container."
             return
         fi
 
-        log_entry "Copying $SOURCE_LOCATION/$container to $DEST_LOCATION/$container..."
-        rsync -ah --info=progress2 --exclude '*.log' $SOURCE_LOCATION/$container/ $DEST_LOCATION/$container/
+        log_entry "Backing up $container data..."
+        rsync -ah -q --info=progress2 --exclude '*.log' $SOURCE_LOCATION/$container/ $DEST_LOCATION/$container/
 
         if [ $? -ne 0 ]; then
             log_entry "Error copying data for container $container. Skipping backup for this container."
             
-            log_entry "Starting $container..."
+            log_entry "Starting $container container..."
             docker start $container
             if [ $? -ne 0 ]; then
                 log_entry "Error restarting container $container. Please check manually!"
+                return
             fi
 
-            return
-        else
-            log_entry "Copied $SOURCE_LOCATION/$container to $DEST_LOCATION/$container."
         fi
 
         
-        log_entry "Starting $container..."
-        docker start $container
+        log_entry "Starting $container container..."
+        docker start $container 2>&1 >/dev/null
         if [ $? -ne 0 ]; then
             log_entry "Error restarting container $container. Please check manually!"
             return
-        else
-            log_entry "Container $container restarted."
         fi
 
         log_entry "$container completed."
