@@ -1,5 +1,5 @@
 <div align="center">
-    <img width="400" alt="Title" src="./media/Logo-transparent.png"/>
+    <img width="400" alt="Logo" src="./media/Logo-transparent.png"/>
     
 A simple container to backup your container volumes.
 
@@ -43,17 +43,19 @@ Once the CRON job triggers the script to run:
 version: '3.3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:latest
+    image: nautical-backup
     container_name: nautical-backup
     hostname: nautical-backup
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /source-path:/app/source # Mount source directory
-      - /destination-path:/app/destination # Create destination directory
-    environment:
-      - CRON_SCHEDULE=0 4 * * *
     restart: unless-stopped
-
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - source-dir:/app/source # Mount source directory
+    - destination-dir:/app/destination # Create destination directory
+    environment:
+      - TZ=America/Los_Angeles
+      # Do not use quotes on these variables
+      - CRON_SCHEDULE=* * * * * # Schedule for to run backups
+      - SKIP_CONTAINERS=example1,example2,example3 # Container name or IDs to skip
 ```
 
 <br>
