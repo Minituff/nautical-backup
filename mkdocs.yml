@@ -1,7 +1,7 @@
 site_name: Nautical Backup
 site_description: 'A simple Docker volume backup tool.'
 site_author: 'James Tufarelli'
-site_url: ''
+site_url: 'https://minituff.github.io/nautical-backup'
 edit_uri: 'edit/main/docs/'
 
 # Repository

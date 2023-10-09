@@ -10,3 +10,6 @@ A simple container to backup your container volumes.
   [![Pulls from DockerHub](https://img.shields.io/docker/pulls/minituff/nautical-backup?logo=docker)](https://hub.docker.com/r/minituff/nautical-backup)
 
 </div>
+
+### Documentation
+Full documentation is available at [https://minituff.github.io/nautical-backup](https://minituff.github.io/nautical-backup)
