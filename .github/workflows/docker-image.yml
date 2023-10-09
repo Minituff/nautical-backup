@@ -2,11 +2,11 @@ name: Create and publish a Docker image
 
 on:
   push:
-    branches:
-        - 'main'
-        # - 'dev'
+    # branches:
+    #   - 'main'
+    #   - 'dev'
     tags:
-        - 'v*'
+      - 'v*'
 
 jobs:
   push_to_registries:
