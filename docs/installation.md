@@ -11,9 +11,9 @@ services:
     hostname: nautical-backup
     restart: unless-stopped
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock #(1)!
-    - /source:/app/source #(2)!
-    - /destination:/app/destination #(3)!
+      - /var/run/docker.sock:/var/run/docker.sock #(1)!
+      - /source:/app/source #(2)!
+      - /destination:/app/destination #(3)!
     environment:
       # Optional variables (4)
       - TZ=America/Los_Angeles
@@ -36,13 +36,13 @@ services:
 
 ```bash
 docker run -d \
---name nautical-backup:0.0.3 \ #(7)!
+--name nautical-backup \
 -v /var/run/docker.sock:/var/run/docker.sock \ #(1)!
 -v /source:/app/source \ #(2)!
 -v /destination:/app/destination \ #(3)!
 -e CRON_SCHEDULE="* 4 * * *" \ #(5)!
 -e SKIP_CONTAINERS="example1,example2,example3" \ #(6)!
-minituff/nautical-backup
+minituff/nautical-backup:0.0.3 #(7)!
 ```
 
 1. Mount the docker socket. Used to start and stop containers.
