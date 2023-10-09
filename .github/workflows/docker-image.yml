@@ -44,6 +44,12 @@ jobs:
         images: |
           ${{ github.repository }}  # minituff/nautical-backup
           ghcr.io/${{ github.repository }}
+        tags: |
+          type=schedule
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha
     
     # This step uses the docker/build-push-action action to build the image, based on your repository's Dockerfile. 
     # If the build succeeds, it pushes the image to GitHub Packages. 
