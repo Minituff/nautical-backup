@@ -1,7 +1,7 @@
 <div align="center">
     <img width="400" alt="Logo" src="./docs/media/Logo-transparent.png"/>
     
-A simple container to backup your container volumes.
+A simple Docker volume backup tool.
 
 ---
 
