@@ -1,0 +1,148 @@
+site_name: Nautical Backup
+site_description: 'A simple Docker volume backup tool.'
+site_author: 'James Tufarelli'
+site_url: ''
+edit_uri: 'edit/main/docs/'
+
+# Repository
+repo_name: 'GitHub'
+repo_url: 'https://github.com/minituff/nautical-backup'
+
+copyright: 'Copyright &copy; 2023 James Tufarelli'
+
+# hide:
+#   - footer
+
+# Plugins
+plugins:
+  # git-revision-date-localized:
+  #   enable_creation_date: true
+  offline:
+  search:
+  minify:
+    minify_html: true
+  # autolinks:
+  # git-revision-date-localized:
+  #   type: date
+  #   fallback_to_build_date: true  
+  # macros:
+  #   verbose: true
+  #   include_dir: _includes
+  # meta-descriptions: # If not provided, auto-generate a description (https://pypi.org/project/mkdocs-meta-descriptions-plugin/)
+  # meta:
+
+nav:
+ - Home: index.md
+ - Introduction: introduction.md
+ - Installation: installation.md
+ - Q & A: q-and-a.md
+
+
+extra:
+  generator: false  # Removes Made with Material for MkDocs
+
+theme:
+  name: material
+  features:
+    # - navigation.tabs
+    # - navigation.tabs.sticky
+    # - navigation.sections
+    - navigation.indexes # Allow index pages for section
+    - navigation.instant
+    - navigation.top # Back to top button
+    # - navigation.prune
+    - navigation.path
+    - navigation.tracking
+    # - navigation.expand
+    - search.suggest
+    - search.share
+    - search.highlight
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - header.autohide
+    - announce.dismiss
+    - toc.follow
+    # - toc.integrate # Table of contents on the left
+    - content.action.edit
+    - content.action.view
+    - navigation.footer  # Add the `prev` and `next` buttons in the fotter
+  # font:
+  #   text: 'Ubuntu'
+  #   code: 'Ubuntu Mono'
+  palette:
+    # scheme: slate
+
+    # # Palette toggle for automatic mode
+    # - media: "(prefers-color-scheme)"
+    #   scheme: default
+    #   toggle:
+    #     icon: material/brightness-auto
+    #     name: Follow system preferences
+
+    # Toggle light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Burn my eyes!
+
+    # Toggle dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Love my eyes!
+
+extra_css:
+  - stylesheets/extra.css
+
+# Extensions
+markdown_extensions:
+  - abbr
+  - attr_list
+  - admonition
+  - def_list
+  - codehilite:
+      linenums: true
+  - toc:
+      permalink: true  # Allow perma-linking the headers
+      toc_depth: 6 # ignore H4/5/6
+  - footnotes
+  - pymdownx.critic
+  - pymdownx.keys
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.snippets:
+      check_paths: true
+      base_path: snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: funkypenguin
+      repo: geek-cookbook
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: false
+  - pymdownx.tilde
+  - pymdownx.tabbed:
+      alternate_style: true 
+  - meta
+  - md_in_html
