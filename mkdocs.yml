@@ -17,10 +17,10 @@ copyright: 'Copyright &copy; 2023 James Tufarelli'
 plugins:
   # git-revision-date-localized:
   #   enable_creation_date: true
-  offline:
+  # offline:
   search:
-  minify:
-    minify_html: true
+  # minify:
+  #   minify_html: true
   # autolinks:
   # git-revision-date-localized:
   #   type: date
