@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Echo the CRON schedule for logging/debugging
-echo "Installing CRON schedule: $CRON_SCHEDULE"
+echo "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ"
 
 # Dump the current cron jobs to a temporary file
 crontab -l > tempcron
