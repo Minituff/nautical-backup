@@ -16,10 +16,10 @@ TZ=America/Los_Angeles
 ## CRON Schedule
 Allow changing the schedule for when the backup is started.
 
-> **Default**: * 4 * * *
+> **Default**: 0 4 * * *
 
 ```properties
-CRON_SCHEDULE=* 4 * * *
+CRON_SCHEDULE=0 4 * * *
 ```
 
 ## Skip Containers

@@ -13,5 +13,5 @@ services:
     environment:
       # Optional variables (4)
       - TZ=America/Los_Angeles
-      - CRON_SCHEDULE=* 4 * * * #(5)!
+      - CRON_SCHEDULE=0 4 * * * #(5)!
       - SKIP_CONTAINERS=example1,example2,example3 #(6)!
