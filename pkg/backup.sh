@@ -7,25 +7,34 @@ if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
     IFS=',' read -ra SKIP_CONTAINERS <<< "$CONTAINER_SKIP_LIST_STR"
 fi
 
-declare -A override_source_dirs
-
-if [ ! -z "$OVERRIDE_SOURCE_DIR" ]; then
-    IFS=',' read -ra PAIRS <<< "$OVERRIDE_SOURCE_DIR"
-    for pair in "${PAIRS[@]}"; do
-        IFS=':' read -ra KV <<< "$pair"
-        override_source_dirs[${KV[0]}]=${KV[1]}
-    done
+# Convert the string back to an array
+if [ ! -z "$SKIP_STOPPING_STR" ]; then
+    IFS=',' read -ra SKIP_STOPPING <<< "$SKIP_STOPPING_STR"
 fi
 
+
+# Function to populate override directories
+populate_override_dirs() {
+    local -n override_dirs_ref=$1  # Use nameref to update the associative array passed as argument
+    local override_var=$2          # The environment variable containing the override info
+    
+    if [ ! -z "$override_var" ]; then
+        IFS=',' read -ra PAIRS <<< "$override_var"
+        for pair in "${PAIRS[@]}"; do
+            IFS=':' read -ra KV <<< "$pair"
+            override_dirs_ref[${KV[0]}]=${KV[1]}
+        done
+    fi
+}
+
+# Declare associative arrays for source and destination overrides
+declare -A override_source_dirs
 declare -A override_dest_dirs
 
-if [ ! -z "$OVERRIDE_DEST_DIR" ]; then
-    IFS=',' read -ra PAIRS <<< "$OVERRIDE_DEST_DIR"
-    for pair in "${PAIRS[@]}"; do
-        IFS=':' read -ra KV <<< "$pair"
-        override_dest_dirs[${KV[0]}]=${KV[1]}
-    done
-fi
+# Populate the arrays
+populate_override_dirs override_source_dirs "$OVERRIDE_SOURCE_DIR"
+populate_override_dirs override_dest_dirs "$OVERRIDE_DEST_DIR"
+
 
 # Fetch both container names and IDs
 containers=$(docker ps --no-trunc --format="{{.ID}}:{{.Names}}")
@@ -75,28 +84,36 @@ log_entry() {
 BackupContainer() {
     local container=$1
 
-    
-    local src_dir="$SOURCE_LOCATION/$container" # Determine the source directory to use for this container
-    
+    local skip_stopping=0
+    for skip in "${SKIP_STOPPING[@]}"; do
+        if [ "$skip" == "$container" ]; then
+            skip_stopping=1
+            break
+        fi
+    done
+
+    local src_dir="$SOURCE_LOCATION/$container"
     if [ ! -z "${override_source_dirs[$container]}" ]; then
         src_dir="$SOURCE_LOCATION/${override_source_dirs[$container]}"
-        echo "Overriding source directory for $container to ${override_source_dirs[$container]}"
+        log_entry "Overriding source directory for $container to ${override_source_dirs[$container]}"
     fi
 
-    local dest_dir="$DEST_LOCATION/$container" # Determine the source directory to use for this container
-
+    local dest_dir="$DEST_LOCATION/$container"
     if [ ! -z "${override_dest_dirs[$container]}" ]; then
         dest_dir="$DEST_LOCATION/${override_dest_dirs[$container]}"
-        echo "Overriding destination directory for $container to ${override_dest_dirs[$container]}"
+        log_entry "Overriding destination directory for $container to ${override_dest_dirs[$container]}"
     fi
 
     if [ -d "$src_dir" ]; then
-
-        log_entry "Stopping $container..."
-        docker stop $container 2>&1 >/dev/null
-        if [ $? -ne 0 ]; then
-            log_entry "Error stopping container $container. Skipping backup for this container."
-            return
+        if [ $skip_stopping -eq 0 ]; then
+            log_entry "Stopping $container..."
+            docker stop $container 2>&1 >/dev/null
+            if [ $? -ne 0 ]; then
+                log_entry "Error stopping container $container. Skipping backup for this container."
+                return
+            fi
+        else
+            log_entry "Skipping stopping of $container as it's in the SKIP_STOPPING list."
         fi
 
         log_entry "Backing up $container data..."
@@ -104,22 +121,15 @@ BackupContainer() {
 
         if [ $? -ne 0 ]; then
             log_entry "Error copying data for container $container. Skipping backup for this container."
-            
+        fi
+
+        if [ $skip_stopping -eq 0 ]; then
             log_entry "Starting $container container..."
-            docker start $container
+            docker start $container 2>&1 >/dev/null
             if [ $? -ne 0 ]; then
                 log_entry "Error restarting container $container. Please check manually!"
                 return
             fi
-
-        fi
-
-        
-        log_entry "Starting $container container..."
-        docker start $container 2>&1 >/dev/null
-        if [ $? -ne 0 ]; then
-            log_entry "Error restarting container $container. Please check manually!"
-            return
         fi
 
         log_entry "$container completed."

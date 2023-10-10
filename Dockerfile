@@ -22,5 +22,8 @@ ENV CRON_SCHEDULE="0 4 * * *"
 # Default enable the report file
 ENV REPORT_FILE="true"
 
+# Run the backup immediately on start
+ENV BACKUP_ON_START="false"
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]

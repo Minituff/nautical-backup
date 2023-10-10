@@ -23,7 +23,7 @@ CRON_SCHEDULE=* 4 * * *
 ```
 
 ## Skip Containers
-Tell Nautical to skip backup in containers in this list.
+Tell Nautical to skip backup of containers in this list.
 
 This list can either be the container `name` or full `id`.
 
@@ -31,10 +31,16 @@ This list can either be the container `name` or full `id`.
 
 ```properties
 SKIP_CONTAINERS=container-name1,container-name2,container-name3
-# Or
+```
+```properties
 SKIP_CONTAINERS=container-name1,056bd2e970c1338782733fdbf1009c6e158c715d0d105b11de88bd549430e7f5
 ```
-<small>**TIP**: You can get the full container ID using the `docker inspect <container name>` command</small>
+!!! tip "Getting the full container ID"
+    Usally, it's easier to just use the `container-name`, but if you need to use the full ID, these commands will help:
+
+    * `docker ps --no-trunc`
+    * `docker inspect <container name>`
+
 ## Override Source Directory
 
 > **Default**: *empty*
@@ -46,8 +52,8 @@ OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
 
 | Container Name | Old Source Directory | New Source Directory         |
 | -------------- | -------------------- | ---------------------------- |
-| example1 | `src/example1`       | `src/example1-new-dest-data` |
-| ctr2     | `src/ctr2`           | `src/newdest`                |
+| example1       | `src/example1`       | `src/example1-new-dest-data` |
+| ctr2           | `src/ctr2`           | `src/newdest`                |
 
 ## Override Destination Directory
 
@@ -59,10 +65,10 @@ OVERRIDE_DEST_DIR=example1:example1-new-dest-data,ctr2:newdest
 
 <small> The example above would yield the following results:</small>
 
-| Container Name | Old Destination Directory | New Destination Directory         |
-| -------------- | -------------------- | ---------------------------- |
-| example1 | `dest/example1`       | `dest/example1-new-dest-data` |
-| ctr2     | `dest/ctr2`           | `dest/newdest`                |
+| Container Name | Old Destination Directory | New Destination Directory     |
+| -------------- | ------------------------- | ----------------------------- |
+| example1       | `dest/example1`           | `dest/example1-new-dest-data` |
+| ctr2           | `dest/ctr2`               | `dest/newdest`                |
 
 
 ## Report file
@@ -74,5 +80,26 @@ Enable or Disable the automatically generated report file.
 REPORT_FILE=true
 ```
 
+## Skip Stopping Containers
+Bypass stopping the container before performing a backup. This can be useful for containers with minimal configuration.
+
+> **Default**: *empty*
+
+```properties
+SKIP_STOPPING=example1,example2
+```
+!!! warning "Not stoppping containers can produce *corrupt* backups."
+    Containers with databases--particularly SQL--need to be shutdown before backup.
+
+    Only do this on containers you know for certain do not need to be shutdown before backup.
+
+## Backup on Start
+Will immediatly perform a backup when the container is started in addition to the CRON sheduled backup.
+
+> **Default**: false
+
+```properties
+BACKUP_ON_START=true
+```
 <br>
 <br>

@@ -44,20 +44,38 @@ fi
 
 CONTAINER_SKIP_LIST=()  # Containers to skips
 
-# Add any container names specified in the SKIP_CONTAINERS environment variable to the skip list
-if [ ! -z "$SKIP_CONTAINERS" ]; then
-    # Remove quotes and leading/trailing whitespaces
-    cleaned_skip_containers=$(echo "$SKIP_CONTAINERS" | sed "s/'//g;s/\"//g" | tr -d ' ')
-    
-    # Split by commas into an array
-    IFS=',' read -ra ADDITIONAL_SKIPS <<< "$cleaned_skip_containers"
+# Function to populate the skip list array
+process_csv() {
+    local -n skip_list_ref=$1  # Use nameref to update the array passed as argument
+    local skip_var=$2           # The environment variable containing the skip list
 
-    # Add to the default skips
-    CONTAINER_SKIP_LIST=("${CONTAINER_SKIP_LIST[@]}" "${ADDITIONAL_SKIPS[@]}")
-fi
+    if [ ! -z "$skip_var" ]; then
+        # Remove quotes and leading/trailing whitespaces
+        local cleaned_skip_var=$(echo "$skip_var" | sed "s/'//g;s/\"//g" | tr -d ' ')
+        
+        # Split by commas into an array
+        IFS=',' read -ra ADDITIONAL_SKIPS <<< "$cleaned_skip_var"
+
+        # Add to the existing skip list
+        skip_list_ref=("${skip_list_ref[@]}" "${ADDITIONAL_SKIPS[@]}")
+    fi
+}
+
+# Declare the CONTAINER_SKIP_LIST array
+CONTAINER_SKIP_LIST=()
+SKIP_STOPPING_LIST=()
+
+# Populate the skip list
+process_csv CONTAINER_SKIP_LIST "$SKIP_CONTAINERS"
+process_csv SKIP_STOPPING_LIST "$SKIP_STOPPING"
+
 
 if [ ! -z "$SKIP_CONTAINERS" ]; then
     echo "SKIP_CONTAINERS: ${CONTAINER_SKIP_LIST[@]}"
+fi
+
+if [ ! -z "$SKIP_STOPPING" ]; then
+    echo "SKIP_STOPPING: ${SKIP_STOPPING_LIST[@]}"
 fi
 
 # Get the container ID of the current container
@@ -67,6 +85,9 @@ CONTAINER_SKIP_LIST+=("$SELF_CONTAINER_ID")
 
 CONTAINER_SKIP_LIST_STR=$(IFS=,; echo "${CONTAINER_SKIP_LIST[*]}") # Convert the array to a string
 export CONTAINER_SKIP_LIST_STR # Export the string
+
+SKIP_STOPPING_STR=$(IFS=,; echo "${SKIP_STOPPING[*]}") # Convert the array to a string
+export SKIP_STOPPING_STR # Export the string
 
 # Assuming OVERRIDE_SOURCE_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
 if [ ! -z "$OVERRIDE_SOURCE_DIR" ]; then
@@ -82,6 +103,11 @@ export OVERRIDE_DEST_DIR
 
 if [ "$REPORT_FILE" = "false" ]; then
     echo "REPORT_FILE: $REPORT_FILE"
+fi
+
+if [ "$BACKUP_ON_START" = "true" ]; then
+    echo "BACKUP_ON_START: $BACKUP_ON_START"
+    bash ./app/backup.sh
 fi
 
 echo "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE"
