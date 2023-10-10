@@ -2,7 +2,7 @@
 FROM docker:24.0.6
 
 # Install dependencies
-RUN apk add bash rsync
+RUN apk add bash rsync tzdata
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
@@ -15,6 +15,9 @@ RUN chmod +x app/backup.sh
 
 # Make the entry script executable
 RUN chmod +x entry.sh
+
+# Set default timezone
+ENV TZ=Etc/UTC
 
 # Default = Every day at 4am
 ENV CRON_SCHEDULE="0 4 * * *"
