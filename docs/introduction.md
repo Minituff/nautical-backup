@@ -1,40 +1,58 @@
 Nautical Backup is designed to be a simple and easy way to use tool to backup your docker volumes.
+## Backups Made Easy
 
-### How it works
-Once the CRON job triggers the script to run:
+Nautical requires almost no configuration when container volumes are all in a folder matching its `container-name` within the source directory. Of course, we can use [variables](./arguments.md) to override these defaults.
+
+⚓ Here is an example of an *easy-mode* configuration:
+
+| Container Name | *Example* Source Data Directory     | *Example* Desitnation Data Directory   |
+| -------------- | ----------------------------------- | -------------------------------------- |
+| homeassistant  | `/opt/docker-volumes/homeassistant` | `/mnt/nfs-share/backups/homeassistant` |
+| unifi          | `/opt/docker-volumes/unifi`         | `/mnt/nfs-share/backups/unifi`         |
+| plex           | `/opt/docker-volumes/plex`          | `/mnt/nfs-share/backups/plex`          |
+| homepage       | `/opt/docker-volumes/homepage`      | `/mnt/nfs-share/backups/homepage`      |
+| traefik        | `/opt/docker-volumes/traefik`       | `/mnt/nfs-share/backups/traefik`       |
+| portainer      | `/opt/docker-volumes/portainer`     | `/mnt/nfs-share/backups/portainer`     |
+| trilium        | `/opt/docker-volumes/trilium`       | `/mnt/nfs-share/backups/trilium`       |
+| dozzle         | *No data directory*                 | *No backup*                            |
+
+## Logical Workflow
+Once the CRON job triggers the script to run, the following steps will be executed in order:
 
 1. All running contianers will be listed by `name` and `id`
-1. `source_location` and `destination_location` will be verified
+2. The `source` and `destination` paths will be overritten if necessary.
+    *  This is done using [overrides](./arguments.md#override-source-directory)
+3. The `source` and `destination` will be verified
     * *read* permissions for the source
-    * *read + write* permissions for the destination
-1. The container will be *skipped* if:
-    * The `container_name` does not match `source_location`
-    * The `container_name` has *no* matching `source_location`
-    * The `container_name` is in the `default_skips` list
-1. The container will be stoped ❌
-1. The `source_location` and `destination_location` will be overritten if necessary.
-1. The entire `source_location` folder will be copied to the `destination_location`
-1. The container will be started again ✔️
-1. A `Backup Report (today's date).txt` will be created in `destination_location`
-      * This report can be disabled
+    * *read & write* permissions for the destination
+4. The container will be *skipped* if:
+    * The container fails the previous step
+    * The container does not have a matching `source` folder <small>(if not using [overrides](./arguments.md#override-source-directory))</small>
+    * The container is in the [skip](./arguments.md#skip-containers) list
+5. The container will be stoped ❌
+6. The `source` folder will be copied to the `destination`
+    * Except for excluded files
+7. The container will be started again ✔️
+8. A `Backup Report (today's date).txt` will be created in `destination`
+      * This report can be disabled using [variables](./arguments.md#report-file)
 
 
-!!! warning "The `container_name` needs the same `directory` name inside the `source_location` folder."
+!!! warning "The container needs a matching `directory` name inside the `source` folder."
+    !!! abstract "Only if you are not using [overrides](./arguments.md#override-source-directory)."
     For example:
 
-    * The container named `portainer` will be backed up with the mounted directory `/source/portainer`
+    * A container named `portainer` will be backed up with the mounted directory `/source/portainer`
     
-    * The container named `trilium` will be backed up with the mounted directory `/source/trilium`
+    * A container named `trilium` will be backed up with the mounted directory `/source/trilium`
 
-    * The container named `trilium` will be ==skipped== with the mounted directory `/source/trilium-data`
+    * A container named `portainer` will be ==skipped== with the mounted directory `/source/portainer-data`
 
     A container with *no* directory will just be skipped. For example:
 
-    * The container named `dozzle` has no mounted directory, so it wil be skipped.
+    * A container named `dozzle` has no mounted directory, so it wil be skipped.
 
-<br>
 
-## Example
+## Selection Example
  This example can help explain how Nautical decides which containers to backup.
 
  Assume the `src` directory is folder mounted in the container: `-v /src:/app/source`
@@ -44,9 +62,12 @@ Once the CRON job triggers the script to run:
 | homeassistant   | `/src/homeassistant` | Backup |                                           |
 | unifi           | `/src/unifi`         | Backup |                                           |
 | tautulli        | `/src/plex-data`     | Skip   | Container name and data dir don't match   |
-| homepage        | `/src/dashboard`     | Skip   | Container name and data dir don't match   |
+| homepage        | `/src/home-continer` | Skip   | Container name and data dir don't match   |
 | dozzle          | *No data directory*  | Skip   | No data directory matching container name |
 | watchtower      | *No data directory*  | Skip   | No data directory matching container name |
 | traefik         | `/src/traefik/data`  | Backup | `traefik` and all subfolders              |
 | portainer       | `/src/portainer`     | Backup |                                           |
 | trilium         | `/src/trilium`       | Backup |                                           |
+
+!!! note "`homepage` and `tautulli` can still be backed up."
+    You just need to use [Source Location Overrides](./arguments.md#override-source-directory)

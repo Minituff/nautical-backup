@@ -1,6 +1,6 @@
 Nautical provides configuration in the form of Docker enviornment variables.
 
-See the [Installation section](./installation.md), which contains a few examples of applying envrionment variables.
+See the [Installation Section](./installation.md), which contains a few examples of applying envrionment variables.
 
 ## Time Zone
 
