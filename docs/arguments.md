@@ -4,15 +4,16 @@ See the [Installation Section](./installation.md), which contains a few examples
 
 ## Time Zone
 
-Sets the time-zone to be used by the CRON schedule. If this environment variable is not set, Nautical will use the default time zone: `UTC`.
-To change the time zone, see this [Wikipedia page](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), find your location and use the value in `TZ Database Name`, e.g `America/Los_Angeles`.
+Sets the time-zone to be used by the CRON schedule. If this environment variable is not set, Nautical will use the default time-zone: `Etc/UTC`.
+
+To change the time-zone, see this [Wikipedia page](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), find your location and use the value in `TZ Database Name`, e.g `America/Los_Angeles`.
 
 > **Default**: Etc/UTC
 
 ```properties
 TZ=America/Los_Angeles
 ```
-To verify the correct time zone, use the command `docker exec nautical-backup date`
+To verify the correct time-zone, use the command `docker exec nautical-backup date`
 
 ## CRON Schedule
 Allow changing the schedule for when the backup is started.

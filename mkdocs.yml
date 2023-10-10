@@ -43,7 +43,7 @@ nav:
 
 
 extra:
-  generator: false  # Removes Made with Material for MkDocs
+  generator: true  # "false" will Remove the "Made with Material for MkDocs" branding
 
 theme:
   name: material
