@@ -12,9 +12,12 @@ Once the CRON job triggers the script to run:
     * The `container_name` has *no* matching `source_location`
     * The `container_name` is in the `default_skips` list
 1. The container will be stoped ❌
+1. The `source_location` and `destination_location` will be overritten if necessary.
 1. The entire `source_location` folder will be copied to the `destination_location`
 1. The container will be started again ✔️
 1. A `Backup Report (today's date).txt` will be created in `destination_location`
+      * This report can be disabled
+
 
 !!! warning "The `container_name` needs the same `directory` name inside the `source_location` folder."
     For example:

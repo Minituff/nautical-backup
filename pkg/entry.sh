@@ -65,10 +65,24 @@ export SELF_CONTAINER_ID=$(cat /proc/self/cgroup | grep 'docker' | sed 's/^.*\//
 # Add the self container ID to the default skips
 CONTAINER_SKIP_LIST+=("$SELF_CONTAINER_ID")
 
-
 CONTAINER_SKIP_LIST_STR=$(IFS=,; echo "${CONTAINER_SKIP_LIST[*]}") # Convert the array to a string
 export CONTAINER_SKIP_LIST_STR # Export the string
 
+# Assuming OVERRIDE_SOURCE_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
+if [ ! -z "$OVERRIDE_SOURCE_DIR" ]; then
+    echo "OVERRIDE_SOURCE_DIR: ${OVERRIDE_SOURCE_DIR}"
+fi
+export OVERRIDE_SOURCE_DIR
+
+# Assuming OVERRIDE_DEST_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
+if [ ! -z "$OVERRIDE_DEST_DIR" ]; then
+    echo "OVERRIDE_DEST_DIR: ${OVERRIDE_DEST_DIR}"
+fi
+export OVERRIDE_DEST_DIR
+
+if [ "$REPORT_FILE" = "false" ]; then
+    echo "REPORT_FILE: $REPORT_FILE"
+fi
 
 echo "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE"
 

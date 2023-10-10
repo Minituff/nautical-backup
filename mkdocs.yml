@@ -35,6 +35,7 @@ nav:
  - Home: index.md
  - Introduction: introduction.md
  - Installation: installation.md
+ - Arguments: arguments.md
  - Q & A: q-and-a.md
  - To Do: todo.md
 

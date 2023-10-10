@@ -7,6 +7,26 @@ if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
     IFS=',' read -ra SKIP_CONTAINERS <<< "$CONTAINER_SKIP_LIST_STR"
 fi
 
+declare -A override_source_dirs
+
+if [ ! -z "$OVERRIDE_SOURCE_DIR" ]; then
+    IFS=',' read -ra PAIRS <<< "$OVERRIDE_SOURCE_DIR"
+    for pair in "${PAIRS[@]}"; do
+        IFS=':' read -ra KV <<< "$pair"
+        override_source_dirs[${KV[0]}]=${KV[1]}
+    done
+fi
+
+declare -A override_dest_dirs
+
+if [ ! -z "$OVERRIDE_DEST_DIR" ]; then
+    IFS=',' read -ra PAIRS <<< "$OVERRIDE_DEST_DIR"
+    for pair in "${PAIRS[@]}"; do
+        IFS=':' read -ra KV <<< "$pair"
+        override_dest_dirs[${KV[0]}]=${KV[1]}
+    done
+fi
+
 # Fetch both container names and IDs
 containers=$(docker ps --no-trunc --format="{{.ID}}:{{.Names}}")
 number_of_containers=$(echo "$containers" | wc -l)
@@ -18,10 +38,14 @@ echo "Processing $number_of_containers containers..."
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
 
 # Remove previous report files
-rm -f "$DEST_LOCATION/Backup Report - "*.txt
 
 # Initialize the current report file with a header
-echo "Backup Report - $(date)" > "$DEST_LOCATION/$report_file"
+if [ "$REPORT_FILE" = "true" ]; then
+    rm -f "$DEST_LOCATION/Backup Report - "*.txt
+    # Initialize the current report file with a header
+    echo "Backup Report - $(date)" > "$DEST_LOCATION/$report_file"
+fi
+
 
 # Get arguments:
 # -s = skips
@@ -41,13 +65,32 @@ containers_completed=0
 log_entry() {
     local message="$1"
     echo "$message"
-    echo "$(date) - $message" >> "$DEST_LOCATION/$report_file"
+    
+    if [ "$REPORT_FILE" = "true" ]; then
+        echo "$(date) - $message" >> "$DEST_LOCATION/$report_file"
+    fi
 }
+
 
 BackupContainer() {
     local container=$1
 
-    if [ -d "$SOURCE_LOCATION/$container" ]; then
+    
+    local src_dir="$SOURCE_LOCATION/$container" # Determine the source directory to use for this container
+    
+    if [ ! -z "${override_source_dirs[$container]}" ]; then
+        src_dir="$SOURCE_LOCATION/${override_source_dirs[$container]}"
+        echo "Overriding source directory for $container to ${override_source_dirs[$container]}"
+    fi
+
+    local dest_dir="$DEST_LOCATION/$container" # Determine the source directory to use for this container
+
+    if [ ! -z "${override_dest_dirs[$container]}" ]; then
+        dest_dir="$DEST_LOCATION/${override_dest_dirs[$container]}"
+        echo "Overriding destination directory for $container to ${override_dest_dirs[$container]}"
+    fi
+
+    if [ -d "$src_dir" ]; then
 
         log_entry "Stopping $container..."
         docker stop $container 2>&1 >/dev/null
@@ -57,7 +100,7 @@ BackupContainer() {
         fi
 
         log_entry "Backing up $container data..."
-        rsync -ah -q --info=progress2 --exclude '*.log' $SOURCE_LOCATION/$container/ $DEST_LOCATION/$container/
+        rsync -ah -q --info=progress2 --exclude '*.log' $src_dir/ $dest_dir/
 
         if [ $? -ne 0 ]; then
             log_entry "Error copying data for container $container. Skipping backup for this container."
@@ -82,7 +125,7 @@ BackupContainer() {
         log_entry "$container completed."
         ((containers_completed++))
     else
-        log_entry "Directory $SOURCE_LOCATION/$container does not exist. Skipping"
+        log_entry "Directory $src_dir does not exist. Skipping"
     fi
 }
 

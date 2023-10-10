@@ -19,5 +19,8 @@ RUN chmod +x entry.sh
 # Default = Every day at 4am
 ENV CRON_SCHEDULE="0 4 * * *"
 
+# Default enable the report file
+ENV REPORT_FILE="true"
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
