@@ -38,6 +38,8 @@ nav:
  - Variables: arguments.md
  - Q & A: q-and-a.md
  - To Do: todo.md
+ - Developer Documentation:
+   - Contributing to the Docs: docs.md
 
 
 extra:
