@@ -2,7 +2,7 @@
 version: '3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:0.0.5 #(7)!
+    image: minituff/nautical-backup:0.0.6 #(7)!
     container_name: nautical-backup
     hostname: nautical-backup
     restart: unless-stopped
