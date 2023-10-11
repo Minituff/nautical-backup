@@ -4,6 +4,7 @@
     "config:base"
   ],
   "useBaseBranchConfig": "merge",
+  "baseBranches": ["main", "dev"],
   "customManagers": [
     {
       "customType": "regex",
