@@ -4,14 +4,11 @@ services:
   nautical-backup:
     image: minituff/nautical-backup:0.0.7 #(7)!
     container_name: nautical-backup
-    hostname: nautical-backup
-    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock #(1)!
       - /source:/app/source #(2)!
       - /destination:/app/destination #(3)!
-    environment:
-      # Optional variables (4)
-      - TZ=America/Los_Angeles
+    environment: # Optional variables (4)
+      - TZ=America/Los_Angeles #(8)!
       - CRON_SCHEDULE=0 4 * * * #(5)!
       - SKIP_CONTAINERS=example1,example2,example3 #(6)!
