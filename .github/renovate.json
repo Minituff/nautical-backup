@@ -18,11 +18,11 @@
   "packageRules": [
     {
       "description": "Auto merge nautical-backup docker image version updates in documentation",
+      "groupName": "docs",
       "matchFileNames": [
         ".*docker-run-example",
         ".*docker-compose-example.yml"
       ],
-      "autoMergeType": "branch",
       "automerge": true
     }
   ]
