@@ -10,7 +10,7 @@
         "^docker-run-example.sh$"
       ],
       "matchStrings": [
-        "minituff\/nautical-backup:(?<currentValue>.*?) "
+        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
       ],
       "datasourceTemplate": "docker"
     }
