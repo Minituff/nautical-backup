@@ -12,7 +12,7 @@
       "matchStrings": [
         "minituff\/nautical-backup:(?<currentValue>.*?) "
       ],
-      "datasourceTemplate ": "docker"
+      "datasourceTemplate": "docker"
     }
   ]
 }
