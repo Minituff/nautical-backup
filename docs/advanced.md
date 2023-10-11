@@ -1,4 +1,4 @@
-These exmaples used Docker Compose syntax. See the [Installation section](./installation.md#docker-compose-example) to fit them into your configutation.
+These exmaples used Docker Compose syntax. See the [Installation section](./installation.md#docker-compose-example) to fit them into your configuration.
 
 ## Alternative Source Directories
 Don't have all your container volumes in the same directory? That's okay, we can use Docker volume mappings to help.
