@@ -16,12 +16,13 @@ Full documentation is available at [https://minituff.github.io/nautical-backup](
 
 ### Quick Start
 
+Docker Compose
 ```yaml
 ---
 version: '3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:0.0.6 
+    image: minituff/nautical-backup:0.0.7
     container_name: nautical-backup
     hostname: nautical-backup
     restart: unless-stopped
@@ -35,7 +36,7 @@ services:
       - CRON_SCHEDULE=0 4 * * *
       - SKIP_CONTAINERS=example1,example2,example3
 ```
-
+Docker Run
 ```bash
 docker run -d \
   --name nautical-backup \
@@ -44,5 +45,5 @@ docker run -d \
   -v /destination:/app/destination \
   -e CRON_SCHEDULE="0 4 * * *" \
   -e SKIP_CONTAINERS="example1,example2,example3" \
-  minituff/nautical-backup:0.0.6
+  minituff/nautical-backup:0.0.7
 ```
