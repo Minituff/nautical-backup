@@ -1,7 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:base",
+    "docker:enableMajor"
   ],
   "prHourlyLimit":	0,
   "customManagers": [
@@ -13,7 +14,7 @@
         "README.md"
       ],
       "matchStrings": [
-        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?)[ |$|\n]"
+        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?)([ |$|\n])"
       ],
       "datasourceTemplate": "docker"
     }

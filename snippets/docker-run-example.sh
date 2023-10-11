@@ -5,4 +5,4 @@ docker run -d \
   -v /destination:/app/destination \ #(3)!
   -e CRON_SCHEDULE="0 4 * * *" \ #(5)!
   -e SKIP_CONTAINERS="example1,example2,example3" \ #(6)!
-  minituff/nautical-backup:0.0.6 #(7)!
+  minituff/nautical-backup:0.0.4 #(7)!
