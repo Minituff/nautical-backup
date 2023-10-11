@@ -7,7 +7,7 @@
     {
       "customType": "regex",
       "fileMatch": [
-        "snippets(\\|\/)docker-run-example.sh"
+        ".*docker-run-example"
       ],
       "matchStrings": [
         "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
