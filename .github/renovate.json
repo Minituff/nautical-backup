@@ -1,16 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:base",
+    "docker:enableMajor"
   ],
+  "prHourlyLimit":	0,
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Self Docker image version updates",
       "fileMatch": [
-        ".*docker-run-example"
+        ".*docker-run-example",
+        "README.md"
       ],
       "matchStrings": [
-        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
+        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?)([ |$|\n])"
       ],
       "datasourceTemplate": "docker"
     }
@@ -20,10 +24,14 @@
       "description": "Auto merge nautical-backup docker image version updates in documentation",
       "groupName": "docs",
       "matchFileNames": [
-        ".*docker-run-example",
-        ".*docker-compose-example.yml"
+        "docs/**",
+        "snippets/**",
+        "README.md"
       ],
-      "automerge": true
+      "automerge": true,
+      "labels": ["documentation"],
+      "assignees": ["minituff"],
+      "ignoreTests": true
     }
   ]
 }

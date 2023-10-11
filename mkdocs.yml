@@ -1,7 +1,7 @@
 site_name: Nautical Backup
 site_description: 'A simple Docker volume backup tool.'
 site_author: 'James Tufarelli'
-site_url: 'https://minituff.github.io/nautical-backup'
+site_url: 'https://minituff.github.io/nautical-backup/'
 edit_uri: 'edit/main/docs/'
 
 # Repository
@@ -35,6 +35,7 @@ nav:
  - Home: index.md
  - Introduction: introduction.md
  - Installation: installation.md
+ - Advanced Usage: advanced.md
  - Variables: arguments.md
  - Q & A: q-and-a.md
  - To Do: todo.md
@@ -44,6 +45,8 @@ nav:
 
 extra:
   generator: true  # "false" will Remove the "Made with Material for MkDocs" branding
+  # version:
+  #   provider: mike
 
 theme:
   name: material
