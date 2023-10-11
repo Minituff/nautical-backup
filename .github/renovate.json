@@ -29,7 +29,8 @@
       ],
       "automerge": true,
       "labels": ["documentation"],
-      "assignees": ["minituff"]
+      "assignees": ["minituff"],
+      "ignoreTests": true
     }
   ]
 }
