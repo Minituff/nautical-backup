@@ -18,20 +18,15 @@ Full documentation is available at [https://minituff.github.io/nautical-backup](
 
 Docker Compose
 ```yaml
----
-version: '3'
 services:
   nautical-backup:
     image: minituff/nautical-backup:0.0.7
     container_name: nautical-backup
-    hostname: nautical-backup
-    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /source:/app/source
       - /destination:/app/destination
-    environment:
-      # Optional variables
+    environment: # Optional variables
       - TZ=America/Los_Angeles
       - CRON_SCHEDULE=0 4 * * *
       - SKIP_CONTAINERS=example1,example2,example3
