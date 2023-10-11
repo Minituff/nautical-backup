@@ -6,17 +6,9 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Docker image version updates",
       "fileMatch": [
-        ".*docker-run-example"
-      ],
-      "matchStrings": [
-        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
-      ],
-      "datasourceTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "fileMatch": [
+        ".*docker-run-example",
         "README.md"
       ],
       "matchStrings": [
