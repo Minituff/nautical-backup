@@ -12,7 +12,7 @@
         "README.md"
       ],
       "matchStrings": [
-        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
+        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?)[ |$|\n]"
       ],
       "datasourceTemplate": "docker"
     }
