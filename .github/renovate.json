@@ -14,5 +14,14 @@
       ],
       "datasourceTemplate": "docker"
     }
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": [
+        ".*docker-run-example",
+        ".*docker-compose-example.yml"
+      ],
+      "automerge": true
+    }
   ]
 }
