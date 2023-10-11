@@ -3,11 +3,22 @@
   "extends": [
     "config:base"
   ],
+  "useBaseBranchConfig": "merge",
   "customManagers": [
     {
       "customType": "regex",
       "fileMatch": [
         ".*docker-run-example"
+      ],
+      "matchStrings": [
+        "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "README.md"
       ],
       "matchStrings": [
         "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?) "
@@ -21,9 +32,11 @@
       "groupName": "docs",
       "matchFileNames": [
         ".*docker-run-example",
-        ".*docker-compose-example.yml"
+        ".*docker-compose-example.yml",
+        "README.md"
       ],
-      "automerge": true
+      "automerge": true,
+      "labels": ["documentation"]
     }
   ]
 }
