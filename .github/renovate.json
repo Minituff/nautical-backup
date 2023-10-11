@@ -7,7 +7,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Docker image version updates",
+      "description": "Self Docker image version updates",
       "fileMatch": [
         ".*docker-run-example",
         "README.md"
@@ -28,7 +28,8 @@
         "README.md"
       ],
       "automerge": true,
-      "labels": ["documentation"]
+      "labels": ["documentation"],
+      "assignees": ["minituff"]
     }
   ]
 }
