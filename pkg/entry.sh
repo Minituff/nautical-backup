@@ -105,6 +105,14 @@ if [ "$REPORT_FILE" = "false" ]; then
     echo "REPORT_FILE: $REPORT_FILE"
 fi
 
+# Set rsync custom arguments if specified
+if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
+    echo "RSYNC_CUSTOM_ARGS: $RSYNC_CUSTOM_ARGS"
+fi
+
+
+
+
 if [ "$BACKUP_ON_START" = "true" ]; then
     echo "BACKUP_ON_START: $BACKUP_ON_START"
     bash ./app/backup.sh

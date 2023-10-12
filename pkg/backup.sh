@@ -56,6 +56,13 @@ if [ "$REPORT_FILE" = "true" ]; then
 fi
 
 
+# Global variables to hold rsync arguments
+custom_args=""
+if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
+    custom_args="$RSYNC_CUSTOM_ARGS"
+fi
+
+
 # Get arguments:
 # -s = skips
 # -d = override DEST_LOCATION
@@ -117,7 +124,9 @@ BackupContainer() {
         fi
 
         log_entry "Backing up $container data..."
-        rsync -ah -q --info=progress2 --exclude '*.log' $src_dir/ $dest_dir/
+        # rsync -ah -q --info=progress2 --exclude '*.log' $src_dir/ $dest_dir/
+        # echo rsync -ah -q $custom_args --info=progress2 $src_dir/ $dest_dir/ 
+        rsync -ah -q --info=progress2 $src_dir/ $dest_dir/ 2>&1 >/dev/null
 
         if [ $? -ne 0 ]; then
             log_entry "Error copying data for container $container. Skipping backup for this container."
@@ -168,4 +177,6 @@ for entry in $containers; do
     fi
 done
 
-echo "Success. $containers_completed containers backed up!"
+containers_skipped=$((number_of_containers - containers_completed))
+
+echo "Success. $containers_completed containers backed up! $containers_skipped skipped."
