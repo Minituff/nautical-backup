@@ -1,8 +1,8 @@
 # Use base docker image. Contains the docker commands we need to start and stop containers
-FROM docker:24.0.6
+FROM docker:24.0.6-cli
 
 # Install dependencies
-RUN apk add bash rsync tzdata
+RUN apk add bash rsync tzdata dos2unix
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
@@ -11,10 +11,10 @@ COPY pkg app
 RUN mv app/entry.sh /entry.sh
 
 # Make the script executable
-RUN chmod +x app/backup.sh
+RUN chmod +x app/backup.sh && dos2unix app/backup.sh
 
 # Make the entry script executable
-RUN chmod +x entry.sh
+RUN chmod +x entry.sh && dos2unix entry.sh
 
 # Set default timezone
 ENV TZ=Etc/UTC
