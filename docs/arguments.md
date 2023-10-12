@@ -133,6 +133,8 @@ USE_DEFAULT_RSYNC_ARGS=false
 ## Custom rsync Arguments
 Apply custom `rsync` args <small>(in addition to the [default](#use-default-rsync-arguments) args)</small>
 
+> **Default**: *empty*
+
 The `RSYNC_CUSTOM_ARGS` will be inserted after the `$DEFAULT_RSYNC_ARGS` as shown:
 ```bash
 rsync $DEFAULT_RSYNC_ARGS $RSYNC_CUSTOM_ARGS $src_dir/ $dest_dir/
