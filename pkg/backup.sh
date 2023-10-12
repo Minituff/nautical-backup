@@ -55,6 +55,10 @@ if [ "$REPORT_FILE" = "true" ]; then
     echo "Backup Report - $(date)" > "$DEST_LOCATION/$report_file"
 fi
 
+default_rsync_args="-ahq"
+if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
+    default_rsync_args=""
+fi
 
 # Global variables to hold rsync arguments
 custom_args=""
@@ -124,9 +128,10 @@ BackupContainer() {
         fi
 
         log_entry "Backing up $container data..."
-        # rsync -ah -q --info=progress2 --exclude '*.log' $src_dir/ $dest_dir/
-        # echo rsync -ah -q $custom_args --info=progress2 $src_dir/ $dest_dir/ 
-        rsync -ah -q --info=progress2 $src_dir/ $dest_dir/ 2>&1 >/dev/null
+        if [ "$LOG_RSYNC_COMMANDS" = "true" ]; then
+            echo rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
+        fi
+        eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
 
         if [ $? -ne 0 ]; then
             log_entry "Error copying data for container $container. Skipping backup for this container."

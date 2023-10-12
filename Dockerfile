@@ -28,5 +28,14 @@ ENV REPORT_FILE="true"
 # Run the backup immediately on start
 ENV BACKUP_ON_START="false"
 
+# Log each rsync command to console before running (useful for debugging)
+ENV LOG_RSYNC_COMMANDS="false"
+
+# Use the default rsync args "-raq" (recursive, archive, quiet)
+ENV USE_DEFAULT_RSYNC_ARGS="true"
+
+# Apply custom rsync args (in addition to the default args)
+ENV RSYNC_CUSTOM_ARGS=""
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
