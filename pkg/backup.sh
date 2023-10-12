@@ -132,7 +132,6 @@ BackupContainer() {
             echo rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
         fi
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
-        # eval rsync $default_rsync_args $src_dir/ $dest_dir/
 
         if [ $? -ne 0 ]; then
             log_entry "Error copying data for container $container. Skipping backup for this container."
