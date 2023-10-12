@@ -103,5 +103,49 @@ Will immediatly perform a backup when the container is started in addition to th
 ```properties
 BACKUP_ON_START=true
 ```
+
+## Log rsync Commands
+
+Log each `rsync` command to console before running <small>(useful for debugging)</small>
+
+> **Default**: false
+
+```properties
+LOG_RSYNC_COMMANDS=true
+```
+You should see something like this in the Nautical contianer logs:
+```console
+rsync -ahq --exclude='*.log' --exclude='*.txt' /app/source/watchtower/ /app/destination/watchtower/
+```
+
+## Use Default rsync Arguments
+
+Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
+
+Useful when using [Custom rsync Arugments](#custom-rsync-arguments)
+
+> **Default**: true
+
+```properties
+USE_DEFAULT_RSYNC_ARGS=false
+```
+
+## Custom rsync Arguments
+Apply custom `rsync` args <small>(in addition to the [default](#use-default-rsync-arguments) args)</small>
+
+The `RSYNC_CUSTOM_ARGS` will be inserted after the `$DEFAULT_RSYNC_ARGS` as shown:
+```bash
+rsync $DEFAULT_RSYNC_ARGS $RSYNC_CUSTOM_ARGS $src_dir/ $dest_dir/
+```
+
+
+There are many `rsync` arguments and customizations that be be used here.
+
+Examples:
+```properties
+# Don't backup any .log or any .txt files
+RSYNC_CUSTOM_ARGS=--exclude='*.log' --exclude='*.txt'
+```
+
 <br>
 <br>

@@ -110,7 +110,13 @@ if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
     echo "RSYNC_CUSTOM_ARGS: $RSYNC_CUSTOM_ARGS"
 fi
 
+if [ "$LOG_RSYNC_COMMANDS" = "true" ]; then
+    echo "LOG_RSYNC_COMMANDS: $LOG_RSYNC_COMMANDS"
+fi
 
+if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
+    echo "USE_DEFAULT_RSYNC_ARGS: $USE_DEFAULT_RSYNC_ARGS"
+fi
 
 
 if [ "$BACKUP_ON_START" = "true" ]; then
