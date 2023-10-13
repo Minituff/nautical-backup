@@ -44,9 +44,26 @@ SKIP_CONTAINERS=container-name1,056bd2e970c1338782733fdbf1009c6e158c715d0d105b11
     * `docker inspect <container name>`
 
 ## Override Source Directory
+Allows a source directory and container-name that do not match.
 
 > **Default**: *empty*
 
+> **Format**: `<container-name>:<local source folder name>`  <small>(comma seperated for multiple items)</small>
+
+Normally a container is backed up *only* when the `container-name` is the exact same as the `source folder name`.
+
+Example 1:
+
+For example, a container named `Pi.Alert` will be skipped with a source directory name of `pialert`.
+To fix this, we can override the source directory name so that it does not need to match the container name.
+
+```properties
+OVERRIDE_SOURCE_DIR=Pi.Alert:pialert
+```
+
+Example 2:
+
+We can override multiple containers if we seperate them with a comma.
 ```properties
 OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
 ```
@@ -58,8 +75,25 @@ OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
 | ctr2           | `src/ctr2`           | `src/newdest`                |
 
 ## Override Destination Directory
+Changes the destination backup name to be something other than the container name.
 
 > **Default**: *empty*
+
+> **Format**: `<container-name>:<new destination folder name>`  <small>(comma seperated for multiple items)</small>
+
+Normally, a container is backed to a folder with the ^^same name^^ as the `container-name`. 
+
+Example 1:
+
+For example, let's say we have a container named `Pi.Alert`. By default, the container will be backed up to a folder named `Pi.Alert`.
+If we want to change this destination folder name to be `pialert`, we can do that using overrides.
+
+```properties
+OVERRIDE_DEST_DIR=Pi.Alert:pialert
+```
+
+
+Example 2:
 
 ```properties
 OVERRIDE_DEST_DIR=example1:example1-new-dest-data,ctr2:newdest
