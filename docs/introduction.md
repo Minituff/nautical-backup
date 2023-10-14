@@ -1,4 +1,4 @@
-Nautical Backup is designed to be a simple and easy way to use tool to backup your docker volumes.
+Nautical Backup is designed to be a simple tool to backup your docker volumes.
 
 Essentially, this is an automated and configurable backup tool built around [rsync](https://en.wikipedia.org/wiki/Rsync). 
 ## Backups Made Easy
