@@ -43,6 +43,17 @@ SKIP_CONTAINERS=container-name1,056bd2e970c1338782733fdbf1009c6e158c715d0d105b11
     * `docker ps --no-trunc`
     * `docker inspect <container name>`
 
+## Require Label
+Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *each* contianer or it will be skipped.
+
+> **Default**: false
+
+```properties
+REQUIRE_LABEL=true
+```
+
+See the [Labels Enable Section](./labels.md#enable-nautical) for more details.
+
 ## Override Source Directory
 Allows a source directory and container-name that do not match.
 

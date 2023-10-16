@@ -4,24 +4,23 @@ echo "Starting backup script..."
 
 # Convert the string back to an array
 if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
-    IFS=',' read -ra SKIP_CONTAINERS <<< "$CONTAINER_SKIP_LIST_STR"
+    IFS=',' read -ra SKIP_CONTAINERS <<<"$CONTAINER_SKIP_LIST_STR"
 fi
 
 # Convert the string back to an array
 if [ ! -z "$SKIP_STOPPING_STR" ]; then
-    IFS=',' read -ra SKIP_STOPPING <<< "$SKIP_STOPPING_STR"
+    IFS=',' read -ra SKIP_STOPPING <<<"$SKIP_STOPPING_STR"
 fi
-
 
 # Function to populate override directories
 populate_override_dirs() {
-    local -n override_dirs_ref=$1  # Use nameref to update the associative array passed as argument
-    local override_var=$2          # The environment variable containing the override info
-    
+    local -n override_dirs_ref=$1 # Use nameref to update the associative array passed as argument
+    local override_var=$2         # The environment variable containing the override info
+
     if [ ! -z "$override_var" ]; then
-        IFS=',' read -ra PAIRS <<< "$override_var"
+        IFS=',' read -ra PAIRS <<<"$override_var"
         for pair in "${PAIRS[@]}"; do
-            IFS=':' read -ra KV <<< "$pair"
+            IFS=':' read -ra KV <<<"$pair"
             override_dirs_ref[${KV[0]}]=${KV[1]}
         done
     fi
@@ -34,7 +33,6 @@ declare -A override_dest_dirs
 # Populate the arrays
 populate_override_dirs override_source_dirs "$OVERRIDE_SOURCE_DIR"
 populate_override_dirs override_dest_dirs "$OVERRIDE_DEST_DIR"
-
 
 # Fetch both container names and IDs
 containers=$(docker ps --no-trunc --format="{{.ID}}:{{.Names}}")
@@ -52,7 +50,7 @@ report_file="Backup Report - $(date +'%Y-%m-%d').txt"
 if [ "$REPORT_FILE" = "true" ]; then
     rm -f "$DEST_LOCATION/Backup Report - "*.txt
     # Initialize the current report file with a header
-    echo "Backup Report - $(date)" > "$DEST_LOCATION/$report_file"
+    echo "Backup Report - $(date)" >"$DEST_LOCATION/$report_file"
 fi
 
 default_rsync_args="-ahq"
@@ -65,7 +63,6 @@ custom_args=""
 if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
     custom_args="$RSYNC_CUSTOM_ARGS"
 fi
-
 
 # Get arguments:
 # -s = skips
@@ -85,12 +82,11 @@ containers_completed=0
 log_entry() {
     local message="$1"
     echo "$message"
-    
+
     if [ "$REPORT_FILE" = "true" ]; then
-        echo "$(date) - $message" >> "$DEST_LOCATION/$report_file"
+        echo "$(date) - $message" >>"$DEST_LOCATION/$report_file"
     fi
 }
-
 
 BackupContainer() {
     local container=$1
@@ -99,9 +95,19 @@ BackupContainer() {
     for skip in "${SKIP_STOPPING[@]}"; do
         if [ "$skip" == "$container" ]; then
             skip_stopping=1
+            log_entry "Skipping stopping of $container as it's in the SKIP_STOPPING list."
             break
         fi
     done
+
+    # Use docker inspect to get the labels for the container
+    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
+
+    # Check if the label nautical-backup.skip is set to true
+    if echo "$labels" | grep -q '"nautical-backup.stop-before-backup":"false"'; then
+        log_entry "Skipping stopping of $container because of label."
+        skip_stopping=1
+    fi
 
     local src_dir="$SOURCE_LOCATION/$container"
     if [ ! -z "${override_source_dirs[$container]}" ]; then
@@ -123,8 +129,6 @@ BackupContainer() {
                 log_entry "Error stopping container $container. Skipping backup for this container."
                 return
             fi
-        else
-            log_entry "Skipping stopping of $container as it's in the SKIP_STOPPING list."
         fi
 
         log_entry "Backing up $container data..."
@@ -153,21 +157,37 @@ BackupContainer() {
     fi
 }
 
-
 # Loop through all running containers
 IFS=$'\n'
 for entry in $containers; do
     id=${entry%%:*}
     name=${entry##*:}
-
     skip=0
+
+    if [ "$REQUIRE_LABEL" = "true" ]; then
+        skip=1 # Skip by default unless lable is found
+    fi
+
+    # Use docker inspect to get the labels for the container
+    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
+
+    if echo "$labels" | grep -q '"nautical-backup.enable":"true"'; then
+        echo "Enabling $name based on label."
+        skip=0
+    fi
+
+    if echo "$labels" | grep -q '"nautical-backup.skip":"true"'; then
+        echo "Skipping $name based on label."
+        skip=1 # Add the container to the skip list
+    fi
+
     for cur in "${SKIP_CONTAINERS[@]}"; do
         if [ "$cur" == "$name" ]; then
             skip=1
             echo "Skipping $name based on name."
             break
         fi
-        if [ "$cur" == "$id" ] ; then
+        if [ "$cur" == "$id" ]; then
             skip=1
             if [ "$cur" == "$SELF_CONTAINER_ID" ]; then
                 break # Exclude self from logs

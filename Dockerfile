@@ -37,5 +37,8 @@ ENV USE_DEFAULT_RSYNC_ARGS="true"
 # Apply custom rsync args (in addition to the default args)
 ENV RSYNC_CUSTOM_ARGS=""
 
+# Require the Docker Label `nautical-backup.enable=true` to be present on each contianer or it will be skipped.
+ENV REQUIRE_LABEL="false"
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]

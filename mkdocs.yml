@@ -37,6 +37,7 @@ nav:
  - Installation: installation.md
  - Advanced Usage: advanced.md
  - Variables: arguments.md
+ - Docker Labels: labels.md
  - Q & A: q-and-a.md
  - To Do: todo.md
  - Developer Documentation:
