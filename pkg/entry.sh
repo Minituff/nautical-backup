@@ -118,6 +118,9 @@ if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
     echo "USE_DEFAULT_RSYNC_ARGS: $USE_DEFAULT_RSYNC_ARGS"
 fi
 
+if [ "$REQUIRE_LABEL" = "true" ]; then
+    echo "REQUIRE_LABEL: $REQUIRE_LABEL"
+fi
 
 if [ "$BACKUP_ON_START" = "true" ]; then
     echo "BACKUP_ON_START: $BACKUP_ON_START"
