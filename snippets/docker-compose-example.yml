@@ -2,7 +2,7 @@
 version: '3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:0.1.1 #(7)!
+    image: minituff/nautical-backup:0.2.0 #(7)!
     container_name: nautical-backup
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock #(1)!
