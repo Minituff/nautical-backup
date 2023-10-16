@@ -94,7 +94,7 @@ We added 2 additional destination volumes: `pihole` and `plex`. The end result w
 volumes:
   # Standard config
   - /var/run/docker.sock:/var/run/docker.sock
-  - /destination:/app/destination
+  - /source:/app/source
   # Alternative destination directories examples
   - /opt/pihole:/app/destination/pihole
   - /opt/trilium:/app/destination/trilium
