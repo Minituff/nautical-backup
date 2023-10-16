@@ -115,10 +115,22 @@ BackupContainer() {
         log_entry "Overriding source directory for $container to ${override_source_dirs[$container]}"
     fi
 
+    if echo "$labels" | grep -q '"nautical-backup.override-source-dir"'; then
+        new_src_dir=$(echo "$labels" | jq -r '.["nautical-backup.override-source-dir"]')
+        src_dir="$SOURCE_LOCATION/$new_src_dir"
+        log_entry "Overriding source directory for $container to $new_src_dir from label"
+    fi
+
     local dest_dir="$DEST_LOCATION/$container"
     if [ ! -z "${override_dest_dirs[$container]}" ]; then
         dest_dir="$DEST_LOCATION/${override_dest_dirs[$container]}"
         log_entry "Overriding destination directory for $container to ${override_dest_dirs[$container]}"
+    fi
+
+    if echo "$labels" | grep -q '"nautical-backup.override-destination-dir"'; then
+        new_destination_dir=$(echo "$labels" | jq -r '.["nautical-backup.override-destination-dir"]')
+        dest_dir="$DEST_LOCATION/$new_destination_dir"
+        log_entry "Overriding destination directory for $container to $new_destination_dir from label"
     fi
 
     if [ -d "$src_dir" ]; then

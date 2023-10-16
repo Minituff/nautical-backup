@@ -80,8 +80,10 @@ Skip any containers completely if this label is present.
 nautical-backup.skip=true
 ```
 
+<small>🔄 This is the same action as the [Skip Containers](./arguments.md#skip-containers) variable, but applied only to this container.</small>
+
 ## Stop Before Backup
-Similar to the [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable. 
+
 With this label applied, the container will not be stopped before performing a backup.
 
 > **Default If Missing**: false
@@ -89,3 +91,44 @@ With this label applied, the container will not be stopped before performing a b
 ```properties
 nautical-backup.stop-before-backup=true
 ```
+
+!!! warning "Not stoppping containers can produce *corrupt* backups."
+    Containers with databases--particularly SQL--need to be shutdown before backup.
+
+    Only do this on containers you know for certain do not need to be shutdown before backup.
+
+<small>🔄 This is the same action [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable, but applied only to this container.</small>
+
+## Override Source Directory Name
+
+Changes the source directory name that Nautical will look for.
+
+By default, Nautical will look for the source directory that is the same name as the container name.
+
+> **Default If Missing**: *empty* <small>(use container name)</small>
+
+=== "Example 1"
+    ```properties
+    nautical-backup.override-source-dir=new_folder_name
+    ```
+
+=== "Example 2"
+    To backup the container `Pi.Alert`, the source directory name must be named `Pi.Alert`, but we can use the override to allow a backup of the folder named `pialert`.
+    ```properties
+    nautical-backup.override-source-dir=pialert
+    ```
+
+<small>🔄 This is the same action as the [Override Source Directory](./arguments.md#override-source-directory) variable, but applied only to this container.</small>
+
+## Override Destination Directory Name
+Changes the destination/output directory name that Nautical will create during backups.
+
+By default, Nautical will create destination directory that is the same name as the container name.
+
+> **Default If Missing**: *empty* <small>(use container name)</small>
+
+```properties
+nautical-backup.override-destination-dir=new_folder_name
+```
+
+<small>🔄 This is the same action as the [Override Destination Directory](./arguments.md#override-destination-directory) variable, but applied only to this container.</small>

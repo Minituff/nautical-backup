@@ -2,7 +2,7 @@
 FROM docker:24.0.6-cli
 
 # Install dependencies
-RUN apk add bash rsync tzdata dos2unix
+RUN apk add bash rsync tzdata dos2unix jq
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
