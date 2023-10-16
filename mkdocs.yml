@@ -35,9 +35,9 @@ nav:
  - Home: index.md
  - Introduction: introduction.md
  - Installation: installation.md
- - Advanced Usage: advanced.md
  - Variables: arguments.md
  - Docker Labels: labels.md
+ - Advanced Usage: advanced.md
  - Q & A: q-and-a.md
  - To Do: todo.md
  - Developer Documentation:

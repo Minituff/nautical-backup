@@ -2,6 +2,10 @@ Nautical provides configuration in the form of Docker enviornment variables.
 
 See the [Installation Section](./installation.md), which contains a few examples of applying enviornment variables.
 
+### Enviornment Variable vs Label Priority
+If a container has an Enviornment Variable applied as well as a conflicting Label, then:
+> The continer Label takes priority over the global Natical enviornment variable.
+
 ## Time Zone
 
 Sets the time-zone to be used by the CRON schedule. If this environment variable is not set, Nautical will use the default time-zone: `Etc/UTC`.

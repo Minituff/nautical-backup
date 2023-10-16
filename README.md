@@ -8,8 +8,8 @@ A simple Docker volume backup tool.
 <br>
 
   [![Pulls from DockerHub](https://img.shields.io/docker/pulls/minituff/nautical-backup?logo=docker)](https://hub.docker.com/r/minituff/nautical-backup)
-  [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/minituff/nautical-backup)](https://hub.docker.com/r/minituff/nautical-backup)
-  [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/minituff/nautical-backup/latest)](https://hub.docker.com/r/minituff/nautical-backup)
+  [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/minituff/nautical-backup?label=latest%20version)](https://hub.docker.com/r/minituff/nautical-backup)
+  [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/minituff/nautical-backup/latest?label=size)](https://hub.docker.com/r/minituff/nautical-backup)
 
 
 
@@ -23,6 +23,7 @@ Full documentation is available at [https://minituff.github.io/nautical-backup](
 
 Docker Compose
 ```yaml
+version: '3'
 services:
   nautical-backup:
     image: minituff/nautical-backup:0.1.1
