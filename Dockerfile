@@ -16,6 +16,10 @@ RUN chmod +x app/backup.sh && dos2unix app/backup.sh
 # Make the entry script executable
 RUN chmod +x entry.sh && dos2unix entry.sh
 
+# Nautical Version (for example "v0.2.1") or "main" if not set
+ARG NAUTICAL_VERSION="main"
+ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
+
 # Set default timezone
 ENV TZ=Etc/UTC
 

@@ -9,8 +9,8 @@ Remember, these labels can be added to any container <small> (other than Nautica
     ```yaml
     version: '3'
     services:
-        # Service config ...
-        labels:
+      # Service config ...
+      labels:
         - "nautical-backup.enable=true"
         - "nautical-backup.stop-before-backup=true"
     ```
@@ -60,33 +60,75 @@ Remember, these labels can be added to any container <small> (other than Nautica
 If a container has an Enviornment Variable applied as well as a conflicting Label, then:
 > The continer Label takes priority over the global Natical enviornment variable.
 
-## Enable Nautical
-With the [Require Label](./arguments.md#require-label) enviornment variable set to `true`, then all containers will be skipped unless they have this label.
+## Enable or Disable Nautical
+This Docker label can be used to acheive 2 things:
 
-> **Default If Missing**: true <small> (all containers will be enabled).</small>
+1. Opt a container **OUT** of backup
+1. Opt a container **IN** to a backup <small>(with the Nautical [Require Label](./arguments.md#require-label) enviornment variable set to `true`)</small>
 
-```properties
-nautical-backup.enable=false
-```
-
-If the [Require Label](./arguments.md#require-label) enviornment variable is *missing* or set to `false`, then [this label](#enable-nautical) will not be needed since the container will be backed up anyway.
-
-## Skip
-Skip any containers completely if this label is present.
-
-> **Default If Missing**: false
+> **Default If Missing**: true <small> (all containers will be enabled, unless [Require Label](./arguments.md#require-label) is set to `true`).</small>
 
 ```properties
-nautical-backup.skip=true
+nautical-backup.enable=true
 ```
 
-<small>🔄 This is the same action as the [Skip Containers](./arguments.md#skip-containers) variable, but applied only to this container.</small>
+=== "Example 1 (Opt out)"
+    !!! note ""
+        ```yaml
+        services: # Example Service #1 config ...
+          labels:
+            - "nautical-backup.enable=false"
+        ```
+        ```yaml
+        services: # Example Service #2 config ...
+          labels:
+            - "nautical-backup.enable=true"
+        ```
+        ```yaml
+        services: # Example Service #3 config ...
+          labels: 
+            # No labels
+        ```
+        The results of this configuration would be:
+
+        - [ ] Service 1 - *Skipped* since `nautical-backup.enable` was set to `false`
+        - [x] Service 2 - *Backed up* since the label `nautical-backup.enable=true` was present
+        - [x] Service 3 - *Skipped* since no `nautical-backup.enable=true` label was found
+            - The [Require Label](./arguments.md#require-label) enviornment variable was either *not set* or set to `false`
+
+
+=== "Example 2 (Opt in)"
+    !!! note " With [Require Label](./arguments.md#require-label) enviornment variable set to `true`"
+        ```yaml title=""
+        services: # Example Service #1 config ...
+          labels:
+            - "nautical-backup.enable=true"
+        ```
+        ```yaml
+        services: # Example Service #2 config ...
+          labels:
+            - "nautical-backup.enable=false"
+        ```
+        ```yaml
+        services: # Example Service #3 config ...
+          labels: 
+            # No labels
+        ```
+
+        The results of this configuration would be:
+
+        - [x] Service 1 - *Backed up* since the label `nautical-backup.enable=true` was present
+        - [ ] Service 2 - *Skipped* since `nautical-backup.enable` was set to `false`
+        - [ ] Service 3 - *Skipped* since no `nautical-backup.enable=true` label was found
+        
+<small>🔄 `nautical-backup.enable=false` is the same action as the [Skip Containers](./arguments.md#skip-containers) variable, but applied only to this container.</small>
+
 
 ## Stop Container Before Backup
 
 With this label set to `false`, the container will not be stopped before performing a backup.
 
-> **Default If Missing**: true <small> (container will be stopped before backup).</small>
+> **Default If Missing**: true <small> (container ==will== be stopped before backup).</small>
 
 ```properties
 nautical-backup.stop-before-backup=false

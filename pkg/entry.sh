@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Nautical Backup Version: $NAUTICAL_VERSION"
+
 # Echo the CRON schedule for logging/debugging
 echo "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ"
 
