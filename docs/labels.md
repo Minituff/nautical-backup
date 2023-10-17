@@ -63,7 +63,7 @@ If a container has an Enviornment Variable applied as well as a conflicting Labe
 ## Enable Nautical
 With the [Require Label](./arguments.md#require-label) enviornment variable set to `true`, then all containers will be skipped unless they have this label.
 
-> **Default If Missing**: true
+> **Default If Missing**: true <small> (all containers will be enabled).</small>
 
 ```properties
 nautical-backup.enable=false
@@ -82,11 +82,11 @@ nautical-backup.skip=true
 
 <small>🔄 This is the same action as the [Skip Containers](./arguments.md#skip-containers) variable, but applied only to this container.</small>
 
-## Stop Before Backup
+## Stop Container Before Backup
 
-With this label applied, the container will not be stopped before performing a backup.
+With this label set to `false`, the container will not be stopped before performing a backup.
 
-> **Default If Missing**: true
+> **Default If Missing**: true <small> (container will be stopped before backup).</small>
 
 ```properties
 nautical-backup.stop-before-backup=false
@@ -97,7 +97,7 @@ nautical-backup.stop-before-backup=false
 
     Only do this on containers you know for certain do not need to be shutdown before backup.
 
-<small>🔄 This is the same action [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable, but applied only to this container.</small>
+<small>🔄 This is a similar action to the [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable, but applied only to this container.</small>
 
 ## Override Source Directory Name
 
