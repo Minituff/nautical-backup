@@ -184,12 +184,14 @@ for entry in $containers; do
 
     if echo "$labels" | grep -q '"nautical-backup.enable":"true"'; then
         echo "Enabling $name based on label."
-        skip=0
-    fi
-
-    if echo "$labels" | grep -q '"nautical-backup.enable":"false"'; then
+        skip=0 # Do not skip the container
+    elif echo "$labels" | grep -q '"nautical-backup.enable":"false"'; then
         echo "Skipping $name based on label."
         skip=1 # Add the container to the skip list
+    elif [ "$REQUIRE_LABEL" = "true" ]; then
+        if [ "$id" != "$SELF_CONTAINER_ID" ]; then
+            echo "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true."
+        fi
     fi
 
     for cur in "${SKIP_CONTAINERS[@]}"; do
