@@ -62,7 +62,7 @@ Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *eac
 REQUIRE_LABEL=true
 ```
 
-See the [Labels Enable Section](./labels.md#enable-or-disable-nautical) for more details.
+See the [Enable or Disable Nautical](./labels.md#enable-or-disable-nautical) Label Section for more details.
 
 ## Override Source Directory
 Allows a source directory and container-name that do not match.

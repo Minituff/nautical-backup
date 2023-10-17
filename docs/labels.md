@@ -61,12 +61,12 @@ If a container has an Enviornment Variable applied as well as a conflicting Labe
 > The continer Label takes priority over the global Natical enviornment variable.
 
 ## Enable or Disable Nautical
-This Docker label can be used in two ways:
+This Docker label can be used to acheive 2 things:
 
-* Opt a container **OUT** of backup
-* Opt a container **IN** to a backup with the [Require Label](./arguments.md#require-label) enviornment variable set to `true`
+1. Opt a container **OUT** of backup
+1. Opt a container **IN** to a backup <small>(with the Nautical [Require Label](./arguments.md#require-label) enviornment variable set to `true`)</small>
 
-> **Default If Missing**: true <small> (all containers will be enabled).</small>
+> **Default If Missing**: true <small> (all containers will be enabled, unless [Require Label](./arguments.md#require-label) is set to `true`).</small>
 
 ```properties
 nautical-backup.enable=true
