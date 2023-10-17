@@ -51,7 +51,7 @@ This list can either be the container `name` or full `id`.
     * `docker ps --no-trunc`
     * `docker inspect <container name>`
 
-<small>🔄 This is the same action as the [Skip Containers](./labels.md#skip) label, but applied globally.</small>
+<small>🔄 This is the same action as the [Disable Nautical](./labels.md#enable-or-disable-nautical) label, but applied globally.</small>
 
 ## Require Label
 Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *each* contianer or it will be skipped.
@@ -62,7 +62,7 @@ Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *eac
 REQUIRE_LABEL=true
 ```
 
-See the [Labels Enable Section](./labels.md#enable-nautical) for more details.
+See the [Labels Enable Section](./labels.md#enable-or-disable-nautical) for more details.
 
 ## Override Source Directory
 Allows a source directory and container-name that do not match.

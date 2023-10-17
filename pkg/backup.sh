@@ -103,7 +103,6 @@ BackupContainer() {
     # Use docker inspect to get the labels for the container
     labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
-    # Check if the label nautical-backup.skip is set to true
     if echo "$labels" | grep -q '"nautical-backup.stop-before-backup":"false"'; then
         log_entry "Skipping stopping of $container because of label."
         skip_stopping=1
@@ -188,7 +187,7 @@ for entry in $containers; do
         skip=0
     fi
 
-    if echo "$labels" | grep -q '"nautical-backup.skip":"true"'; then
+    if echo "$labels" | grep -q '"nautical-backup.enable":"false"'; then
         echo "Skipping $name based on label."
         skip=1 # Add the container to the skip list
     fi
