@@ -34,7 +34,7 @@ Remember, these labels can be added to any container <small> (other than Nautica
           - "nautical-backup.stop-before-backup=true"
     ```
 
-=== "Docker Run Example"
+=== "Docker Run Example 1"
     ```bash
     docker run --name example-image \
     -l nautical-backup.enable=true \
@@ -86,10 +86,10 @@ nautical-backup.skip=true
 
 With this label applied, the container will not be stopped before performing a backup.
 
-> **Default If Missing**: false
+> **Default If Missing**: true
 
 ```properties
-nautical-backup.stop-before-backup=true
+nautical-backup.stop-before-backup=false
 ```
 
 !!! warning "Not stoppping containers can produce *corrupt* backups."
