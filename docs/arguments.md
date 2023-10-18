@@ -165,18 +165,27 @@ Will immediatly perform a backup when the container is started in addition to th
 BACKUP_ON_START=true
 ```
 
-## Log rsync Commands
+## Console Log Level
+Set the console log level for the container.
 
-Log each `rsync` command to console before running <small>(useful for debugging)</small>
+> **Default**: INFO
 
-> **Default**: false
+> **Options**: DEBUG, INFO, WARN, ERROR
 
 ```properties
-LOG_RSYNC_COMMANDS=true
+LOG_LEVEL=INFO
 ```
-You should see something like this in the Nautical contianer logs:
-```console
-rsync -ahq --exclude='*.log' --exclude='*.txt' /app/source/watchtower/ /app/destination/watchtower/
+
+## Report Log Level
+Set the log level for the generated report file.
+Only used if the repot file is [enabled](#report-file).
+
+> **Default**: INFO
+
+> **Options**: DEBUG, INFO, WARN, ERROR
+
+```properties
+REPORT_FILE_LOG_LEVEL=INFO
 ```
 
 ## Use Default rsync Arguments

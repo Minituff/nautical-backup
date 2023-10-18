@@ -1,6 +1,7 @@
 #!/bin/bash
 
-echo "Starting backup script..."
+source /app/logger.sh # Use the logger script
+logThis "Starting backup..."
 
 # Convert the string back to an array
 if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
@@ -39,55 +40,31 @@ containers=$(docker ps --no-trunc --format="{{.ID}}:{{.Names}}")
 number_of_containers=$(echo "$containers" | wc -l)
 number_of_containers=$((number_of_containers - 1)) # Subtract 1 to exclude the container running the script
 
-echo "Processing $number_of_containers containers..."
+logThis "Processing $number_of_containers containers..."
 
 # Define the name for the report file
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
 
-# Remove previous report files
-
-# Initialize the current report file with a header
-if [ "$REPORT_FILE" = "true" ]; then
-    rm -f "$DEST_LOCATION/Backup Report - "*.txt
-    # Initialize the current report file with a header
-    echo "Backup Report - $(date)" >"$DEST_LOCATION/$report_file"
-fi
 
 DEFAULT_RSYNC_ARGS="-ahq"
 default_rsync_args="-ahq"
 if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
+    logThis "Disabling default rsync arguments ($DEFAULT_RSYNC_ARGS)" "DEBUG"
     default_rsync_args=""
 fi
 
 # Global variables to hold rsync arguments
 custom_args=""
 if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
+    logThis "Adding custom rsync arguments ($RSYNC_CUSTOM_ARGS)" "DEBUG"
     custom_args="$RSYNC_CUSTOM_ARGS"
 fi
 
-# Get arguments:
-# -s = skips
-# -d = override DEST_LOCATION
-while getopts ":s:d:" opt; do
-    case $opt in
-    s) currs+=("$OPTARG") ;;
-    d) DEST_LOCATION=$OPTARG ;;
-    esac
-done
 
 # Merge the default skips with provided skips
 currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
 containers_completed=0
 
-# Assumes the container name is the exact same as the directory name
-log_entry() {
-    local message="$1"
-    echo "$message"
-
-    if [ "$REPORT_FILE" = "true" ]; then
-        echo "$(date) - $message" >>"$DEST_LOCATION/$report_file"
-    fi
-}
 
 BackupContainer() {
     local container=$1
@@ -96,7 +73,7 @@ BackupContainer() {
     for skip in "${SKIP_STOPPING[@]}"; do
         if [ "$skip" == "$container" ]; then
             skip_stopping=1
-            log_entry "Skipping stopping of $container as it's in the SKIP_STOPPING list."
+            logThis "Skipping stopping of $container as it's in the SKIP_STOPPING list." "DEBUG"
             break
         fi
     done
@@ -105,81 +82,81 @@ BackupContainer() {
     labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.stop-before-backup":"false"'; then
-        log_entry "Skipping stopping of $container because of label."
+        logThis "Skipping stopping of $container because of label." "DEBUG"
         skip_stopping=1
     fi
 
     local src_dir="$SOURCE_LOCATION/$container"
     if [ ! -z "${override_source_dirs[$container]}" ]; then
         src_dir="$SOURCE_LOCATION/${override_source_dirs[$container]}"
-        log_entry "Overriding source directory for $container to ${override_source_dirs[$container]}"
+        logThis "Overriding source directory for $container to ${override_source_dirs[$container]}" "DEBUG"
     fi
 
     if echo "$labels" | grep -q '"nautical-backup.override-source-dir"'; then
         new_src_dir=$(echo "$labels" | jq -r '.["nautical-backup.override-source-dir"]')
         src_dir="$SOURCE_LOCATION/$new_src_dir"
-        log_entry "Overriding source directory for $container to $new_src_dir from label"
+        logThis "Overriding source directory for $container to $new_src_dir from label" "DEBUG"
     fi
 
     local dest_dir="$DEST_LOCATION/$container"
     if [ ! -z "${override_dest_dirs[$container]}" ]; then
         dest_dir="$DEST_LOCATION/${override_dest_dirs[$container]}"
-        log_entry "Overriding destination directory for $container to ${override_dest_dirs[$container]}"
+        logThis "Overriding destination directory for $container to ${override_dest_dirs[$container]}" "DEBUG"
     fi
 
     if echo "$labels" | grep -q '"nautical-backup.override-destination-dir"'; then
         new_destination_dir=$(echo "$labels" | jq -r '.["nautical-backup.override-destination-dir"]')
         dest_dir="$DEST_LOCATION/$new_destination_dir"
-        log_entry "Overriding destination directory for $container to $new_destination_dir from label"
+        logThis "Overriding destination directory for $container to $new_destination_dir from label" "DEBUG"
     fi
 
     if [ -d "$src_dir" ]; then
         if [ $skip_stopping -eq 0 ]; then
-            log_entry "Stopping $container..."
+            logThis "Stopping $container..."
             docker stop $container 2>&1 >/dev/null
             if [ $? -ne 0 ]; then
-                log_entry "Error stopping container $container. Skipping backup for this container."
+                logThis "Error stopping container $container. Skipping backup for this container." "ERROR"
                 return
             fi
         fi
 
         if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"true"'; then
-            echo "Using default rsync args ($DEFAULT_RSYNC_ARGS) for $container"
+            logThis "Using default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
             default_rsync_args=$DEFAULT_RSYNC_ARGS
         elif echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
-            echo "Not using default rsync args ($DEFAULT_RSYNC_ARGS) for $container"
+            logThis "Not using default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
             default_rsync_args=""
         fi
 
         if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
             new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
             custom_args=$new_custom_rsync_args
-            echo "Using custom rsync args for $container"
+            logThis "Using custom rsync args for $container" "DEBUG"
         fi
 
-        log_entry "Backing up $container data..."
-        if [ "$LOG_RSYNC_COMMANDS" = "true" ]; then
-            echo rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
-        fi
+        logThis "Backing up $container data..."
+        logThis "RUNNING: 'rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/'" "DEBUG"
+
+        # Run rsync
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
 
         if [ $? -ne 0 ]; then
-            log_entry "Error copying data for container $container. Skipping backup for this container."
+            logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
         fi
 
         if [ $skip_stopping -eq 0 ]; then
-            log_entry "Starting $container container..."
+            logThis "Starting $container container..."
             docker start $container 2>&1 >/dev/null
             if [ $? -ne 0 ]; then
-                log_entry "Error restarting container $container. Please check manually!"
+                logThis "Error restarting container $container. Please check manually!" "ERROR"
                 return
             fi
         fi
 
-        log_entry "$container completed."
+        logThis "$container completed."
         ((containers_completed++))
     else
-        log_entry "Directory $src_dir does not exist. Skipping"
+        logThis "Directory $src_dir does not exist. Skipping" "WARN"
     fi
 }
 
@@ -198,21 +175,21 @@ for entry in $containers; do
     labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.enable":"true"'; then
-        echo "Enabling $name based on label."
+        logThis "Enabling $name based on label." "DEBUG"
         skip=0 # Do not skip the container
     elif echo "$labels" | grep -q '"nautical-backup.enable":"false"'; then
-        echo "Skipping $name based on label."
+        logThis "Skipping $name based on label." "DEBUG"
         skip=1 # Add the container to the skip list
     elif [ "$REQUIRE_LABEL" = "true" ]; then
         if [ "$id" != "$SELF_CONTAINER_ID" ]; then
-            echo "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true."
+            echo "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true." "DEBUG"
         fi
     fi
 
     for cur in "${SKIP_CONTAINERS[@]}"; do
         if [ "$cur" == "$name" ]; then
             skip=1
-            echo "Skipping $name based on name."
+            echo "Skipping $name based on name." "DEBUG"
             break
         fi
         if [ "$cur" == "$id" ]; then
@@ -220,7 +197,7 @@ for entry in $containers; do
             if [ "$cur" == "$SELF_CONTAINER_ID" ]; then
                 break # Exclude self from logs
             fi
-            echo "Skipping $name based on ID $id."
+            echo "Skipping $name based on ID $id." "DEBUG"
             break
         fi
     done
@@ -232,4 +209,4 @@ done
 
 containers_skipped=$((number_of_containers - containers_completed))
 
-echo "Success. $containers_completed containers backed up! $containers_skipped skipped."
+logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"

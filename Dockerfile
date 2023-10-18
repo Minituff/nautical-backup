@@ -7,14 +7,14 @@ RUN apk add bash rsync tzdata dos2unix jq
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
 
+# Make the entire /app folder executable
+RUN chmod +x /app
+
+# Make the all files in the /app folder Unix format
+RUN find /app -type f -print0 | xargs -0 dos2unix
+
 # Move the entrypoint script to the root directory for ease of access
 RUN mv app/entry.sh /entry.sh
-
-# Make the script executable
-RUN chmod +x app/backup.sh && dos2unix app/backup.sh
-
-# Make the entry script executable
-RUN chmod +x entry.sh && dos2unix entry.sh
 
 # Nautical Version (for example "v0.2.1") or "main" if not set
 ARG NAUTICAL_VERSION="main"
@@ -32,9 +32,6 @@ ENV REPORT_FILE="true"
 # Run the backup immediately on start
 ENV BACKUP_ON_START="false"
 
-# Log each rsync command to console before running (useful for debugging)
-ENV LOG_RSYNC_COMMANDS="false"
-
 # Use the default rsync args "-raq" (recursive, archive, quiet)
 ENV USE_DEFAULT_RSYNC_ARGS="true"
 
@@ -43,6 +40,12 @@ ENV RSYNC_CUSTOM_ARGS=""
 
 # Require the Docker Label `nautical-backup.enable=true` to be present on each contianer or it will be skipped.
 ENV REQUIRE_LABEL="false"
+
+# Set the default log level to INFO
+ENV LOG_LEVEL="INFO"
+
+# Set the default log level for the repot file to INFO
+ENV REPORT_FILE_LOG_LEVEL="INFO"
 
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]

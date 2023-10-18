@@ -13,6 +13,7 @@ Remember, these labels can be added to any container <small> (other than Nautica
       labels:
         - "nautical-backup.enable=true"
         - "nautical-backup.stop-before-backup=true"
+        - "nautical-backup.rsync-custom-args= " # Disable custom rsync args
     ```
 
 === "Docker Compose Example 2"
@@ -204,7 +205,7 @@ nautical-backup.rsync-custom-args=--exclude='*.log' --exclude='*.txt'
 
 !!! note "This label will *override* the global setting applied through [Enviornment Variables](./arguments.md)"
     * *Any value* will override the global rsync arguemnts configured through [global settings](./arguments.md#custom-rsync-arguments).
-    * A <small>(empty)</small> value of  `"nautical-backup.rsync-custom-args="` will ^^cancel^^ any [global setting](./arguments.md#custom-rsync-arguments) for this container only.
+    * A value of <small>(space)</small> `"nautical-backup.rsync-custom-args= "` will ^^cancel^^ any [global setting](./arguments.md#custom-rsync-arguments) for this container only.
     * Not setting the label value will use the [global setting](./arguments.md#custom-rsync-arguments).
 
 <small>🔄 Not setting a label is the same action as the [Custom rsync Arguments](./arguments.md#custom-rsync-arguments) variable, but applied only to this container.</small>

@@ -1,9 +1,13 @@
 #!/bin/bash
+source /app/logger.sh # Use the logger script
 
-echo "Nautical Backup Version: $NAUTICAL_VERSION"
+create_new_report_file
+
+logThis "Nautical Backup Version: $NAUTICAL_VERSION"
+logThis "Using log level: $LOG_LEVEL" "DEBUG"
 
 # Echo the CRON schedule for logging/debugging
-echo "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ"
+logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG"
 
 # Dump the current cron jobs to a temporary file
 crontab -l > tempcron
@@ -23,24 +27,24 @@ export SOURCE_LOCATION=/app/source # Do not include a trailing slash
 export DEST_LOCATION=/app/destination  # Do not include a trailing slash
 
 
-echo "Verifying source directory..." 
+logThis "Verifying source directory..." "DEBUG"
 if [ ! -d "$SOURCE_LOCATION" ]; then
-    echo "Error: Source directory $SOURCE_LOCATION does not exist."
+    logThis "Error: Source directory $SOURCE_LOCATION does not exist."
     exit 1
 elif [ ! -r "$SOURCE_LOCATION" ]; then
-    echo "Error: No read access to source directory $SOURCE_LOCATION."
+    logThis "Error: No read access to source directory $SOURCE_LOCATION."
     exit 1
 fi
 
-echo "Verifying destination directory..." 
+logThis "Verifying destination directory..." "DEBUG"
 if [ ! -d "$DEST_LOCATION" ]; then
-    echo "Error: Destination directory $DEST_LOCATION does not exist."
+    logThis "Error: Destination directory $DEST_LOCATION does not exist." "ERROR"
     exit 1
 elif [ ! -r "$DEST_LOCATION" ]; then
-    echo "Error: No read access to destination directory $DEST_LOCATION."
+    logThis "Error: No read access to destination directory $DEST_LOCATION." "ERROR"
     exit 1
 elif [ ! -w "$DEST_LOCATION" ]; then
-    echo "Error: No write access to destination directory $DEST_LOCATION."
+    logThis "Error: No write access to destination directory $DEST_LOCATION." "ERROR"
     exit 1
 fi
 
@@ -73,11 +77,11 @@ process_csv SKIP_STOPPING_LIST "$SKIP_STOPPING"
 
 
 if [ ! -z "$SKIP_CONTAINERS" ]; then
-    echo "SKIP_CONTAINERS: ${CONTAINER_SKIP_LIST[@]}"
+    logThis "SKIP_CONTAINERS: ${CONTAINER_SKIP_LIST[@]}" "DEBUG"
 fi
 
 if [ ! -z "$SKIP_STOPPING" ]; then
-    echo "SKIP_STOPPING: ${SKIP_STOPPING_LIST[@]}"
+    logThis "SKIP_STOPPING: ${SKIP_STOPPING_LIST[@]}" "DEBUG"
 fi
 
 # Get the container ID of the current container
@@ -93,43 +97,43 @@ export SKIP_STOPPING_STR # Export the string
 
 # Assuming OVERRIDE_SOURCE_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
 if [ ! -z "$OVERRIDE_SOURCE_DIR" ]; then
-    echo "OVERRIDE_SOURCE_DIR: ${OVERRIDE_SOURCE_DIR}"
+    logThis "OVERRIDE_SOURCE_DIR: ${OVERRIDE_SOURCE_DIR}" "DEBUG"
 fi
 export OVERRIDE_SOURCE_DIR
 
 # Assuming OVERRIDE_DEST_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
 if [ ! -z "$OVERRIDE_DEST_DIR" ]; then
-    echo "OVERRIDE_DEST_DIR: ${OVERRIDE_DEST_DIR}"
+    logThis "OVERRIDE_DEST_DIR: ${OVERRIDE_DEST_DIR}" "DEBUG"
 fi
 export OVERRIDE_DEST_DIR
 
 if [ "$REPORT_FILE" = "false" ]; then
-    echo "REPORT_FILE: $REPORT_FILE"
+    logThis "REPORT_FILE: $REPORT_FILE" "DEBUG"
 fi
 
 # Set rsync custom arguments if specified
 if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
-    echo "RSYNC_CUSTOM_ARGS: $RSYNC_CUSTOM_ARGS"
+    logThis "RSYNC_CUSTOM_ARGS: $RSYNC_CUSTOM_ARGS" "DEBUG"
 fi
 
 if [ "$LOG_RSYNC_COMMANDS" = "true" ]; then
-    echo "LOG_RSYNC_COMMANDS: $LOG_RSYNC_COMMANDS"
+    logThis "LOG_RSYNC_COMMANDS: $LOG_RSYNC_COMMANDS" "DEBUG"
 fi
 
 if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
-    echo "USE_DEFAULT_RSYNC_ARGS: $USE_DEFAULT_RSYNC_ARGS"
+    logThis "USE_DEFAULT_RSYNC_ARGS: $USE_DEFAULT_RSYNC_ARGS" "DEBUG"
 fi
 
 if [ "$REQUIRE_LABEL" = "true" ]; then
-    echo "REQUIRE_LABEL: $REQUIRE_LABEL"
+    logThis "REQUIRE_LABEL: $REQUIRE_LABEL" "DEBUG"
 fi
 
 if [ "$BACKUP_ON_START" = "true" ]; then
-    echo "BACKUP_ON_START: $BACKUP_ON_START"
+    logThis "BACKUP_ON_START: $BACKUP_ON_START" "DEBUG"
     bash ./app/backup.sh
 fi
 
-echo "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE"
+logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE"
 
 
 
