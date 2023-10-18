@@ -3,18 +3,14 @@ Nautical Backup is designed to be a simple tool to backup your docker volumes.
 Essentially, this is an automated and configurable backup tool built around [rsync](https://en.wikipedia.org/wiki/Rsync). 
 ## Backups Made Easy
 
-Nautical requires almost no configuration when container volumes are all in a folder matching its `container-name` within the source directory. Of course, we can use [variables](./arguments.md) to override these defaults.
+Nautical requires almost no configuration when container volumes are all in a folder matching its `container-name` within the source directory. Of course, we can use [variables](./arguments.md) and [labels](./labels.md) to override these defaults.
 
 ⚓ Here is an example of an *easy-mode* configuration:
 
 | Container Name | *Example* Source Data Directory     | *Example* Desitnation Data Directory   |
 | -------------- | ----------------------------------- | -------------------------------------- |
 | homeassistant  | `/opt/docker-volumes/homeassistant` | `/mnt/nfs-share/backups/homeassistant` |
-| unifi          | `/opt/docker-volumes/unifi`         | `/mnt/nfs-share/backups/unifi`         |
-| plex           | `/opt/docker-volumes/plex`          | `/mnt/nfs-share/backups/plex`          |
 | homepage       | `/opt/docker-volumes/homepage`      | `/mnt/nfs-share/backups/homepage`      |
-| traefik        | `/opt/docker-volumes/traefik`       | `/mnt/nfs-share/backups/traefik`       |
-| portainer      | `/opt/docker-volumes/portainer`     | `/mnt/nfs-share/backups/portainer`     |
 | trilium        | `/opt/docker-volumes/trilium`       | `/mnt/nfs-share/backups/trilium`       |
 | dozzle         | *No data directory*                 | *No backup*                            |
 
