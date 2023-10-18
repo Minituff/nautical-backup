@@ -93,8 +93,8 @@ nautical-backup.enable=true
 
         - [ ] Service 1 - *Skipped* since `nautical-backup.enable` was set to `false`
         - [x] Service 2 - *Backed up* since the label `nautical-backup.enable=true` was present
-        - [x] Service 3 - *Skipped* since no `nautical-backup.enable=true` label was found
-            - The [Require Label](./arguments.md#require-label) enviornment variable was either *not set* or set to `false`
+        - [x] Service 3 - *Backed up* since no `nautical-backup.enable=false` label was found
+            - The [Require Label](./arguments.md#require-label) enviornment variable was either *not set* or set to `false` for this example
 
 
 === "Example 2 (Opt in)"
