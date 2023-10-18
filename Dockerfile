@@ -8,7 +8,7 @@ RUN apk add bash rsync tzdata dos2unix jq
 COPY pkg app
 
 # Make the entire /app folder executable
-RUN chmod +x /app
+RUN chmod -R +x /app
 
 # Make the all files in the /app folder Unix format
 RUN find /app -type f -print0 | xargs -0 dos2unix
