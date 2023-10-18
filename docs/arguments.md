@@ -191,15 +191,12 @@ Useful when using [Custom rsync Arugments](#custom-rsync-arguments)
 USE_DEFAULT_RSYNC_ARGS=false
 ```
 
+<small>🔄 This is the same action as the [Use Default rsync Arguments](./labels.md#use-default-rsync-arguments) label, but applied globally.</small>
+
 ## Custom rsync Arguments
 Apply custom `rsync` args <small>(in addition to the [default](#use-default-rsync-arguments) args)</small>
 
 > **Default**: *empty* <small>(no custom rsync args will be applied)</small>
-
-The `RSYNC_CUSTOM_ARGS` will be inserted after the `$DEFAULT_RSYNC_ARGS` as shown:
-```bash
-rsync $DEFAULT_RSYNC_ARGS $RSYNC_CUSTOM_ARGS $src_dir/ $dest_dir/
-```
 
 There are many `rsync` arguments and customizations that be be used here.
 
@@ -209,5 +206,13 @@ There are many `rsync` arguments and customizations that be be used here.
     RSYNC_CUSTOM_ARGS=--exclude='*.log' --exclude='*.txt'
     ```
 
+The `RSYNC_CUSTOM_ARGS` will be inserted after the `$DEFAULT_RSYNC_ARGS` as shown:
+```bash
+rsync $DEFAULT_RSYNC_ARGS $RSYNC_CUSTOM_ARGS $src_dir/ $dest_dir/
+```
+
+
+
+<small>🔄 This is the same action as the [Custom rsync Arguments](./labels.md#custom-rsync-arguments) label, but applied globally.</small>
 <br>
 <br>

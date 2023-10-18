@@ -128,7 +128,7 @@ nautical-backup.enable=true
 
 With this label set to `false`, the container will not be stopped before performing a backup.
 
-> **Default If Missing**: true <small> (container ==will== be stopped before backup).</small>
+> **Default If Missing**: true <small> (container ^^will^^ be stopped before backup).</small>
 
 ```properties
 nautical-backup.stop-before-backup=false
@@ -174,3 +174,37 @@ nautical-backup.override-destination-dir=new_folder_name
 ```
 
 <small>🔄 This is the same action as the [Override Destination Directory](./arguments.md#override-destination-directory) variable, but applied only to this container.</small>
+
+## Use Default rsync Arguments
+Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
+
+Useful when using [Custom rsync Arugments](#custom-rsync-arguments)
+
+> **Default**: *none* <small>(use global setting)</small>
+
+```properties
+nautical-backup.use-default-rsync-args=false
+```
+
+!!! note "This label will *override* the global setting applied through [Enviornment Variables](./arguments.md)"
+    * A value of `true` will use the default rsync arguments regardless of the global setting.
+    * A value of `false` will ^^**not**^^ use the default rsync arguments regardless of the global setting.
+    * Not setting the label value will use the [global setting](./arguments.md#custom-rsync-arguments)
+
+<small>🔄 Not setting a label is the same action as the [Use Default rsync Arguments](./arguments.md#use-default-rsync-arguments) variable, but applied only to this container.</small>
+
+## Custom rsync Arguments
+Apply custom `rsync` args <small>(in addition to the [default](#use-default-rsync-arguments) args)</small>
+
+> **Default**: *empty* <small>(use global setting)</small>
+
+```properties
+nautical-backup.rsync-custom-args=--exclude='*.log' --exclude='*.txt'
+```
+
+!!! note "This label will *override* the global setting applied through [Enviornment Variables](./arguments.md)"
+    * *Any value* will override the global rsync arguemnts configured through [global settings](./arguments.md#custom-rsync-arguments).
+    * A <small>(empty)</small> value of  `"nautical-backup.rsync-custom-args="` will ^^cancel^^ any [global setting](./arguments.md#custom-rsync-arguments) for this container only.
+    * Not setting the label value will use the [global setting](./arguments.md#custom-rsync-arguments).
+
+<small>🔄 Not setting a label is the same action as the [Custom rsync Arguments](./arguments.md#custom-rsync-arguments) variable, but applied only to this container.</small>
