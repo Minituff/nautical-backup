@@ -2,7 +2,7 @@ Nautical itself does not have the ability to map network shares. However, it can
 
 Commonly, we run containers on our host machine, then use an NFS share as the backup destination location. This page will give a brief overview of how to do that.
 
-## NFS Shares On Container Host (Linux)
+## Connect to an NFS Share On Container Host (Linux)
 
 1. Create the NFS destination directories.
     ```bash
