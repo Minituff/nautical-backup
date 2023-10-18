@@ -53,6 +53,7 @@ if [ "$REPORT_FILE" = "true" ]; then
     echo "Backup Report - $(date)" >"$DEST_LOCATION/$report_file"
 fi
 
+DEFAULT_RSYNC_ARGS="-ahq"
 default_rsync_args="-ahq"
 if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
     default_rsync_args=""
@@ -140,6 +141,20 @@ BackupContainer() {
                 log_entry "Error stopping container $container. Skipping backup for this container."
                 return
             fi
+        fi
+
+        if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"true"'; then
+            echo "Using default rsync args ($DEFAULT_RSYNC_ARGS) for $container"
+            default_rsync_args=$DEFAULT_RSYNC_ARGS
+        elif echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
+            echo "Not using default rsync args ($DEFAULT_RSYNC_ARGS) for $container"
+            default_rsync_args=""
+        fi
+
+        if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
+            new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
+            custom_args=$new_custom_rsync_args
+            echo "Using custom rsync args for $container"
         fi
 
         log_entry "Backing up $container data..."
