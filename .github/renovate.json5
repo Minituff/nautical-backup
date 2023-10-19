@@ -2,8 +2,11 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",
+    ":dependencyDashboard",
     "docker:enableMajor"
   ],
+  "platform": "github",
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "prHourlyLimit":	0, // Unlimited PRs per hour
   "customManagers": [
     {
