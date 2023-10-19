@@ -4,7 +4,7 @@
     "config:base",
     "docker:enableMajor"
   ],
-  "prHourlyLimit":	0,
+  "prHourlyLimit":	0, // Unlimited PRs per hour
   "customManagers": [
     {
       "customType": "regex",
