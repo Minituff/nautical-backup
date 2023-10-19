@@ -188,6 +188,17 @@ Only used if the repot file is [enabled](#report-file).
 REPORT_FILE_LOG_LEVEL=INFO
 ```
 
+## Use report file on backup only
+With a value of `true`, then the report file will only be created when a backup is performed, not during Nautical initialization.
+
+With a value of `false`, then all logs will also be sent to the report file assuming they are the right [log level](#report-log-level).
+
+> **Default**: true
+
+```properties
+REPORT_FILE_ON_BACKUP_ONLY=false
+```
+
 ## Use Default rsync Arguments
 
 Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
