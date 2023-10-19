@@ -3,7 +3,7 @@ source /app/logger.sh # Use the logger script
 
 create_new_report_file
 
-logThis "Nautical Backup Version: $NAUTICAL_VERSION" "init"
+logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
 logThis "Using log level: $LOG_LEVEL" "DEBUG" "init"
 
 # Echo the CRON schedule for logging/debugging
@@ -29,10 +29,10 @@ export DEST_LOCATION=/app/destination  # Do not include a trailing slash
 
 logThis "Verifying source directory..." "DEBUG" "init"
 if [ ! -d "$SOURCE_LOCATION" ]; then
-    logThis "Error: Source directory $SOURCE_LOCATION does not exist." "init"
+    logThis "Error: Source directory $SOURCE_LOCATION does not exist." "ERROR" "init"
     exit 1
 elif [ ! -r "$SOURCE_LOCATION" ]; then
-    logThis "Error: No read access to source directory $SOURCE_LOCATION." "init"
+    logThis "Error: No read access to source directory $SOURCE_LOCATION." "ERROR" "init"
     exit 1
 fi
 
@@ -133,7 +133,7 @@ if [ "$BACKUP_ON_START" = "true" ]; then
     bash ./app/backup.sh
 fi
 
-logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "init"
+logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO" "init"
 
 
 
