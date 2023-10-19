@@ -188,8 +188,10 @@ Only used if the repot file is [enabled](#report-file).
 REPORT_FILE_LOG_LEVEL=INFO
 ```
 
-## Output to report file on backup only
-With a value of `true`, then the report file will only be created when a backup is performed, not during the container initialization.
+## Use report file on backup only
+With a value of `true`, then the report file will only be created when a backup is performed, not during Nautical initialization.
+
+With a value of `false`, then all logs will also be sent to the report file assuming they are the right [log level](#report-log-level).
 
 > **Default**: true
 
