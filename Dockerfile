@@ -47,5 +47,8 @@ ENV LOG_LEVEL="INFO"
 # Set the default log level for the repot file to INFO
 ENV REPORT_FILE_LOG_LEVEL="INFO"
 
+# Only write to the report file when backups run, not on initialization
+ENV REPORT_FILE_ON_BACKUP_ONLY="true"
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]

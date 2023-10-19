@@ -3,6 +3,7 @@
 declare -A levels=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
 script_logging_level=$LOG_LEVEL
 report_file_logging_level=$REPORT_FILE_LOG_LEVEL
+report_file_on_backup_only=$REPORT_FILE_ON_BACKUP_ONLY
 
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
 
@@ -17,6 +18,7 @@ create_new_report_file() {
 logThis() {
     local log_message=$1
     local log_priority=${2:-INFO}
+    local message_type=${3:-"default"}
 
     # Check if level exists
     [[ ${levels[$log_priority]} ]] || return 1
@@ -28,6 +30,8 @@ logThis() {
 
     # Check if level is enough for report file logging
     if [ "$REPORT_FILE" = "true" ] && ((${levels[$log_priority]} >= ${levels[$report_file_logging_level]})); then
-        echo "$(date) - ${log_priority}: ${log_message}" >>"$DEST_LOCATION/$report_file"
+        if ! ([ "$message_type" == "init" ] && [ "$report_file_on_backup_only" == "true" ]); then
+            echo "$(date) - ${log_priority}: ${log_message}" >> "$DEST_LOCATION/$report_file"
+        fi
     fi
 }

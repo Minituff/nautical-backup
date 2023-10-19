@@ -188,6 +188,15 @@ Only used if the repot file is [enabled](#report-file).
 REPORT_FILE_LOG_LEVEL=INFO
 ```
 
+## Output to report file on backup only
+With a value of `true`, then the report file will only be created when a backup is performed, not during the container initialization.
+
+> **Default**: true
+
+```properties
+REPORT_FILE_ON_BACKUP_ONLY=false
+```
+
 ## Use Default rsync Arguments
 
 Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>

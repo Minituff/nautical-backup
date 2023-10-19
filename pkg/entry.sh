@@ -3,11 +3,11 @@ source /app/logger.sh # Use the logger script
 
 create_new_report_file
 
-logThis "Nautical Backup Version: $NAUTICAL_VERSION"
-logThis "Using log level: $LOG_LEVEL" "DEBUG"
+logThis "Nautical Backup Version: $NAUTICAL_VERSION" "init"
+logThis "Using log level: $LOG_LEVEL" "DEBUG" "init"
 
 # Echo the CRON schedule for logging/debugging
-logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG"
+logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG" "init"
 
 # Dump the current cron jobs to a temporary file
 crontab -l > tempcron
@@ -27,24 +27,24 @@ export SOURCE_LOCATION=/app/source # Do not include a trailing slash
 export DEST_LOCATION=/app/destination  # Do not include a trailing slash
 
 
-logThis "Verifying source directory..." "DEBUG"
+logThis "Verifying source directory..." "DEBUG" "init"
 if [ ! -d "$SOURCE_LOCATION" ]; then
-    logThis "Error: Source directory $SOURCE_LOCATION does not exist."
+    logThis "Error: Source directory $SOURCE_LOCATION does not exist." "init"
     exit 1
 elif [ ! -r "$SOURCE_LOCATION" ]; then
-    logThis "Error: No read access to source directory $SOURCE_LOCATION."
+    logThis "Error: No read access to source directory $SOURCE_LOCATION." "init"
     exit 1
 fi
 
-logThis "Verifying destination directory..." "DEBUG"
+logThis "Verifying destination directory..." "DEBUG" "init"
 if [ ! -d "$DEST_LOCATION" ]; then
-    logThis "Error: Destination directory $DEST_LOCATION does not exist." "ERROR"
+    logThis "Error: Destination directory $DEST_LOCATION does not exist." "ERROR" "init"
     exit 1
 elif [ ! -r "$DEST_LOCATION" ]; then
-    logThis "Error: No read access to destination directory $DEST_LOCATION." "ERROR"
+    logThis "Error: No read access to destination directory $DEST_LOCATION." "ERROR" "init"
     exit 1
 elif [ ! -w "$DEST_LOCATION" ]; then
-    logThis "Error: No write access to destination directory $DEST_LOCATION." "ERROR"
+    logThis "Error: No write access to destination directory $DEST_LOCATION." "ERROR" "init"
     exit 1
 fi
 
@@ -77,11 +77,11 @@ process_csv SKIP_STOPPING_LIST "$SKIP_STOPPING"
 
 
 if [ ! -z "$SKIP_CONTAINERS" ]; then
-    logThis "SKIP_CONTAINERS: ${CONTAINER_SKIP_LIST[@]}" "DEBUG"
+    logThis "SKIP_CONTAINERS: ${CONTAINER_SKIP_LIST[@]}" "DEBUG" "init"
 fi
 
 if [ ! -z "$SKIP_STOPPING" ]; then
-    logThis "SKIP_STOPPING: ${SKIP_STOPPING_LIST[@]}" "DEBUG"
+    logThis "SKIP_STOPPING: ${SKIP_STOPPING_LIST[@]}" "DEBUG" "init"
 fi
 
 # Get the container ID of the current container
@@ -97,43 +97,43 @@ export SKIP_STOPPING_STR # Export the string
 
 # Assuming OVERRIDE_SOURCE_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
 if [ ! -z "$OVERRIDE_SOURCE_DIR" ]; then
-    logThis "OVERRIDE_SOURCE_DIR: ${OVERRIDE_SOURCE_DIR}" "DEBUG"
+    logThis "OVERRIDE_SOURCE_DIR: ${OVERRIDE_SOURCE_DIR}" "DEBUG" "init"
 fi
 export OVERRIDE_SOURCE_DIR
 
 # Assuming OVERRIDE_DEST_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
 if [ ! -z "$OVERRIDE_DEST_DIR" ]; then
-    logThis "OVERRIDE_DEST_DIR: ${OVERRIDE_DEST_DIR}" "DEBUG"
+    logThis "OVERRIDE_DEST_DIR: ${OVERRIDE_DEST_DIR}" "DEBUG" "init"
 fi
 export OVERRIDE_DEST_DIR
 
 if [ "$REPORT_FILE" = "false" ]; then
-    logThis "REPORT_FILE: $REPORT_FILE" "DEBUG"
+    logThis "REPORT_FILE: $REPORT_FILE" "DEBUG" "init"
 fi
 
 # Set rsync custom arguments if specified
 if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
-    logThis "RSYNC_CUSTOM_ARGS: $RSYNC_CUSTOM_ARGS" "DEBUG"
+    logThis "RSYNC_CUSTOM_ARGS: $RSYNC_CUSTOM_ARGS" "DEBUG" "init"
 fi
 
 if [ "$LOG_RSYNC_COMMANDS" = "true" ]; then
-    logThis "LOG_RSYNC_COMMANDS: $LOG_RSYNC_COMMANDS" "DEBUG"
+    logThis "LOG_RSYNC_COMMANDS: $LOG_RSYNC_COMMANDS" "DEBUG" "init"
 fi
 
 if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
-    logThis "USE_DEFAULT_RSYNC_ARGS: $USE_DEFAULT_RSYNC_ARGS" "DEBUG"
+    logThis "USE_DEFAULT_RSYNC_ARGS: $USE_DEFAULT_RSYNC_ARGS" "DEBUG" "init"
 fi
 
 if [ "$REQUIRE_LABEL" = "true" ]; then
-    logThis "REQUIRE_LABEL: $REQUIRE_LABEL" "DEBUG"
+    logThis "REQUIRE_LABEL: $REQUIRE_LABEL" "DEBUG" "init"
 fi
 
 if [ "$BACKUP_ON_START" = "true" ]; then
-    logThis "BACKUP_ON_START: $BACKUP_ON_START" "DEBUG"
+    logThis "BACKUP_ON_START: $BACKUP_ON_START" "DEBUG" "init"
     bash ./app/backup.sh
 fi
 
-logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE"
+logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "init"
 
 
 
