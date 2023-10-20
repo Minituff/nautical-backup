@@ -1,12 +1,28 @@
 # Use base docker image. Contains the docker commands we need to start and stop containers
-FROM docker:24.0.6-cli
+FROM docker:24.0.6-cli@sha256:f9248b5872788eb49e736e528ebcf31968ccec5e6b8e6b846e809398a70ff519
 
 # The platform this image is created for (linux/amd64, linux/arm64)
 ARG TARGETPLATFORM
 ENV TARGETPLATFORM=${TARGETPLATFORM}
 
+# renovate: datasource=repology depName=alpine_3_18/bash versioning=loose
+ENV BASH_VERSION="5.2.15-r5"
+# renovate: datasource=repology depName=alpine_3_18/rsync versioning=loose
+ENV RSYNC_VERSION="3.2.7-r4"
+# renovate: datasource=repology depName=alpine_3_18/tzdata versioning=loose
+ENV TZ_DATA_VERSION="2023c-r1"
+# renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
+ENV DOS2UNIX_VERSION="7.4.4-r1"
+# renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
+ENV JQ_VERSION="1.6-r3"
+
 # Install dependencies
-RUN apk add bash rsync tzdata dos2unix jq
+RUN apk add --no-cache \
+    bash="${BASH_VERSION}" \
+    rsync="${RSYNC_VERSION}" \
+    tzdata="${TZ_DATA_VERSION}" \
+    dos2unix="${DOS2UNIX_VERSION}" \
+    jq="${JQ_VERSION}"
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app

@@ -20,6 +20,14 @@
         "(?<depName>minituff\/nautical-backup):(?<currentValue>.*?)([ |$|\n])"
       ],
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\sENV .*?_VERSION=\"(?<currentValue>.*)\"\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     }
   ],
   "packageRules": [
@@ -35,6 +43,17 @@
       "labels": ["documentation"],
       "assignees": ["minituff"],
       "ignoreTests": true
+    },
+    {
+      "description": "Dockerfile depedencies",
+      "groupName": "docker-deps",
+      "matchFileNames": [
+        "^Dockerfile$"
+      ],
+      "automerge": false,
+      "labels": ["depedency"],
+      "assignees": ["minituff"],
+      "ignoreTests": false
     }
   ]
 }
