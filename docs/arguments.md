@@ -179,7 +179,7 @@ If a [destination directory override](#override-destination-directory) is applie
 KEEP_SRC_DIR_NAME=false
 ```
 
-<small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./labels.md#mirror-source-directory-name-to-desitination) label, but applied globally.</small>
+<small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./labels.md#mirror-source-directory-name-to-destination) label, but applied globally.</small>
 
 ## Console Log Level
 Set the console log level for the container.
