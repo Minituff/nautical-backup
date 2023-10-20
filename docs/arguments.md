@@ -165,6 +165,22 @@ Will immediatly perform a backup when the container is started in addition to th
 BACKUP_ON_START=true
 ```
 
+
+## Mirror Source Directory Name to Desitination
+Mirror the source folder name to the destination folder name. By default <small>(without any [overrides](#override-source-directory))</small>, this means both the `source` and `destination` folder names are the ^^same as the container name^^.
+
+When using a [source directory override](#override-source-directory), then the `KEEP_SRC_DIR_NAME=true` setting <small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a [destination directory override](#override-destination-directory).
+
+If a [destination directory override](#override-destination-directory) is applied for a container, then the override ^^will^^ be used instead of mirrioring the source name, regardless of the `KEEP_SRC_DIR_NAME` setting. 
+
+> **Default**: true
+
+```properties
+KEEP_SRC_DIR_NAME=false
+```
+
+<small>🔄 This is the same action as the [Mirror Source Directory Name to Desitination](./labels.md#mirror-source-directory-name-to-desitination) label, but applied globally.</small>
+
 ## Console Log Level
 Set the console log level for the container.
 
