@@ -166,7 +166,7 @@ BACKUP_ON_START=true
 ```
 
 
-## Mirror Source Directory Name to Desitination
+## Mirror Source Directory Name to Destination
 Mirror the source folder name to the destination folder name. By default <small>(without any [overrides](#override-source-directory))</small>, this means both the `source` and `destination` folder names are the ^^same as the container name^^.
 
 When using a [source directory override](#override-source-directory), then the `KEEP_SRC_DIR_NAME=true` setting <small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a [destination directory override](#override-destination-directory).
@@ -179,7 +179,7 @@ If a [destination directory override](#override-destination-directory) is applie
 KEEP_SRC_DIR_NAME=false
 ```
 
-<small>🔄 This is the same action as the [Mirror Source Directory Name to Desitination](./labels.md#mirror-source-directory-name-to-desitination) label, but applied globally.</small>
+<small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./labels.md#mirror-source-directory-name-to-desitination) label, but applied globally.</small>
 
 ## Console Log Level
 Set the console log level for the container.
