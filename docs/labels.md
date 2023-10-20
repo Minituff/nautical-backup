@@ -189,7 +189,7 @@ If a [destination directory override](#override-destination-directory-name) is a
 nautical-backup.keep_src_dir_name=false
 ```
 
-<small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-desitination) variable, but applied only to this container.</small>
+<small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-destination) variable, but applied only to this container.</small>
 
 ## Use Default rsync Arguments
 Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
