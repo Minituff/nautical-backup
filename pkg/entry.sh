@@ -144,7 +144,7 @@ if [ ! -z "$REPORT_FILE_LOG_LEVEL" ]; then
     logThis "REPORT_FILE_LOG_LEVEL: $REPORT_FILE_LOG_LEVEL" "DEBUG" "init"
 fi
 
-if [ ! -z "$BACKUP_ON_START" ]; then
+if [ "$BACKUP_ON_START" = "true" ]; then
     logThis "BACKUP_ON_START: $BACKUP_ON_START" "DEBUG" "init"
     bash ./app/backup.sh
 fi
