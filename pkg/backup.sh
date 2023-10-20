@@ -45,7 +45,6 @@ logThis "Processing $number_of_containers containers..."
 # Define the name for the report file
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
 
-
 DEFAULT_RSYNC_ARGS="-ahq"
 default_rsync_args="-ahq"
 if [ "$USE_DEFAULT_RSYNC_ARGS" = "false" ]; then
@@ -60,11 +59,9 @@ if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
     custom_args="$RSYNC_CUSTOM_ARGS"
 fi
 
-
 # Merge the default skips with provided skips
 currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
 containers_completed=0
-
 
 BackupContainer() {
     local container=$1
@@ -87,18 +84,30 @@ BackupContainer() {
     fi
 
     local src_dir="$SOURCE_LOCATION/$container"
+    local src_name="$container"
     if [ ! -z "${override_source_dirs[$container]}" ]; then
         src_dir="$SOURCE_LOCATION/${override_source_dirs[$container]}"
+        src_name="${override_source_dirs[$container]}" # Override source name
         logThis "Overriding source directory for $container to ${override_source_dirs[$container]}" "DEBUG"
     fi
 
     if echo "$labels" | grep -q '"nautical-backup.override-source-dir"'; then
-        new_src_dir=$(echo "$labels" | jq -r '.["nautical-backup.override-source-dir"]')
-        src_dir="$SOURCE_LOCATION/$new_src_dir"
-        logThis "Overriding source directory for $container to $new_src_dir from label" "DEBUG"
+        src_name=$(echo "$labels" | jq -r '.["nautical-backup.override-source-dir"]') # Override source name
+        src_dir="$SOURCE_LOCATION/$src_name"
+        logThis "Overriding source directory for $container to $src_name from label" "DEBUG"
     fi
 
-    local dest_dir="$DEST_LOCATION/$container"
+    # Start with the source directory as as the destination directory (unless overridden or disabled) 
+    local dest_dir="$DEST_LOCATION/${src_name}"
+
+    if [ "$KEEP_SRC_DIR_NAME" = "false" ] || echo "$labels" | grep -q '"nautical-backup.keep_src_dir_name":"false"'; then
+        logThis "Setting destination directory for $container back to container name" "DEBUG"
+        dest_dir="$DEST_LOCATION/$container" # Set back to container name
+    fi
+    if echo "$labels" | grep -q '"nautical-backup.keep_src_dir_name":"true"'; then
+        dest_dir="$DEST_LOCATION/${src_name}"
+    fi
+
     if [ ! -z "${override_dest_dirs[$container]}" ]; then
         dest_dir="$DEST_LOCATION/${override_dest_dirs[$container]}"
         logThis "Overriding destination directory for $container to ${override_dest_dirs[$container]}" "DEBUG"

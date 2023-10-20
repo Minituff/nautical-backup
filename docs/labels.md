@@ -176,6 +176,21 @@ nautical-backup.override-destination-dir=new_folder_name
 
 <small>🔄 This is the same action as the [Override Destination Directory](./arguments.md#override-destination-directory) variable, but applied only to this container.</small>
 
+## Mirror Source Directory Name to Destination
+Mirror the source folder name to the destination folder name. By default <small>(without any [overrides](#override-source-directory-name))</small>, this means both the `source` and `destination` folder names are the ^^same as the container name^^.
+
+When using a [source directory override](#override-source-directory-name), then the `nautical-backup.keep_src_dir_name=true` setting<small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a [destination directory overrides](#override-destination-directory-name).
+
+If a [destination directory override](#override-destination-directory-name) is applied for a container, then the override ^^will^^ be used instead of mirrioring the source name, regardless of the `KEEP_SRC_DIR_NAME` setting. 
+
+> **Default If Missing**: true
+
+```properties
+nautical-backup.keep_src_dir_name=false
+```
+
+<small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-desitination) variable, but applied only to this container.</small>
+
 ## Use Default rsync Arguments
 Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
 

@@ -50,5 +50,9 @@ ENV REPORT_FILE_LOG_LEVEL="INFO"
 # Only write to the report file when backups run, not on initialization
 ENV REPORT_FILE_ON_BACKUP_ONLY="true"
 
+# Mirrior the source directory name to the destination directory name
+# When true, and an source dir override is applied, then the destination directory will be same same as the new source directory 
+ENV KEEP_SRC_DIR_NAME="true"
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
