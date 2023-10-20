@@ -1,10 +1,8 @@
 # Use base docker image. Contains the docker commands we need to start and stop containers
 FROM docker:24.0.6-cli
 
+# The platform this image is created for (linux/amd64, linux/arm64)
 ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
-ENV BUILDPLATFORM=${BUILDPLATFORM}
 ENV TARGETPLATFORM=${TARGETPLATFORM}
 
 # Install dependencies

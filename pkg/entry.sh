@@ -3,9 +3,8 @@ source /app/logger.sh # Use the logger script
 
 create_new_report_file
 
-logThis "Nautical Backup Version: $NAUTICAL_VERSION:$TARGETPLATFORM" "INFO" "init"
-logThis "BUILDPLATFORM $BUILDPLATFORM"
-logThis "TARGETPLATFORM $TARGETPLATFORM"
+logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
+logThis "Built for the platform: $BUILDPLATFORM" "DEBUG" "init"
 logThis "Using log level: $LOG_LEVEL" "DEBUG" "init"
 
 # Echo the CRON schedule for logging/debugging
