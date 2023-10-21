@@ -1,0 +1,5 @@
+---
+version: '3'
+services:
+  nautical-backup:
+    image: minituff/nautical-backup:0.3.10 # Change this to the latest version

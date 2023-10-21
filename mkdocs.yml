@@ -8,7 +8,7 @@ edit_uri: 'edit/main/docs/'
 repo_name: 'GitHub'
 repo_url: 'https://github.com/minituff/nautical-backup'
 
-copyright: 'Copyright &copy; 2023 James Tufarelli'
+# copyright: 'Copyright &copy; 2023 James Tufarelli'
 
 # hide:
 #   - footer
@@ -37,6 +37,7 @@ nav:
  - Installation: installation.md
  - Variables: arguments.md
  - Docker Labels: labels.md
+ - Updating Nautical: updates.md
  - Advanced Usage: 
    - Source & Destination Mappings: advanced/advanced.md
    - NFS Shares: advanced/nfs-share.md

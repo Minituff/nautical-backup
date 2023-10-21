@@ -8,7 +8,7 @@ For a full list of configuration options, see the [Variables](./arguments.md) se
 
 ------8<------ "docker-example-tooltips.md"
 
-## Docker Run Example
+## Docker CLI Example
 
 ```bash
 ------8<------ "docker-run-example.sh"
