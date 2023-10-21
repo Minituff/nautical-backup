@@ -54,6 +54,7 @@
       "labels": ["depedency"],
       "assignees": ["minituff"],
       "automerge": true,
+      "commitBody": "[bump version]",
       "extends": [
         "default:automergeDigest",
         "default:automergeBranchPush"
