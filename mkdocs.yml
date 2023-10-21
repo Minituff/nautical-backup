@@ -35,7 +35,7 @@ nav:
  - Home: index.md
  - Introduction: introduction.md
  - Installation: installation.md
- - Variables: arguments.md
+ - Environment Variables: arguments.md
  - Docker Labels: labels.md
  - Updating Nautical: updates.md
  - Advanced Usage: 

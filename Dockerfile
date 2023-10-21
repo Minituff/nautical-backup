@@ -74,5 +74,8 @@ ENV REPORT_FILE_ON_BACKUP_ONLY="true"
 # When true, and an source dir override is applied, then the destination directory will be same same as the new source directory 
 ENV KEEP_SRC_DIR_NAME="true"
 
+# Usually combined with BACKUP_ON_START. Essentially, this just exists the container after 1 run.
+ENV EXIT_AFTER_INIT="false"
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]

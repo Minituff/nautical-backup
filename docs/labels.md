@@ -1,4 +1,4 @@
-Docker Labels allow us to apply settings to Nautical on a per-container basis. Instead of applying [enviornment variables](./arguments.md), we can apply the label to the each container seperately.
+Docker Labels allow us to apply settings to Nautical on a per-container basis. Instead of applying [environment variables](./arguments.md), we can apply the label to the each container seperately.
 
 ### How to add labels
 
@@ -57,15 +57,15 @@ Remember, these labels can be added to any container <small> (other than Nautica
       pihole/pihole:latest
     ```
 
-### Label vs Enviornment Variable Priority
-If a container has an Enviornment Variable applied as well as a conflicting Label, then:
-> The continer Label takes priority over the global Natical enviornment variable.
+### Label vs Environment Variable Priority
+If a container has an Environment Variable applied as well as a conflicting Label, then:
+> The continer Label takes priority over the global Natical environment variable.
 
 ## Enable or Disable Nautical
 This Docker label can be used to acheive 2 things:
 
 1. Opt a container **OUT** of backup
-1. Opt a container **IN** to a backup <small>(with the Nautical [Require Label](./arguments.md#require-label) enviornment variable set to `true`)</small>
+1. Opt a container **IN** to a backup <small>(with the Nautical [Require Label](./arguments.md#require-label) environment variable set to `true`)</small>
 
 > **Default If Missing**: true <small> (all containers will be enabled, unless [Require Label](./arguments.md#require-label) is set to `true`).</small>
 
@@ -95,11 +95,11 @@ nautical-backup.enable=true
         - [ ] Service 1 - *Skipped* since `nautical-backup.enable` was set to `false`
         - [x] Service 2 - *Backed up* since the label `nautical-backup.enable=true` was present
         - [x] Service 3 - *Backed up* since no `nautical-backup.enable=false` label was found
-            - The [Require Label](./arguments.md#require-label) enviornment variable was either *not set* or set to `false` for this example
+            - The [Require Label](./arguments.md#require-label) environment variable was either *not set* or set to `false` for this example
 
 
 === "Example 2 (Opt in)"
-    !!! note " With [Require Label](./arguments.md#require-label) enviornment variable set to `true`"
+    !!! note " With [Require Label](./arguments.md#require-label) environment variable set to `true`"
         ```yaml title=""
         services: # Example Service #1 config ...
           labels:
