@@ -5,10 +5,11 @@ on:
     branches:
       - main
     paths:
-      - 'Dockerfile'
+      - 'Dockerfile'  # If file has changed
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[bump version]')
     permissions:
       contents: write
     steps:

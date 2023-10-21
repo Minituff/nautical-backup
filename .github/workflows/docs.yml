@@ -5,6 +5,10 @@ on:
   push:
     branches:
       - main
+    paths: # Only redeploy docs when necsssary
+      - 'docs/**'
+      - 'snippets/**'
+      - 'mkdocs.yml'
       
 permissions:
   contents: write
