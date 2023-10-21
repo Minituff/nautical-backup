@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
     paths:
       - 'Dockerfile'
 jobs:
@@ -31,3 +32,4 @@ jobs:
           # body: ${{ steps.tag_version.outputs.changelog }}
           draft: true
           makeLatest: true
+          generateReleaseNotes: true
