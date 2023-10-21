@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dev
     paths:
       - 'Dockerfile'
 jobs:
@@ -22,14 +21,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fetch_all_tags: false
           default_bump: patch
-          dry_run: true
 
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1.13.0
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: ${{ steps.tag_version.outputs.new_tag }}
-          # body: ${{ steps.tag_version.outputs.changelog }}
-          draft: true
-          makeLatest: true
           generateReleaseNotes: true
+          makeLatest: true
