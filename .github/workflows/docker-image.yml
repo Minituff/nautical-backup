@@ -67,12 +67,13 @@ jobs:
       with:
         context: .
         load: true
-        tags: "${{ fromJSON(steps.meta.outputs.json).tags[0] }}-test"
+        tags: ${{ github.repository }}:test"
   
     - name: Test Docker image
+      # docker run --rm "${{ fromJSON(steps.meta.outputs.json).tags[0] }}-test" 
       run: |
         cd tests
-        docker run --rm "${{ fromJSON(steps.meta.outputs.json).tags[0] }}-test" \
+        docker run --rm "${{ github.repository }}:test"" \
         --name nautical-backup \
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v /source:/app/source \
@@ -80,7 +81,7 @@ jobs:
           -e LOG_LEVEL="INFO" \
           -e EXIT_AFTER_INIT="true" \ 
           -e BACKUP_ON_START="true" \
-          --build-arg="NAUTICAL_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}"
+          --build-arg="NAUTICAL_VERSION="test"
   
     # This step uses the docker/build-push-action action to build the image, based on your repository's Dockerfile. 
     # It uses the context parameter to define the build's context as the set of files located in the specified path. 
