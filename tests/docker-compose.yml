@@ -1,0 +1,12 @@
+version: '3'
+services:  
+  test:
+    image: nautical-backup # Use the local image
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\dev\source:/app/source
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\dev\destination:/app/destination
+    entrypoint: /bin/bash app/test.sh
+    environment:
+      - EXIT_AFTER_INIT=true
+      - LOG_LEVEL=DEBUG
