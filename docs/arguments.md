@@ -1,10 +1,10 @@
-Nautical provides configuration in the form of Docker enviornment variables.
+Nautical provides configuration in the form of Docker environment variables.
 
-See the [Installation Section](./installation.md), which contains a few examples of applying enviornment variables.
+See the [Installation Section](./installation.md), which contains a few examples of applying environment variables.
 
-### Enviornment Variable vs Label Priority
-If a container has an Enviornment Variable applied as well as a conflicting Label, then:
-> The continer Label takes priority over the global Natical enviornment variable.
+### Environment Variable vs Label Priority
+If a container has an Environment Variable applied as well as a conflicting Label, then:
+> The continer Label takes priority over the global Natical environment variable.
 
 ## Time Zone
 
@@ -165,6 +165,17 @@ Will immediatly perform a backup when the container is started in addition to th
 BACKUP_ON_START=true
 ```
 
+## Exit Nautical after Initialization
+Usually combined with [Backup on Start](#backup-on-start); this variable will tell Nautical to immediately quit after initialization.
+
+> **Default**: false
+
+```properties
+EXIT_AFTER_INIT=true
+```
+
+With [Backup on Start](#backup-on-start) and [Exit Nautical after Initialization](#exit-nautical-after-initialization) both set to `true`, 
+then Nautical will perform 1 backup and then quit--regardless of the [CRON Schedule](#cron-schedule) <small>(All other [variables](./arguments.md) and [labels](./labels.md) still apply)</small>.
 
 ## Mirror Source Directory Name to Destination
 Mirror the source folder name to the destination folder name. By default <small>(without any [overrides](#override-source-directory))</small>, this means both the `source` and `destination` folder names are the ^^same as the container name^^.
@@ -204,7 +215,7 @@ Only used if the repot file is [enabled](#report-file).
 REPORT_FILE_LOG_LEVEL=INFO
 ```
 
-## Use report file on backup only
+## Use Report File on Backup Only
 With a value of `true`, then the report file will only be created when a backup is performed, not during Nautical initialization.
 
 With a value of `false`, then all logs will also be sent to the report file assuming they are the right [log level](#report-log-level).
