@@ -150,6 +150,11 @@ if [ "$BACKUP_ON_START" = "true" ]; then
     bash ./app/backup.sh
 fi
 
+if [ "$EXIT_AFTER_INIT" = "true" ]; then
+    logThis "EXIT_AFTER_INIT: $EXIT_AFTER_INIT" "DEBUG" "init"
+    exit 0
+fi
+
 logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO" "init"
 
 # Start cron and keep container running
