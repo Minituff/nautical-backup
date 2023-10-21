@@ -18,7 +18,7 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_PAT }}
           fetch_all_tags: false
           default_bump: patch
 
@@ -29,3 +29,8 @@ jobs:
           name: ${{ steps.tag_version.outputs.new_tag }}
           generateReleaseNotes: true
           makeLatest: true
+      
+      # - name: Start build image
+      #   run: |
+      #     # Explicitly run our release workflow for this new tag
+      #     gh workflow run docker-image.yml --ref ${{ steps.tag_version.outputs.new_tag }
