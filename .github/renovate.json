@@ -53,7 +53,11 @@
       "automerge": false,
       "labels": ["depedency"],
       "assignees": ["minituff"],
-      "ignoreTests": false
+      "ignoreTests": false,
+      "extends": [
+        "default:automergeDigest",
+        "default:automergeBranchPush"
+      ]
     }
   ]
 }
