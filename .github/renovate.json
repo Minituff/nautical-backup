@@ -50,10 +50,9 @@
       "matchFileNames": [
         "^Dockerfile$"
       ],
-      "automerge": false,
       "labels": ["depedency"],
       "assignees": ["minituff"],
-      "ignoreTests": false,
+      "automerge": true,
       "extends": [
         "default:automergeDigest",
         "default:automergeBranchPush"
