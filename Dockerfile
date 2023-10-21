@@ -1,5 +1,5 @@
 # Use base docker image. Contains the docker commands we need to start and stop containers
-FROM docker:24.0.6-cli@sha256:f9248b5872788eb49e736e528ebcf31968ccec5e6b8e6b846e809398a70ff519
+FROM docker:24.0.6-cli@sha256:4865ba3135696b1c0e1b6bf323a5ef9402013244a69280543cf16aebc1da2b49
 
 # The platform this image is created for (linux/amd64, linux/arm64)
 ARG TARGETPLATFORM
