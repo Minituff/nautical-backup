@@ -22,7 +22,7 @@ jobs:
           dry_run: true
 
       - name: Create a GitHub release
-        uses: ncipollo/release-action@v1.67.0
+        uses: ncipollo/release-action@v1.13.0
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: ${{ steps.tag_version.outputs.new_tag }} (auto)
