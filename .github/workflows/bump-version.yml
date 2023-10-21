@@ -18,7 +18,7 @@ jobs:
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
         with:
-          github_token: ${{ secrets.GITHUB_PAT }}
+          github_token: ${{ secrets.REPO_GITHUB_SECRET }}
           fetch_all_tags: false
           default_bump: patch
 
