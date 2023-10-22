@@ -3,9 +3,9 @@ name: Create and publish a Docker image
 on:
   workflow_dispatch: # Allow manually running
   push:
-    # branches:
+    branches:
     #   - 'main'
-    #   - 'dev'
+      - 'dev' #TODO! Remove this later
     tags:
       - 'v*'
 
@@ -73,7 +73,7 @@ jobs:
       # docker run --rm "${{ fromJSON(steps.meta.outputs.json).tags[0] }}-test" 
       run: |
         cd tests
-        docker run --rm "${{ github.repository }}:test"" \
+        docker run --rm "${{ github.repository }}:test" \
         --name nautical-backup \
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v /source:/app/source \
