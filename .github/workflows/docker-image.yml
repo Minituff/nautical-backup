@@ -67,13 +67,13 @@ jobs:
       with:
         context: .
         load: true
-        tags: minituff/nautical-backup:test"
+        tags: ${{ github.repository }}:test
   
     - name: Test Docker image
       # docker run --rm "${{ fromJSON(steps.meta.outputs.json).tags[0] }}-test" 
       run: |
         cd tests
-        docker run --rm "minituff/nautical-backup:test" \
+        docker run --rm ${{ github.repository }}:test \
         --name nautical-backup \
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v /source:/app/source \
