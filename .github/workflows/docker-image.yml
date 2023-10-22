@@ -5,7 +5,7 @@ on:
   push:
     branches:
     #   - 'main'
-      - 'tes' #TODO! Remove this later
+      - 'test' #TODO! Remove this later
     tags:
       - 'v*'
 
