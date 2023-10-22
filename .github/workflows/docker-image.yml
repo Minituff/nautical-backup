@@ -73,16 +73,7 @@ jobs:
       # docker run --rm "${{ fromJSON(steps.meta.outputs.json).tags[0] }}-test" 
       run: |
         cd tests
-        docker run --rm minituff/nautical-backup:test \
-          --name nautical-backup \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v ./source:/app/source \
-          -v ./destination:/app/destination \
-          -e LOG_LEVEL="DEBUG" \
-          -e EXIT_AFTER_INIT="true" \ 
-          -e BACKUP_ON_START="false" \
-          --build-arg="NAUTICAL_VERSION="test" \
-          minituff/nautical-backup:test
+        docker compose up
   
     # This step uses the docker/build-push-action action to build the image, based on your repository's Dockerfile. 
     # It uses the context parameter to define the build's context as the set of files located in the specified path. 

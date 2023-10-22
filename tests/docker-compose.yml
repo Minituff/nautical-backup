@@ -1,7 +1,7 @@
 version: '3'
 services:  
-  test:
-    image: nautical-backup # Use the local image
+  nautical-backup-test:
+    image: nautical-backup:test # Use the local image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
