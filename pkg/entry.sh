@@ -1,10 +1,9 @@
 #!/bin/bash
 
 if [ "$TEST_MODE" == "true" ]; then
-    echo "--- Running entry.sh in TEST mode ---"
-    source ../pkg/logger.sh # Use the logger script
-    source ../pkg/utils.sh
-    source ../pkg/env.sh
+    source pkg/logger.sh # Use the logger script
+    source pkg/utils.sh
+    source pkg/env.sh
 else
     source /app/logger.sh # Use the logger script
     source /app/utils.sh
@@ -36,7 +35,11 @@ verify_destination_location $DEST_LOCATION
 
 if [ "$BACKUP_ON_START" = "true" ]; then
     echo "Starting backup since BACKUP_ON_START is true" "INFO" "init"
-    bash ./app/backup.sh
+    if [ "$TEST_MODE" == "true" ]; then
+        source pkg/backup.sh
+    else
+        bash ./app/backup.sh
+    fi
 fi
 
 if [ "$EXIT_AFTER_INIT" = "true" ]; then

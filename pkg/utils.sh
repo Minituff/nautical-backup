@@ -1,6 +1,5 @@
 if [ "$TEST_MODE" == "true" ]; then
-    echo "--- Running utils.sh in test mode ---"
-    source ../pkg/logger.sh # Use the logger script
+    source pkg/logger.sh # Use the logger script
 else
     source /app/logger.sh # Use the logger script
 fi

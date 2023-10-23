@@ -6,22 +6,12 @@ fi
 export TEST_MODE
 
 if [ "$TEST_MODE" == "true" ]; then
-    echo "--- Running env.sh in test mode ---"
-    source ../pkg/logger.sh # Use the logger script
-    source ../pkg/utils.sh
+    source pkg/logger.sh # Use the logger script
+    source pkg/utils.sh
 
     NAUTICAL_VERSION=Test
     TARGETPLATFORM=TestPlatform
-else
-    source /app/logger.sh # Use the logger script
-    source /app/utils.sh
 fi
-export LOGGER_SH_FILE
-export UTILS_SH_FILE
-export ENV_SH_FILE
-
-source $UTILS_SH_FILE
-source $LOGGER_SH_FILE
 
 create_new_report_file
 
@@ -71,8 +61,8 @@ DEFAULT_LOG_RSYNC_COMMANDS="false"
 DEFAULT_SOURCE_LOCATION="/app/source"    
 DEFAULT_DEST_LOCATION=/app/destination
 # Test directories
-DEFAULT_TEST_SOURCE_LOCATION="source"
-DEFAULT_TEST_DEST_LOCATION="destination"
+DEFAULT_TEST_SOURCE_LOCATION="tests/source"
+DEFAULT_TEST_DEST_LOCATION="tests/destination"
 
 # ------ Default Empty Values------ #
 

@@ -21,6 +21,11 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        ./tests/tests.sh
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 

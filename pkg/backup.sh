@@ -1,8 +1,7 @@
 #!/bin/bash
 
 if [ "$TEST_MODE" == "true" ]; then
-    echo "--- Running logger.sh in test mode ---"
-    source "`dirname $0`"/logger.sh # Use the logger script
+    source pkg/logger.sh # Use the logger script
 else
     source /app/logger.sh # Use the logger script
 fi

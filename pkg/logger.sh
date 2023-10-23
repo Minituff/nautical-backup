@@ -7,7 +7,6 @@ script_logging_level="INFO"
 report_file_logging_level="INFO"
 report_file_on_backup_only="true"
 
-
 # Override the defaults
 if [ ! -z "$LOG_LEVEL" ]; then
     script_logging_level=$LOG_LEVEL
@@ -21,12 +20,15 @@ if [ ! -z "$REPORT_FILE_ON_BACKUP_ONLY" ]; then
     report_file_on_backup_only=$REPORT_FILE_ON_BACKUP_ONLY
 fi
 
-
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
+
+delete_report_file() {
+    rm -f "$DEST_LOCATION/Backup Report - "*.txt
+}
 
 create_new_report_file() {
     if [ "$REPORT_FILE" = "true" ]; then
-        rm -f "$DEST_LOCATION/Backup Report - "*.txt
+        delete_report_file
         # Initialize the current report file with a header
         echo "Backup Report - $(date)" >"$DEST_LOCATION/$report_file"
     fi
