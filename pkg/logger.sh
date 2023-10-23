@@ -1,9 +1,26 @@
 #!/bin/bash
 
 declare -A levels=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
-script_logging_level=$LOG_LEVEL
-report_file_logging_level=$REPORT_FILE_LOG_LEVEL
-report_file_on_backup_only=$REPORT_FILE_ON_BACKUP_ONLY
+
+# Defaults
+script_logging_level="INFO"
+report_file_logging_level="INFO"
+report_file_on_backup_only="true"
+
+
+# Override the defaults
+if [ ! -z "$LOG_LEVEL" ]; then
+    script_logging_level=$LOG_LEVEL
+fi
+
+if [ ! -z "$REPORT_FILE_LOG_LEVEL" ]; then
+    report_file_logging_level=$REPORT_FILE_LOG_LEVEL
+fi
+
+if [ ! -z "$REPORT_FILE_ON_BACKUP_ONLY" ]; then
+    report_file_on_backup_only=$REPORT_FILE_ON_BACKUP_ONLY
+fi
+
 
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
 
@@ -31,7 +48,7 @@ logThis() {
     # Check if level is enough for report file logging
     if [ "$REPORT_FILE" = "true" ] && ((${levels[$log_priority]} >= ${levels[$report_file_logging_level]})); then
         if ! ([ "$message_type" == "init" ] && [ "$report_file_on_backup_only" == "true" ]); then
-            echo "$(date) - ${log_priority}: ${log_message}" >> "$DEST_LOCATION/$report_file"
+            echo "$(date) - ${log_priority}: ${log_message}" >>"$DEST_LOCATION/$report_file"
         fi
     fi
 }

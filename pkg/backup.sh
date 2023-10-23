@@ -1,6 +1,12 @@
 #!/bin/bash
 
-source /app/logger.sh # Use the logger script
+if [ "$TEST_MODE" == "true" ]; then
+    echo "Running in test mode"
+    source "`dirname $0`"/logger.sh # Use the logger script
+else
+    source /app/logger.sh # Use the logger script
+fi
+
 logThis "Starting backup..."
 
 # Convert the string back to an array

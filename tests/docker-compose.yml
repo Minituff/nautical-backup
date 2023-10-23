@@ -1,6 +1,7 @@
 version: '3'
 services:  
   nautical-backup-test:
+    container_name: nautical-backup-test
     image: minituff/nautical-backup:test # Use the local image
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -9,4 +10,11 @@ services:
     entrypoint: /bin/bash app/test.sh
     environment:
       - EXIT_AFTER_INIT=false
+      - BACKUP_ON_START=true
       - LOG_LEVEL=DEBUG
+    depends_on:
+      - alpine
+  alpine:
+    image: alpine:latest
+    container_name: alpine
+    command: "tail -f /dev/null"
