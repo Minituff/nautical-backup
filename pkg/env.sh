@@ -16,6 +16,12 @@ else
     source /app/logger.sh # Use the logger script
     source /app/utils.sh
 fi
+export LOGGER_SH_FILE
+export UTILS_SH_FILE
+export ENV_SH_FILE
+
+source $UTILS_SH_FILE
+source $LOGGER_SH_FILE
 
 create_new_report_file
 
