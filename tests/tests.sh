@@ -7,6 +7,7 @@ DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
 export DOCKER_COMMANDS_FILE
 
 export TEST_MODE="true"
+export LOG_LEVEL="ERROR"
 
 # Mock function for docker
 docker() {
@@ -46,7 +47,8 @@ test_docker_ps() {
   # Set what the next docker ps command should return
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines[@]}")
 
-  source ./pkg/entry.sh
+  source ../pkg/entry.sh
+  # source ../pkg/env.sh
   ../pkg/backup.sh
 
   declare -a expected_output=(

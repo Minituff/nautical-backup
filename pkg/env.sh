@@ -1,12 +1,20 @@
 #!/bin/bash
 
+if [ -z "$TEST_MODE" ]; then
+    TEST_MODE="false"
+fi
+export TEST_MODE
+
 if [ "$TEST_MODE" == "true" ]; then
-    echo "Running in test mode"
-    source "$(dirname $0)"/logger.sh # Use the logger script
-    source "$(dirname $0)"/utils.sh  # Use the logger script
+    echo "--- Running env.sh in test mode ---"
+    source ../pkg/logger.sh # Use the logger script
+    source ../pkg/utils.sh
+
+    NAUTICAL_VERSION=Test
+    TARGETPLATFORM=TestPlatform
 else
     source /app/logger.sh # Use the logger script
-    source /app/utils.sh  # Use the logger script
+    source /app/utils.sh
 fi
 
 create_new_report_file
