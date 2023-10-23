@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Global variables to control mock behavior
-export SOURCE_LOCATION=source    # Do not include a trailing slash
-export DEST_LOCATION=destination # Do not include a trailing slash
-
 export MOCK_DOCKER_PS_OUTPUT=""
 RSYNC_COMMANDS_RUN=()
 DOCKER_COMMANDS_RUN=()
