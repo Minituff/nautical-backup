@@ -19,7 +19,7 @@ docker() {
   if [ "$1" == "ps" ]; then
     echo -e "$MOCK_DOCKER_PS_OUTPUT"
   elif [ "$1" == "inspect" ]; then
-    echo -e "$MOCK_DOCKER_PS_OUTPUT"
+    echo -e "$MOCK_DOCKER_INSPECT_OUTPUT"
   fi
 }
 export -f docker
@@ -98,6 +98,14 @@ test_docker_ps() {
     "start container1"
   )
 
+
+  declare -a disallowed_docker_output=(
+    "stop container2"
+    "start container2"
+    "stop container3"
+    "start container3"
+  )
+
   test_passed=true # Initialize a flag to indicate test status
   # Read the lines from the file into an array
 
@@ -105,10 +113,31 @@ test_docker_ps() {
 
   # Check if each expected command is in the actual output
   for expected_docker in "${expected_docker_output[@]}"; do
-    if ! printf '%s\n' "${docker_actual_output[@]}" | grep -q -F "$expected_docker"; then
-      echo "${FUNCNAME[0]} FAIL: DOCKER '$expected_docker' not found in actual output."
+    found=false
+    for docker_actual in "${docker_actual_output[@]}"; do
+      if [[ "$docker_actual" == "$expected_docker" ]]; then
+        found=true
+        break
+      fi
+    done
+    if [ "$found" = false ]; then
+      fail "${FUNCNAME[0]}"
+      echo "'$expected_docker' not found in expected_docker_output."
       test_passed=false
+      exit 1
     fi
+  done
+
+  # Check if any disallowed command is in the actual output
+  for disallowed_docker in "${disallowed_docker_output[@]}"; do
+    for docker_actual in "${docker_actual_output[@]}"; do
+      if [[ "$docker_actual" == "$disallowed_docker" ]]; then
+        fail "${FUNCNAME[0]}"
+        echo "'$disallowed_docker' found in actual output but is disallowed."
+        test_passed=false
+        exit 1
+      fi
+    done
   done
 
   if [ "$test_passed" = true ]; then
@@ -116,7 +145,7 @@ test_docker_ps() {
   else
     fail ${FUNCNAME[0]}
     echo "Expected:"
-    print_array "${expected_output[@]}"
+    print_array "${expected_docker_output[@]}"
     echo "Actual:"
     print_array "${docker_actual_output[@]}"
     exit 1
@@ -212,9 +241,18 @@ test_skip_containers() {
 
   # Check if each expected command is in the actual output
   for expected_docker in "${expected_docker_output[@]}"; do
-    if ! printf '%s\n' "${docker_actual_output[@]}" | grep -q -F "$expected_docker"; then
-      echo "${FUNCNAME[0]} FAIL: DOCKER '$expected_docker' not found in actual output."
+    found=false
+    for docker_actual in "${docker_actual_output[@]}"; do
+      if [[ "$docker_actual" == "$expected_docker" ]]; then
+        found=true
+        break
+      fi
+    done
+    if [ "$found" = false ]; then
+      fail "${FUNCNAME[0]}"
+      echo "'$expected_docker' not found in expected_docker_output."
       test_passed=false
+      exit 1
     fi
   done
 
@@ -270,7 +308,6 @@ test_skip_containers() {
 test_docker_ps
 test_rsync
 test_skip_containers
-
 # Cleanup
 rm "$DOCKER_COMMANDS_FILE"
 rm "$RSYNC_COMMANDS_RFILE"
