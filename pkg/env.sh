@@ -61,8 +61,8 @@ DEFAULT_LOG_RSYNC_COMMANDS="false"
 DEFAULT_SOURCE_LOCATION="/app/source"    
 DEFAULT_DEST_LOCATION=/app/destination
 # Test directories
-DEFAULT_TEST_SOURCE_LOCATION="tests/source"
-DEFAULT_TEST_DEST_LOCATION="tests/destination"
+DEFAULT_TEST_SOURCE_LOCATION="tests/src"
+DEFAULT_TEST_DEST_LOCATION="tests/dest"
 
 # ------ Default Empty Values------ #
 
