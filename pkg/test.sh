@@ -2,24 +2,32 @@
 
 bash /entry.sh
 
-echo "Running tests..."
+echo "Running integation tests..."
 
 test_cron() {
     # Expected output
     EXPECTED_OUTPUT="$CRON_SCHEDULE bash /app/backup.sh"
+    EXPECTED_OUTPUT2="0 8 * * * bash /app/backup.sh" # Requires setting in the docker compose or CLI
 
     # Run the command and capture its output
     ACTUAL_OUTPUT=$(crontab -l | grep bash)
 
-    # Compare the actual output to the expected output
-    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
-        echo "Test Passed: Output matches expected output."
-    else
+    if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
     fi
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
+        echo "Test Failed: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    echo "Test Passed: 'crontab -l | grep' bash returns $EXPECTED_OUTPUT"
 }
 
 test_bash() {
@@ -28,7 +36,7 @@ test_bash() {
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
-        echo "Test Passed: Output matches expected output."
+        echo "Test Passed: 'which bash' returns $EXPECTED_OUTPUT"
     else
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
@@ -51,7 +59,7 @@ test_rsync() {
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
-        echo "Test Passed: Rsync is installed"
+        echo "Test Passed: 'which rsync' returns $EXPECTED_OUTPUT"
     else
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
@@ -75,7 +83,7 @@ test_jq() {
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
-        echo "Test Passed: QJ is installed"
+         echo "Test Passed: 'which jq' returns $EXPECTED_OUTPUT"
     else
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
@@ -98,7 +106,7 @@ test_tz(){
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
-        echo "Test Passed: Output matches expected output."
+        echo "Test Passed: 'echo \$TZ' returns $EXPECTED_OUTPUT"
     else
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
