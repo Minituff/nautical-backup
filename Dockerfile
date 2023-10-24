@@ -33,6 +33,9 @@ RUN chmod -R +x /app
 # Make the all files in the /app folder Unix format
 RUN find /app -type f -print0 | xargs -0 dos2unix
 
+# Not needed anymore, so we can delete it
+RUN apk del dos2unix
+
 # Move the entrypoint script to the root directory for ease of access
 RUN mv app/entry.sh /entry.sh
 
