@@ -16,7 +16,6 @@ test_cron() {
         echo "Test Passed: Output matches expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
-        exit 0
     else
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
@@ -25,6 +24,57 @@ test_cron() {
     fi
 }
 
-test_cron
 
+
+test_bash(
+    EXPECTED_OUTPUT="/bin/bash"
+    ACTUAL_OUTPUT=$(which bash)
+
+        # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "Test Passed: Output matches expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+    else
+        echo "Test Failed: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+)
+
+test_rsync(
+    EXPECTED_OUTPUT="/usr/bin/rsync"
+    ACTUAL_OUTPUT=$(which rsync)
+
+        # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "Test Passed: Rsync is installed"
+    else
+        echo "Test Failed: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+)
+
+test_jq(
+    EXPECTED_OUTPUT="/usr/bin/jq"
+    ACTUAL_OUTPUT=$(which jq)
+
+        # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "Test Passed: QJ is installed"
+    else
+        echo "Test Failed: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+)
+
+test_cron
+test_bash
+test_rsync
+test_jq
 echo "All tests passed!"
