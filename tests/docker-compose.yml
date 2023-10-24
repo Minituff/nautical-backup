@@ -9,6 +9,7 @@ services:
       - ./destination:/app/destination
     entrypoint: /bin/bash app/test.sh
     environment:
+      - TZ=America/Los_Angeles
       - BACKUP_ON_START=true
       - EXIT_AFTER_INIT=true
       - LOG_LEVEL=DEBUG
