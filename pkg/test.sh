@@ -1,11 +1,5 @@
 #!/bin/bash
 
-EXIT_AFTER_INIT="true"
-BACKUP_ON_START="false"
-LOG_LEVEL="DEBUG"
-CRON_SCHEDULE="0 8 * * *"
-BACKUP_ON_START="true"
-
 bash /entry.sh
 
 echo "Running tests..."

@@ -9,6 +9,8 @@ services:
       - ./destination:/app/destination
     entrypoint: /bin/bash app/test.sh
     environment:
-      - EXIT_AFTER_INIT=false
       - BACKUP_ON_START=true
+      - EXIT_AFTER_INIT=true
       - LOG_LEVEL=DEBUG
+      - CRON_SCHEDULE=0 8 * * *
+      - REPORT_FILE=false
