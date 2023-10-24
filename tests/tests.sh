@@ -1,14 +1,11 @@
 #!/bin/bash
 
 export MOCK_DOCKER_PS_OUTPUT=""
-export MOCK_DOCKER_INSPECT_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
 RSYNC_COMMANDS_RFILE=$(mktemp /tmp/rsync_commands.XXXXXX)
+export MOCK_DOCKER_INSPECT_OUTPUT=""
 export DOCKER_COMMANDS_FILE
 export RSYNC_COMMANDS_RFILE
-
-export TEST_MODE="true"
-export LOG_LEVEL="ERROR"
 
 # Mock function for docker
 docker() {
@@ -39,12 +36,38 @@ print_array() {
   done
 }
 
+reset_environment_variables() {
+  TEST_MODE="true"
+  LOG_LEVEL="ERROR"
+  
+  TZ=""
+  CRON_SCHEDULE=""
+  REPORT_FILE=""
+  BACKUP_ON_START=""
+  USE_DEFAULT_RSYNC_ARGS=""
+  REQUIRE_LABEL=""
+  REPORT_FILE_LOG_LEVEL=""
+  REPORT_FILE_ON_BACKUP_ONLY=""
+  KEEP_SRC_DIR_NAME=""
+  EXIT_AFTER_INIT=""
+  LOG_RSYNC_COMMANDS=""
+  SOURCE_LOCATION=""
+  DEST_LOCATION=""
+  TEST_SOURCE_LOCATION=""
+  TEST_DEST_LOCATION=""
+  SKIP_CONTAINERS=""
+  SKIP_STOPPING=""
+  RSYNC_CUSTOM_ARGS=""
+  OVERRIDE_SOURCE_DIR=""
+  OVERRIDE_DEST_DIR=""
+}
+
 clear_files() {
   >$RSYNC_COMMANDS_RFILE
   >$DOCKER_COMMANDS_FILE
 }
 
-teardown(){
+teardown() {
   rm "$DOCKER_COMMANDS_FILE"
   rm "$RSYNC_COMMANDS_RFILE"
   rm -rf tests/src
@@ -56,6 +79,7 @@ teardown(){
 }
 
 cleanup_on_success() {
+  reset_environment_variables
   clear_files
   rm -rf tests/src
   rm -rf tests/dest
@@ -93,6 +117,7 @@ fail() {
 
 test_docker() {
   local mock_docker_ps_lines
+  local mock_docker_labels
   local disallowed_docker_output
   local expected_docker_output
   local test_name
@@ -104,12 +129,16 @@ test_docker() {
       test_name="$2"
       shift
       ;;
-    --mock)
+    --mock_ps)
       mock_docker_ps_lines="$2"
       shift
       ;;
     --disallow)
       disallowed_docker_output="$2"
+      shift
+      ;;
+    --mock_labels)
+      mock_docker_labels="$2"
       shift
       ;;
     --expect)
@@ -125,11 +154,13 @@ test_docker() {
   done
 
   IFS=$'\n' read -rd '' -a mock_docker_ps_lines_arr <<<"$mock_docker_ps_lines"
+  IFS=$'\n' read -rd '' -a mock_docker_labels_arr <<<"$mock_docker_labels"
   IFS=$'\n' read -rd '' -a disallowed_docker_output_arr <<<"$disallowed_docker_output"
   IFS=$'\n' read -rd '' -a expected_docker_output_arr <<<"$expected_docker_output"
 
   # Set what the next docker ps command should return
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
+  MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
   source pkg/entry.sh
 
@@ -150,7 +181,6 @@ test_docker() {
       fail "$test_name"
       echo "'$expected_docker' not found in expected_docker_output."
       test_passed=false
-      cleanup_on_fail
     fi
   done
 
@@ -161,7 +191,6 @@ test_docker() {
         fail "$test_name"
         echo "'$disallowed_docker' found in actual output but is disallowed."
         test_passed=false
-        cleanup_on_fail
       fi
     done
   done
@@ -191,7 +220,7 @@ test_rsync() {
       test_name="$2"
       shift
       ;;
-    --mock)
+    --mock_ps)
       mock_docker_ps_lines="$2"
       shift
       ;;
@@ -264,101 +293,6 @@ test_rsync() {
 
 # ---- Actual Tests ----
 
-test_skip_containers() {
-  clear_files
-  export BACKUP_ON_START="true"
-  SKIP_CONTAINERS=container1,container-name2,container-name3
-
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
-
-  declare -a mock_docker_ps_lines=(
-    "abc123:container1"
-    "def456:container2"
-    "ghi789:container3"
-  )
-  # Set what the next docker ps command should return
-  MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines[@]}")
-
-  source pkg/entry.sh
-
-  declare -a expected_docker_output=(
-    "ps --no-trunc --format={{.ID}}:{{.Names}}"
-    "inspect --format {{json .Config.Labels}} abc123"
-    "inspect --format {{json .Config.Labels}} def456"
-    "inspect --format {{json .Config.Labels}} ghi789"
-  )
-
-  test_passed=true # Initialize a flag to indicate test status
-  # Read the lines from the file into an array
-
-  mapfile -t docker_actual_output <"$DOCKER_COMMANDS_FILE"
-
-  # Check if each expected command is in the actual output
-  for expected_docker in "${expected_docker_output[@]}"; do
-    found=false
-    for docker_actual in "${docker_actual_output[@]}"; do
-      if [[ "$docker_actual" == "$expected_docker" ]]; then
-        found=true
-        break
-      fi
-    done
-    if [ "$found" = false ]; then
-      fail "${FUNCNAME[0]}"
-      echo "'$expected_docker' not found in expected_docker_output."
-      test_passed=false
-      cleanup_on_fail
-    fi
-  done
-
-  declare -a expected_rsync_output=(
-    "-ahq tests/src/container2/ tests/dest/container2/"
-  )
-
-  test_passed=true # Initialize a flag to indicate test status
-  # Read the lines from the file into an array
-
-  # Check if each expected command is in the actual output
-
-  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_RFILE"
-
-  for expected_rsync in "${expected_rsync_output[@]}"; do
-    found=false
-    for actual_rsync in "${rsync_actual_output[@]}"; do
-      if [[ "$actual_rsync" == "$expected_rsync" ]]; then
-        found=true
-        break
-      fi
-    done
-    if [ "$found" = false ]; then
-      echo "${FUNCNAME[0]} FAIL: RSYNC '$expected_rsync' not found in actual output."
-      test_passed=false
-    fi
-  done
-
-  if [ "$test_passed" = true ]; then
-    pass ${FUNCNAME[0]} "1/2"
-  else
-    fail ${FUNCNAME[0]} "2/2"
-    echo "Expected:"
-    print_array "${expected_rsync_output[@]}"
-    echo "Actual:"
-    print_array "${rsync_actual_output[@]}"
-  fi
-
-  if [ "$test_passed" = true ]; then
-    pass ${FUNCNAME[0]} "2/2"
-  else
-    fail ${FUNCNAME[0]} "2/2"
-    echo "Expected:"
-    print_array "${expected_output[@]}"
-    echo "Actual:"
-    print_array "${docker_actual_output[@]}"
-    cleanup_on_fail
-  fi
-
-}
-
 test_docker_commands() {
   clear_files
   export BACKUP_ON_START="true"
@@ -386,8 +320,8 @@ test_docker_commands() {
   )
 
   test_docker \
-    --name "Test Docker Commands on default settings" \
-    --mock "$mock_docker_ps_lines" \
+    --name "Test Docker commands on default settings" \
+    --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_docker_output" \
     --disallow "$disallowed_docker_output"
   
@@ -419,18 +353,99 @@ test_rsync_commands() {
   )
 
   test_rsync \
-    --name "Test Rsync on default settings" \
-    --mock "$mock_docker_ps_lines" \
+    --name "Test Rsync commands on default settings" \
+    --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output"
 
   cleanup_on_success
 }
 
+test_skip_containers() {
+  clear_files
+  export BACKUP_ON_START="true"
+  SKIP_CONTAINERS=container1,container-name2,container-name3
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2" &&
+      echo "ghi789:container3"
+  )
+
+  disallowed_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  expected_docker_output=$(
+    echo "stop container2" &&
+      echo "start container2"
+  )
+
+  test_docker \
+    --name "Test SKIP_CONTAINERS" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+
+  cleanup_on_success
+}
+
+test_enable_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+  mock_docker_label_lines=$(
+    echo "\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"false\""
+  )
+
+  disallowed_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  expected_docker_output=$()
+
+  test_docker \
+    --name "Test nautical-backup.enable=false" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+
+  expected_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+  mock_docker_label_lines=$(
+    echo "\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"true\""
+  )
+
+  test_docker \
+    --name "Test nautical-backup.enable=true" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --expect "$expected_docker_output"
+
+  cleanup_on_success
+}
+
+reset_environment_variables
 # Run the tests
 test_rsync_commands
 test_docker_commands
-# test_skip_containers
+test_skip_containers
+test_enable_label
 
 # Cleanup
 teardown
