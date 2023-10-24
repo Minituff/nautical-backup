@@ -39,11 +39,11 @@ print_array() {
 reset_environment_variables() {
   TEST_MODE="true"
   LOG_LEVEL="ERROR"
+  BACKUP_ON_START="true"
 
   TZ=""
   CRON_SCHEDULE=""
   REPORT_FILE=""
-  BACKUP_ON_START=""
   USE_DEFAULT_RSYNC_ARGS=""
   REQUIRE_LABEL=""
   REPORT_FILE_LOG_LEVEL=""
@@ -210,6 +210,7 @@ test_docker() {
 test_rsync() {
   local test_name
   local mock_docker_ps_lines
+  local mock_docker_labels
   local expected_rsync_output
   local disallowed_rsync_output
 
@@ -222,6 +223,10 @@ test_rsync() {
       ;;
     --mock_ps)
       mock_docker_ps_lines="$2"
+      shift
+      ;;
+    --mock_labels)
+      mock_docker_labels="$2"
       shift
       ;;
     --expect)
@@ -241,11 +246,13 @@ test_rsync() {
   done
 
   IFS=$'\n' read -rd '' -a mock_docker_ps_lines_arr <<<"$mock_docker_ps_lines"
+  IFS=$'\n' read -rd '' -a mock_docker_labels_arr <<<"$mock_docker_labels"
   IFS=$'\n' read -rd '' -a expected_rsync_output_arr <<<"$expected_rsync_output"
   IFS=$'\n' read -rd '' -a disallowed_rsync_output_arr <<<"$disallowed_rsync_output"
 
   # Set what the next docker ps command should return
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
+  MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
   source pkg/entry.sh
 
@@ -324,7 +331,7 @@ test_docker_commands() {
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_docker_output" \
     --disallow "$disallowed_docker_output"
-  
+
   cleanup_on_success
 }
 
@@ -427,8 +434,8 @@ test_enable_label() {
       echo "start container1"
   )
   mock_docker_label_lines=$(
-    echo "\"com.docker.compose.oneoff\":\"False",\" &&
-      echo "\"nautical-backup.enable\":\"true\""
+    echo "{\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"true\"}"
   )
 
   test_docker \
@@ -451,8 +458,8 @@ test_require_label() {
     echo "abc123:container1"
   )
   mock_docker_label_lines=$(
-    echo "\"com.docker.compose.oneoff\":\"False",\" &&
-      echo "\"nautical-backup.enable\":\"false\""
+    echo "{\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"false\"}"
   )
 
   disallowed_docker_output=$(
@@ -472,14 +479,14 @@ test_require_label() {
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_docker_output" \
     --disallow "$disallowed_docker_output"
-  
+
   expected_docker_output=$(
     echo "stop container1" &&
       echo "start container1"
   )
   mock_docker_label_lines=$(
-    echo "\"com.docker.compose.oneoff\":\"False",\" &&
-      echo "\"nautical-backup.enable\":\"true\""
+    echo "{\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"true\"}"
   )
 
   test_docker \
@@ -491,9 +498,54 @@ test_require_label() {
   cleanup_on_success
 }
 
+test_override_src() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
+  mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
+  mkdir -p tests/src/container3-new && touch tests/src/container3-new/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2" &&
+      echo "ghi789:container3"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1-override/ tests/dest/container1-override/" &&
+      echo "-ahq tests/src/container3-new/ tests/dest/container3-new/"
+  )
+
+  test_rsync \
+    --name "Test Global Source override" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output"
+
+  cleanup_on_success
+  mkdir -p tests/src/container-override && touch tests/src/container-override/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+      echo "{\"nautical-backup.override-source-dir\":\"container-override\"}"
+  )
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container-override/ tests/dest/container-override/"
+  )
+  
+  test_rsync \
+    --name "Test Label Source override" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+}
+
 # ---- Call Tests ----
 reset_environment_variables
-
 
 # Run the tests
 test_rsync_commands
@@ -501,6 +553,7 @@ test_docker_commands
 test_skip_containers
 test_enable_label
 test_require_label
+test_override_src
 
 # Cleanup
 teardown
