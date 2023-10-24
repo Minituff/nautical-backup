@@ -26,7 +26,7 @@ test_cron() {
 
 
 
-test_bash(
+test_bash() {
     EXPECTED_OUTPUT="/bin/bash"
     ACTUAL_OUTPUT=$(which bash)
 
@@ -41,9 +41,9 @@ test_bash(
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
     fi
-)
+}
 
-test_rsync(
+test_rsync() {
     EXPECTED_OUTPUT="/usr/bin/rsync"
     ACTUAL_OUTPUT=$(which rsync)
 
@@ -56,9 +56,9 @@ test_rsync(
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
     fi
-)
+}
 
-test_jq(
+test_jq(){
     EXPECTED_OUTPUT="/usr/bin/jq"
     ACTUAL_OUTPUT=$(which jq)
 
@@ -71,7 +71,7 @@ test_jq(
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
     fi
-)
+}
 
 test_cron
 test_bash
