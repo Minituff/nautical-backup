@@ -12,9 +12,3 @@ services:
       - EXIT_AFTER_INIT=false
       - BACKUP_ON_START=true
       - LOG_LEVEL=DEBUG
-    depends_on:
-      - alpine
-  alpine:
-    image: alpine:latest
-    container_name: alpine
-    command: "tail -f /dev/null"

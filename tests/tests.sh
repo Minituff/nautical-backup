@@ -99,7 +99,7 @@ test_rsync() {
   export BACKUP_ON_START="true"
 
   mkdir -p tests/source/container1 && touch tests/source/container1/test.txt
-  mkdir -p tests/source/container2 && touch source/container1/test.txt
+  mkdir -p tests/source/container2 && touch tests/source/container1/test.txt
   mkdir -p tests/destination
 
   declare -a mock_docker_ps_lines=(
