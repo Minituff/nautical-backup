@@ -31,8 +31,6 @@ test_bash() {
         # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "Test Passed: Output matches expected output."
-        echo "Expected: $EXPECTED_OUTPUT"
-        echo "Got: $ACTUAL_OUTPUT"
     else
         echo "Test Failed: Output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
@@ -72,6 +70,7 @@ test_jq(){
 }
 
 test_cron
+exit 1 # This should fail
 test_bash
 test_rsync
 test_jq
