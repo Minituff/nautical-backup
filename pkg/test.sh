@@ -70,7 +70,6 @@ test_jq(){
 }
 
 test_cron
-exit 1 # This should fail
 test_bash
 test_rsync
 test_jq
