@@ -34,7 +34,7 @@ verify_source_location $SOURCE_LOCATION
 verify_destination_location $DEST_LOCATION
 
 if [ "$BACKUP_ON_START" = "true" ]; then
-    echo "Starting backup since BACKUP_ON_START is true" "INFO" "init"
+    logThis "Starting backup since BACKUP_ON_START is true" "INFO" "init"
     if [ "$TEST_MODE" == "true" ]; then
         source pkg/backup.sh
     else
@@ -43,7 +43,7 @@ if [ "$BACKUP_ON_START" = "true" ]; then
 fi
 
 if [ "$EXIT_AFTER_INIT" = "true" ]; then
-    echo "Exiting since EXIT_AFTER_INIT is true" "INFO" "init"
+    logThis "Exiting since EXIT_AFTER_INIT is true" "INFO" "init"
     exit 0
 fi
 

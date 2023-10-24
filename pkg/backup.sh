@@ -203,7 +203,7 @@ for entry in $containers; do
     for cur in "${SKIP_CONTAINERS[@]}"; do
         if [ "$cur" == "$name" ]; then
             skip=1
-            echo "Skipping $name based on name." "DEBUG"
+            logThis "Skipping $name based on name." "DEBUG"
             break
         fi
         if [ "$cur" == "$id" ]; then

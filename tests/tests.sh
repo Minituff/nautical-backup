@@ -46,7 +46,6 @@ clear_files() {
 test_docker_ps() {
   clear_files
   export BACKUP_ON_START="true"
-  pwd
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -77,15 +76,15 @@ test_docker_ps() {
   # Check if each expected command is in the actual output
   for expected_docker in "${expected_docker_output[@]}"; do
     if ! printf '%s\n' "${docker_actual_output[@]}" | grep -q -F "$expected_docker"; then
-      echo "FAIL: DOCKER '$expected_docker' not found in actual output."
+      echo "${FUNCNAME[0]} FAIL: DOCKER '$expected_docker' not found in actual output."
       test_passed=false
     fi
   done
 
   if [ "$test_passed" = true ]; then
-    echo "PASS: All expected commands were found."
+    pass ${FUNCNAME[0]}
   else
-    echo "FAIL: Commands do not match expected output."
+    fail ${FUNCNAME[0]}
     echo "Expected:"
     print_array "${expected_output[@]}"
     echo "Actual:"
@@ -134,15 +133,15 @@ test_rsync() {
       fi
     done
     if [ "$found" = false ]; then
-      echo "FAIL: RSYNC '$expected_rsync' not found in actual output."
+      echo "${FUNCNAME[0]} FAIL: RSYNC '$expected_rsync' not found in actual output."
       test_passed=false
     fi
   done
 
   if [ "$test_passed" = true ]; then
-    echo "PASS: All expected commands were found."
+    pass ${FUNCNAME[0]}
   else
-    echo "FAIL: Commands do not match expected output."
+    fail ${FUNCNAME[0]}
     echo "Expected:"
     print_array "${expected_rsync_output[@]}"
     echo "Actual:"
@@ -151,15 +150,38 @@ test_rsync() {
 
 }
 
+# Color echo
+cecho(){
+    RED="\033[0;31m"
+    GREEN="\033[0;32m"  # <-- [0 means not bold
+    YELLOW="\033[1;33m" # <-- [1 means bold
+    CYAN="\033[1;36m"
+    # ... Add more colors if you like
+
+    NC="\033[0m" # No Color
+
+    # printf "${(P)1}${2} ${NC}\n" # <-- zsh
+    printf "${!1}${2} ${NC}\n" # <-- bash
+}
+
+pass(){
+  local func_name=$1
+  local test_num=$2
+  cecho "GREEN" "✔ $func_name $test_num PASS"
+}
+
+fail(){
+  local func_name=$1
+  cecho "RED" "X $func_name FAIL"
+}
 
 test_skip_containers() {
   clear_files
   export BACKUP_ON_START="true"
   SKIP_CONTAINERS=container1,container-name2,container-name3
 
-
-  mkdir -p tests/source/container1 && touch tests/source/container1/test.txt
-  mkdir -p tests/destination
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
 
   declare -a mock_docker_ps_lines=(
     "abc123:container1"
@@ -186,15 +208,50 @@ test_skip_containers() {
   # Check if each expected command is in the actual output
   for expected_docker in "${expected_docker_output[@]}"; do
     if ! printf '%s\n' "${docker_actual_output[@]}" | grep -q -F "$expected_docker"; then
-      echo "FAIL: DOCKER '$expected_docker' not found in actual output."
+      echo "${FUNCNAME[0]} FAIL: DOCKER '$expected_docker' not found in actual output."
+      test_passed=false
+    fi
+  done
+
+  declare -a expected_rsync_output=(
+    "-ahq tests/src/container2/ tests/dest/container2/"
+  )
+
+  test_passed=true # Initialize a flag to indicate test status
+  # Read the lines from the file into an array
+
+  # Check if each expected command is in the actual output
+
+  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_RFILE"
+
+  for expected_rsync in "${expected_rsync_output[@]}"; do
+    found=false
+    for actual_rsync in "${rsync_actual_output[@]}"; do
+      if [[ "$actual_rsync" == "$expected_rsync" ]]; then
+        found=true
+        break
+      fi
+    done
+    if [ "$found" = false ]; then
+      echo "${FUNCNAME[0]} FAIL: RSYNC '$expected_rsync' not found in actual output."
       test_passed=false
     fi
   done
 
   if [ "$test_passed" = true ]; then
-    echo "PASS: All expected commands were found."
+    pass ${FUNCNAME[0]} "1/2"
   else
-    echo "FAIL: Commands do not match expected output."
+    fail ${FUNCNAME[0]}
+    echo "Expected:"
+    print_array "${expected_rsync_output[@]}"
+    echo "Actual:"
+    print_array "${rsync_actual_output[@]}"
+  fi
+
+  if [ "$test_passed" = true ]; then
+    pass ${FUNCNAME[0]} "2/2"
+  else
+    fail ${FUNCNAME[0]}
     echo "Expected:"
     print_array "${expected_output[@]}"
     echo "Actual:"
@@ -207,7 +264,7 @@ test_skip_containers() {
 # Run the tests
 test_docker_ps
 test_rsync
-# test_skip_containers
+test_skip_containers
 
 # Cleanup
 rm "$DOCKER_COMMANDS_FILE"
