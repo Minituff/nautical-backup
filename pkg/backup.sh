@@ -196,7 +196,7 @@ for entry in $containers; do
         skip=1 # Add the container to the skip list
     elif [ "$REQUIRE_LABEL" = "true" ]; then
         if [ "$id" != "$SELF_CONTAINER_ID" ]; then
-            echo "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true." "DEBUG"
+            logThis "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true." "DEBUG"
         fi
     fi
 

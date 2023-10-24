@@ -39,7 +39,7 @@ print_array() {
 reset_environment_variables() {
   TEST_MODE="true"
   LOG_LEVEL="ERROR"
-  
+
   TZ=""
   CRON_SCHEDULE=""
   REPORT_FILE=""
@@ -440,12 +440,67 @@ test_enable_label() {
   cleanup_on_success
 }
 
+test_require_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export REQUIRE_LABEL=true
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+  mock_docker_label_lines=$(
+    echo "\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"false\""
+  )
+
+  disallowed_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  expected_docker_output=$()
+
+  test_docker --name "Test REQUIRE_LABEL + nautical-backup.enable=false" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+
+  test_docker --name "Test REQUIRE_LABEL no label" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+  
+  expected_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+  mock_docker_label_lines=$(
+    echo "\"com.docker.compose.oneoff\":\"False",\" &&
+      echo "\"nautical-backup.enable\":\"true\""
+  )
+
+  test_docker \
+    --name "Test REQUIRE_LABEL + nautical-backup.enable=true" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --expect "$expected_docker_output"
+
+  cleanup_on_success
+}
+
+# ---- Call Tests ----
 reset_environment_variables
+
+
 # Run the tests
 test_rsync_commands
 test_docker_commands
 test_skip_containers
 test_enable_label
+test_require_label
 
 # Cleanup
 teardown
