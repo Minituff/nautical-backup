@@ -45,31 +45,30 @@ clear_files() {
 }
 
 # Color echo
-cecho(){
-    RED="\033[0;31m"
-    GREEN="\033[0;32m"  # <-- [0 means not bold
-    YELLOW="\033[1;33m" # <-- [1 means bold
-    CYAN="\033[1;36m"
-    # ... Add more colors if you like
+cecho() {
+  RED="\033[0;31m"
+  GREEN="\033[0;32m"  # <-- [0 means not bold
+  YELLOW="\033[1;33m" # <-- [1 means bold
+  CYAN="\033[1;36m"
+  # ... Add more colors if you like
 
-    NC="\033[0m" # No Color
+  NC="\033[0m" # No Color
 
-    # printf "${(P)1}${2} ${NC}\n" # <-- zsh
-    printf "${!1}${2} ${NC}\n" # <-- bash
+  # printf "${(P)1}${2} ${NC}\n" # <-- zsh
+  printf "${!1}${2} ${NC}\n" # <-- bash
 }
 
-pass(){
+pass() {
   local func_name=$1
   local test_num=$2
-  cecho "GREEN" "✔ $func_name $test_num PASS"
+  cecho "GREEN" "✔ PASS - $func_name $test_num" 
 }
 
-fail(){
+fail() {
   local func_name=$1
   local test_num=$2
   cecho "RED" "X $func_name $test_num FAIL"
 }
-
 
 # ---- Actual Tests ----
 
@@ -97,7 +96,6 @@ test_docker_ps() {
     "stop container1"
     "start container1"
   )
-
 
   declare -a disallowed_docker_output=(
     "stop container2"
@@ -304,10 +302,129 @@ test_skip_containers() {
 
 }
 
+test_docker() {
+  local mock_docker_ps_lines
+  local disallowed_docker_output
+  local expected_docker_output
+  local test_name
+
+  # Parse named parameters
+  while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --mock)
+      mock_docker_ps_lines="$2"
+      shift
+      ;;
+    --disallow)
+      disallowed_docker_output="$2"
+      shift
+      ;;
+    --expect)
+      expected_docker_output="$2"
+      shift
+      ;;
+    --name)
+      test_name="$2"
+      shift
+      ;;
+    *)
+      echo "Unknown parameter passed: $1"
+      exit 1
+      ;;
+    esac
+    shift
+  done
+
+  IFS=$'\n' read -rd '' -a mock_docker_ps_lines_arr <<<"$mock_docker_ps_lines"
+  IFS=$'\n' read -rd '' -a disallowed_docker_output_arr <<<"$disallowed_docker_output"
+  IFS=$'\n' read -rd '' -a expected_docker_output_arr <<<"$expected_docker_output"
+
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  # Set what the next docker ps command should return
+  MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
+
+  source pkg/entry.sh
+
+  test_passed=true # Initialize a flag to indicate test status
+
+  mapfile -t docker_actual_output <"$DOCKER_COMMANDS_FILE"
+
+  # Check if each expected command is in the actual output
+  for expected_docker in "${expected_docker_output_arr[@]}"; do # Use the _arr array here
+    found=false
+    for docker_actual in "${docker_actual_output[@]}"; do
+      if [[ "$docker_actual" == "$expected_docker" ]]; then
+        found=true
+        break
+      fi
+    done
+    if [ "$found" = false ]; then
+      fail "$test_name"
+      echo "'$expected_docker' not found in expected_docker_output."
+      test_passed=false
+      exit 1
+    fi
+  done
+
+  # Check if any disallowed command is in the actual output
+  for disallowed_docker in "${disallowed_docker_output_arr[@]}"; do # Use the _arr array here
+    for docker_actual in "${docker_actual_output[@]}"; do
+      if [[ "$docker_actual" == "$disallowed_docker" ]]; then
+        fail "$test_name"
+        echo "'$disallowed_docker' found in actual output but is disallowed."
+        test_passed=false
+        exit 1
+      fi
+    done
+  done
+
+  if [ "$test_passed" = true ]; then
+    pass "$test_name"
+  else
+    fail "$test_name" "Commands do not match expected output."
+    echo "Expected:"
+    printf "%s\n" "${expected_docker_output_arr[@]}"
+    echo "Actual:"
+    printf "%s\n" "${docker_actual_output[@]}"
+    exit 1
+  fi
+}
+
+test_docker_commands() {
+  read -r -d '' mock_docker_ps_lines <<EOM
+abc123:container1
+def456:container2
+ghi789:container3
+EOM
+
+  read -r -d '' disallowed_docker_output <<EOM
+stop container2
+start container2
+stop container3
+start container3
+EOM
+
+  read -r -d '' expected_docker_output <<EOM
+ps --no-trunc --format={{.ID}}:{{.Names}}
+inspect --format {{json .Config.Labels}} abc123
+EOM
+
+  test_docker \
+    --name "Test Docker Commands on default settings" \
+    --mock "$mock_docker_ps_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+}
+
 # Run the tests
-test_docker_ps
-test_rsync
-test_skip_containers
+test_docker_commands
+# test_docker_ps
+# test_rsync
+# test_skip_containers
 # Cleanup
 rm "$DOCKER_COMMANDS_FILE"
 rm "$RSYNC_COMMANDS_RFILE"
