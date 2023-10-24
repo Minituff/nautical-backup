@@ -89,6 +89,7 @@ test_docker_ps() {
     print_array "${expected_output[@]}"
     echo "Actual:"
     print_array "${docker_actual_output[@]}"
+    exit 1
   fi
 
 }
@@ -112,8 +113,8 @@ test_rsync() {
   source pkg/entry.sh
 
   declare -a expected_rsync_output=(
-    "-ahq source/container1/ destination/container1/"
-    "-ahq source/container2/ destination/container2/"
+    "-ahq tests/source/container1/ tests/destination/container1/"
+    "-ahq tests/source/container2/ tests/destination/container2/"
   )
 
   test_passed=true # Initialize a flag to indicate test status
