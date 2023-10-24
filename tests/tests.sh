@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export MOCK_DOCKER_PS_OUTPUT=""
+export MOCK_DOCKER_INSPECT_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
 RSYNC_COMMANDS_RFILE=$(mktemp /tmp/rsync_commands.XXXXXX)
 export DOCKER_COMMANDS_FILE
@@ -16,6 +17,8 @@ docker() {
 
   # Mock behavior based on command
   if [ "$1" == "ps" ]; then
+    echo -e "$MOCK_DOCKER_PS_OUTPUT"
+  elif [ "$1" == "inspect" ]; then
     echo -e "$MOCK_DOCKER_PS_OUTPUT"
   fi
 }
@@ -40,6 +43,33 @@ clear_files() {
   >$RSYNC_COMMANDS_RFILE
   >$DOCKER_COMMANDS_FILE
 }
+
+# Color echo
+cecho(){
+    RED="\033[0;31m"
+    GREEN="\033[0;32m"  # <-- [0 means not bold
+    YELLOW="\033[1;33m" # <-- [1 means bold
+    CYAN="\033[1;36m"
+    # ... Add more colors if you like
+
+    NC="\033[0m" # No Color
+
+    # printf "${(P)1}${2} ${NC}\n" # <-- zsh
+    printf "${!1}${2} ${NC}\n" # <-- bash
+}
+
+pass(){
+  local func_name=$1
+  local test_num=$2
+  cecho "GREEN" "✔ $func_name $test_num PASS"
+}
+
+fail(){
+  local func_name=$1
+  local test_num=$2
+  cecho "RED" "X $func_name $test_num FAIL"
+}
+
 
 # ---- Actual Tests ----
 
@@ -150,31 +180,6 @@ test_rsync() {
 
 }
 
-# Color echo
-cecho(){
-    RED="\033[0;31m"
-    GREEN="\033[0;32m"  # <-- [0 means not bold
-    YELLOW="\033[1;33m" # <-- [1 means bold
-    CYAN="\033[1;36m"
-    # ... Add more colors if you like
-
-    NC="\033[0m" # No Color
-
-    # printf "${(P)1}${2} ${NC}\n" # <-- zsh
-    printf "${!1}${2} ${NC}\n" # <-- bash
-}
-
-pass(){
-  local func_name=$1
-  local test_num=$2
-  cecho "GREEN" "✔ $func_name $test_num PASS"
-}
-
-fail(){
-  local func_name=$1
-  cecho "RED" "X $func_name FAIL"
-}
-
 test_skip_containers() {
   clear_files
   export BACKUP_ON_START="true"
@@ -241,7 +246,7 @@ test_skip_containers() {
   if [ "$test_passed" = true ]; then
     pass ${FUNCNAME[0]} "1/2"
   else
-    fail ${FUNCNAME[0]}
+    fail ${FUNCNAME[0]} "2/2"
     echo "Expected:"
     print_array "${expected_rsync_output[@]}"
     echo "Actual:"
@@ -251,7 +256,7 @@ test_skip_containers() {
   if [ "$test_passed" = true ]; then
     pass ${FUNCNAME[0]} "2/2"
   else
-    fail ${FUNCNAME[0]}
+    fail ${FUNCNAME[0]} "2/2"
     echo "Expected:"
     print_array "${expected_output[@]}"
     echo "Actual:"
