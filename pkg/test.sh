@@ -1,4 +1,6 @@
 #!/bin/bash
+# Change this as alpine updates
+ALPINE_VERSION="3.18"
 
 test_cron() {
     # Expected output
@@ -118,6 +120,22 @@ test_tz() {
     fi
 }
 
+test_alpine_release() {
+    # Capture the output of the command
+    local output=$(cat /etc/alpine-release)
+    
+    # Check if the output starts with "3.18"
+    if [[ $output == $ALPINE_VERSION* ]]; then
+        echo "PASS: Alpine release is correct."
+    else
+        echo "FAIL: Alpine release."
+        echo "Expected:"
+        echo "$ALPINE_VERSION*"
+        echo "Actual"
+        echo "$output"
+        exit 1
+    fi
+}
 
 # Function to test if environment variables have expected values
 test_env_vars() {
@@ -157,7 +175,7 @@ declare -A expected_env_vars=(
     ["EXIT_AFTER_INIT"]="false"
     ["LOG_RSYNC_COMMANDS"]="false"
     ["RUN_ONCE"]="false"
-    ["SOURCE_LOCATION"]="/app/source"    
+    ["SOURCE_LOCATION"]="/app/source"
     ["DEST_LOCATION"]="/app/destination"
     ["SKIP_CONTAINERS"]=""
     ["SKIP_STOPPING"]=""
@@ -176,6 +194,7 @@ if [ "$1" == "test1" ]; then
     test_bash
     test_rsync
     test_jq
+    test_alpine_release
 
     echo "All tests passed!"
 elif [ "$1" == "test2" ]; then

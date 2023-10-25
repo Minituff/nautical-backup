@@ -60,5 +60,11 @@
         "default:automergeBranchPush"
       ]
     }
+  ],
+  "hostRules": [
+    {
+      "matchHost": "repology.org",
+      "timeout": 10000
+    }
   ]
 }
