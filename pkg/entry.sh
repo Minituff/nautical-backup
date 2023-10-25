@@ -25,8 +25,6 @@ if [ "$TEST_MODE" != "true" ]; then
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
-else
-    echo "Skipping CRON schedule installation in test mode"
 fi
 
 # Verify the source and destination locations
