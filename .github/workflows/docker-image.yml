@@ -21,15 +21,16 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
-    - name: Run unit tests
-      run: |
-        echo "Running unit tests..."
-        ./tests/tests.sh
-
     - name: Validate Dockerfile supports multi-arch
       run: |
         echo "Checking if the base docker image supports amd64 and arm64..."
-        ./tests/validate_dockerfile.sh
+        bash ./tests/validate_dockerfile.sh
+
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        bash ./tests/tests.sh
+
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
@@ -89,13 +90,13 @@ jobs:
     # It uses the context parameter to define the build's context as the set of files located in the specified path. 
     # For more information, see "Usage" in the README of the docker/build-push-action repository. https://github.com/docker/build-push-action#usage
     # It uses the tags and labels parameters to tag and label the image with the output from the "meta" step.
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v5.0.0
-      with:
-        context: .
-        push: true
-        platforms: linux/amd64,linux/arm64
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        build-args: |
-            NAUTICAL_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+    # - name: Build and push Docker images
+    #   uses: docker/build-push-action@v5.0.0
+    #   with:
+    #     context: .
+    #     push: true
+    #     platforms: linux/amd64,linux/arm64
+    #     tags: ${{ steps.meta.outputs.tags }}
+    #     labels: ${{ steps.meta.outputs.labels }}
+    #     build-args: |
+    #         NAUTICAL_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
