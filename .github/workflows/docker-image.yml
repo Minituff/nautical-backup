@@ -3,9 +3,9 @@ name: Create and publish a Docker image
 on:
   workflow_dispatch: # Allow manually running
   push:
-    branches:
+    # branches:
       # - 'main'
-      - 'validate-arch'
+      # - 'test'
     tags:
       - 'v*'
 
