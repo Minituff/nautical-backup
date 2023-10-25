@@ -63,8 +63,8 @@
   ],
   "hostRules": [
     {
-      "matchHost": "repology.org",
-      "timeout": 10000
+      "hostType": "repology",
+      "timeout": 5000
     }
   ]
 }
