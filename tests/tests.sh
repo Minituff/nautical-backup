@@ -40,10 +40,10 @@ reset_environment_variables() {
   TEST_MODE="true"
   LOG_LEVEL="ERROR"
   BACKUP_ON_START="true"
+  REPORT_FILE="false"
 
   TZ=""
   CRON_SCHEDULE=""
-  REPORT_FILE=""
   USE_DEFAULT_RSYNC_ARGS=""
   REQUIRE_LABEL=""
   REPORT_FILE_LOG_LEVEL=""
@@ -536,7 +536,7 @@ test_override_src() {
   )
 
   mock_docker_label_lines=$(
-      echo "{\"nautical-backup.override-source-dir\":\"container-override\"}"
+    echo "{\"nautical-backup.override-source-dir\":\"container-override\"}"
   )
   expected_rsync_output=$(
     echo "-ahq tests/src/container-override/ tests/dest/container-override/"
@@ -544,7 +544,7 @@ test_override_src() {
   disallowed_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
-  
+
   test_rsync \
     --name "Test Source override (label)" \
     --mock_ps "$mock_docker_ps_lines" \
@@ -594,7 +594,7 @@ test_override_dest() {
   )
 
   mock_docker_label_lines=$(
-      echo "{\"nautical-backup.override-destination-dir\":\"container-override\"}"
+    echo "{\"nautical-backup.override-destination-dir\":\"container-override\"}"
   )
   expected_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container-override/"
@@ -602,7 +602,7 @@ test_override_dest() {
   disallowed_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
-  
+
   test_rsync \
     --name "Test Destination override (label)" \
     --mock_ps "$mock_docker_ps_lines" \
@@ -613,7 +613,7 @@ test_override_dest() {
   cleanup_on_success
 }
 
-test_skip_stopping_env(){
+test_skip_stopping_env() {
   clear_files
   export BACKUP_ON_START="true"
   export SKIP_STOPPING=container1,example2
@@ -643,17 +643,17 @@ test_skip_stopping_env(){
   expected_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
-  
+
   test_rsync \
     --name "Test SKIP_STOPPING Rsync (env)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --mock_labels "$mock_docker_label_lines"
 
-    cleanup_on_success
+  cleanup_on_success
 }
 
-test_skip_stopping_label_false(){
+test_skip_stopping_label_false() {
   clear_files
   export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -674,7 +674,7 @@ test_skip_stopping_label_false(){
   )
 
   mock_docker_label_lines=$(
-      echo "{\"nautical-backup.stop-before-backup\":\"false\"}"
+    echo "{\"nautical-backup.stop-before-backup\":\"false\"}"
   )
 
   test_docker \
@@ -687,17 +687,17 @@ test_skip_stopping_label_false(){
   expected_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
-  
+
   test_rsync \
     --name "Test SKIP_STOPPING Rsync (label=false)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --mock_labels "$mock_docker_label_lines"
 
-    cleanup_on_success
+  cleanup_on_success
 }
 
-test_skip_stopping_label_true(){
+test_skip_stopping_label_true() {
   clear_files
   export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -715,7 +715,7 @@ test_skip_stopping_label_true(){
   )
 
   mock_docker_label_lines=$(
-      echo "{\"nautical-backup.stop-before-backup\":\"true\"}"
+    echo "{\"nautical-backup.stop-before-backup\":\"true\"}"
   )
 
   test_docker \
@@ -727,19 +727,20 @@ test_skip_stopping_label_true(){
   expected_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
-  
+
   test_rsync \
     --name "Test SKIP_STOPPING Rsync (label=true)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --mock_labels "$mock_docker_label_lines"
 
-    cleanup_on_success
+  cleanup_on_success
 }
 
-test_report_file(){
+test_report_file() {
   clear_files
   export BACKUP_ON_START="true"
+  export REPORT_FILE=""
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -749,7 +750,7 @@ test_report_file(){
 
   test_docker \
     --name "Test Docker commands on default settings" \
-    --mock_ps "$mock_docker_ps_lines" \
+    --mock_ps "$mock_docker_ps_lines"
 
   # Look for .txt files in the folder
   txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
@@ -762,7 +763,6 @@ test_report_file(){
     pass "Test Report File (enabled)"
   fi
 
-
   cleanup_on_success
 
   export REPORT_FILE=false
@@ -772,7 +772,7 @@ test_report_file(){
 
   test_docker \
     --name "Test Docker commands on default settings" \
-    --mock_ps "$mock_docker_ps_lines" \
+    --mock_ps "$mock_docker_ps_lines"
 
   # Look for .txt files in the folder
   txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
@@ -788,7 +788,7 @@ test_report_file(){
   cleanup_on_success
 }
 
-test_custom_rsync_args() {
+test_custom_rsync_args_env() {
   clear_files
   export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS=false
@@ -814,13 +814,88 @@ test_custom_rsync_args() {
   )
 
   test_rsync \
-    --name "Testing custom rsync args" \
+    --name "Testing custom rsync args (env)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output"
 
   cleanup_on_success
 }
+
+test_custom_rsync_args_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2"
+  )
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.use-default-rsync-args\":\"false\"," &&
+      echo "\"nautical-backup.rsync-custom-args\":\"-aq\"}"
+  )
+  expected_rsync_output=$(
+    echo "-aq tests/src/container1/ tests/dest/container1/" &&
+      echo "-aq tests/src/container2/ tests/dest/container2/"
+  )
+
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/container2/ tests/dest/container2/"
+  )
+
+  test_rsync \
+    --name "Testing custom rsync args (label)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+}
+
+test_custom_rsync_args_both() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export USE_DEFAULT_RSYNC_ARGS=false
+  export RSYNC_CUSTOM_ARGS=-something
+
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2"
+  )
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.use-default-rsync-args\":\"false\"," &&
+      echo "\"nautical-backup.rsync-custom-args\":\"-aq\"}"
+  )
+  expected_rsync_output=$(
+    echo "-aq tests/src/container1/ tests/dest/container1/" &&
+      echo "-aq tests/src/container2/ tests/dest/container2/"
+  )
+
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/container2/ tests/dest/container2/"
+  )
+
+  test_rsync \
+    --name "Testing custom rsync args (label & env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -836,14 +911,15 @@ test_skip_stopping_env
 test_skip_stopping_label_true
 test_skip_stopping_label_false
 test_report_file
-test_use_default_rsync_args
+test_custom_rsync_args_env
+test_custom_rsync_args_label
+test_custom_rsync_args_both
 
+#test_keep_src_dir_name
 #test_exit_after_init
 #test_backup_on_start
 #test_report_log_level
 #test_report_file_on_backup_only
-#test_keep_src_dir_name
-#test_use_default_rsync_args
 
 # Cleanup
 teardown
