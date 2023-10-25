@@ -10,9 +10,7 @@ else
     source app/env.sh
 fi
 
-if [ "$TEST_MODE" == "false" ]; then
-    echo "Skipping CRON schedule installation in test mode"
-
+if [ "$TEST_MODE" != "true" ]; then
     # Echo the CRON schedule for logging/debugging
     logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG" "init"
 
@@ -27,6 +25,8 @@ if [ "$TEST_MODE" == "false" ]; then
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
+else
+    echo "Skipping CRON schedule installation in test mode"
 fi
 
 # Verify the source and destination locations
@@ -47,8 +47,13 @@ if [ "$EXIT_AFTER_INIT" = "true" ]; then
     exit 0
 fi
 
+if [ "$RETURN_AFTER_INIT" = "true" ]; then
+    logThis "Exiting since RETURN_AFTER_INIT is true" "INFO" "init"
+    return
+fi
+
 logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO" "init"
 
-if [ "$TEST_MODE" == "false" ]; then
+if [ "$TEST_MODE" != "true" ]; then
     /usr/sbin/crond -f -l 8 # Start cron and keep container running
 fi

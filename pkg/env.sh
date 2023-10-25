@@ -62,10 +62,12 @@ DEFAULT_RUN_ONCE="false"
 
 # Do not include a trailing slash
 DEFAULT_SOURCE_LOCATION="/app/source"    
-DEFAULT_DEST_LOCATION=/app/destination
+DEFAULT_DEST_LOCATION="/app/destination"
 # Test directories
 DEFAULT_TEST_SOURCE_LOCATION="tests/src"
 DEFAULT_TEST_DEST_LOCATION="tests/dest"
+
+DEFAULT_TEST_MODE="false"
 
 # ------ Default Empty Values------ #
 
@@ -83,6 +85,12 @@ DEFAULT_OVERRIDE_SOURCE_DIR=""
 DEFAULT_OVERRIDE_DEST_DIR=""
 
 logThis "Perparing enviornment variables..." "DEBUG" "init"
+
+if [ -z "$TEST_MODE" ]; then
+    TEST_MODE=$DEFAULT_TEST_MODE
+fi
+logThis "TEST_MODE: $TEST_MODE" "DEBUG" "init"
+export TEST_MODE
 
 if [ -z "$TZ" ]; then
     TZ=$DEFAULT_TZ
