@@ -350,8 +350,7 @@ test_rsync_commands() {
   )
 
   disallowed_rsync_output=$(
-    echo "stop container3" &&
-      echo "start container3"
+    echo "anthing_to_not_allow"
   )
 
   expected_rsync_output=$(
@@ -789,6 +788,39 @@ test_report_file(){
   cleanup_on_success
 }
 
+test_custom_rsync_args() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export USE_DEFAULT_RSYNC_ARGS=false
+  export RSYNC_CUSTOM_ARGS=-aq
+
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2"
+  )
+
+  expected_rsync_output=$(
+    echo "-aq tests/src/container1/ tests/dest/container1/" &&
+      echo "-aq tests/src/container2/ tests/dest/container2/"
+  )
+
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/container2/ tests/dest/container2/"
+  )
+
+  test_rsync \
+    --name "Testing custom rsync args" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+}
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -804,6 +836,14 @@ test_skip_stopping_env
 test_skip_stopping_label_true
 test_skip_stopping_label_false
 test_report_file
+test_use_default_rsync_args
+
+#test_exit_after_init
+#test_backup_on_start
+#test_report_log_level
+#test_report_file_on_backup_only
+#test_keep_src_dir_name
+#test_use_default_rsync_args
 
 # Cleanup
 teardown

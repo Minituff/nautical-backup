@@ -211,7 +211,7 @@ for entry in $containers; do
             if [ "$cur" == "$SELF_CONTAINER_ID" ]; then
                 break # Exclude self from logs
             fi
-            echo "Skipping $name based on ID $id." "DEBUG"
+            logThis "Skipping $name based on ID $id." "DEBUG"
             break
         fi
     done
