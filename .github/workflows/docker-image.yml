@@ -4,8 +4,8 @@ on:
   workflow_dispatch: # Allow manually running
   push:
     # branches:
-    #   - 'main'
-    #   - 'dev'
+      # - 'main'
+      # - 'test'
     tags:
       - 'v*'
 
@@ -21,11 +21,29 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v4
 
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        ./tests/tests.sh
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: Build and export Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        load: true
+        tags: minituff/nautical-backup:test
+  
+    - name: Test Docker image
+      run: |
+        cd tests
+        docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
+        docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3.0.0
@@ -33,18 +51,18 @@ jobs:
         # This is your Docker Hub username and password.
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-    
-    # Uses the docker/login-action action to log in to the Container registry registry using the account and password that will publish the packages. 
-    # Once published, the packages are scoped to the account defined here.
+      
+      # Uses the docker/login-action action to log in to the Container registry registry using the account and password that will publish the packages. 
+      # Once published, the packages are scoped to the account defined here.
     - name: Log in to the GitHub Container registry
       uses: docker/login-action@v3.0.0
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    
-    # This step uses docker/metadata-action to extract tags and labels that will be applied to the specified image. https://github.com/docker/metadata-action
-    # The id "meta" allows the output of this step to be referenced in a subsequent step. The images value provides the base name for the tags and labels.
+      
+      # This step uses docker/metadata-action to extract tags and labels that will be applied to the specified image. https://github.com/docker/metadata-action
+      # The id "meta" allows the output of this step to be referenced in a subsequent step. The images value provides the base name for the tags and labels.
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@v5.0.0
@@ -61,9 +79,8 @@ jobs:
           type=semver,pattern={{major}}.{{minor}}
           # disabled if major zero
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
-    
+
     # This step uses the docker/build-push-action action to build the image, based on your repository's Dockerfile. 
-    # If the build succeeds, it pushes the image to GitHub Packages. 
     # It uses the context parameter to define the build's context as the set of files located in the specified path. 
     # For more information, see "Usage" in the README of the docker/build-push-action repository. https://github.com/docker/build-push-action#usage
     # It uses the tags and labels parameters to tag and label the image with the output from the "meta" step.

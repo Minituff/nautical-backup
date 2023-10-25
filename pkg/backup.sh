@@ -1,6 +1,11 @@
 #!/bin/bash
 
-source /app/logger.sh # Use the logger script
+if [ "$TEST_MODE" == "true" ]; then
+    source pkg/logger.sh # Use the logger script
+else
+    source /app/logger.sh # Use the logger script
+fi
+
 logThis "Starting backup..."
 
 # Convert the string back to an array
@@ -191,14 +196,14 @@ for entry in $containers; do
         skip=1 # Add the container to the skip list
     elif [ "$REQUIRE_LABEL" = "true" ]; then
         if [ "$id" != "$SELF_CONTAINER_ID" ]; then
-            echo "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true." "DEBUG"
+            logThis "Skipping $name as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true." "DEBUG"
         fi
     fi
 
     for cur in "${SKIP_CONTAINERS[@]}"; do
         if [ "$cur" == "$name" ]; then
             skip=1
-            echo "Skipping $name based on name." "DEBUG"
+            logThis "Skipping $name based on name." "DEBUG"
             break
         fi
         if [ "$cur" == "$id" ]; then
@@ -206,7 +211,7 @@ for entry in $containers; do
             if [ "$cur" == "$SELF_CONTAINER_ID" ]; then
                 break # Exclude self from logs
             fi
-            echo "Skipping $name based on ID $id." "DEBUG"
+            logThis "Skipping $name based on ID $id." "DEBUG"
             break
         fi
     done
@@ -219,3 +224,8 @@ done
 containers_skipped=$((number_of_containers - containers_completed))
 
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
+
+if [ "$RUN_ONCE" = "true" ]; then
+    logThis "Exiting since RUN_ONCE is true" "INFO" "init"
+    exit 0
+fi

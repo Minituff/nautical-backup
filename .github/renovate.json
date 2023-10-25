@@ -14,7 +14,7 @@
       "description": "Self Docker image version updates",
       "fileMatch": [
         ".*docker-run-example",
-        ".*docker-run-semver-example",
+        ".*docker-run-semver",
         "README.md"
       ],
       "matchStrings": [
