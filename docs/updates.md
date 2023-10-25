@@ -47,86 +47,126 @@ This will need to be done each time a new verison is released.
 
 While convenient, automatic updates may break things. For this reason we recommend only automatically updating to the latest `PATCH` version.
 
-### Patch Updates Only
-These examples only specify the [Semver](https://semver.org) `vMAJOR.MINOR` numbers, leaving `PATCH` out--this means that Watchtower will the `PATCH` number if available.
+=== "Patch Updates Only"
+    !!! note ""
+        These examples only specify the [Semver](https://semver.org) `vMAJOR.MINOR` numbers, leaving `PATCH` out--this means that Watchtower will update the `PATCH` number if available.
 
-=== "Docker Compose"
-    ```yaml
-    ------8<------ "docker-compose-example.yml:3:10"
-      
-      watchtower:
-        image: containrrr/watchtower:latest
-        container_name: watchtower
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-        command: nautical-backup # (9)! 
-    ```
+        === "Docker Compose"
+            ```yaml hl_lines="3"
+            ------8<------ "docker-compose-example.yml:3:10"
+              
+              watchtower:
+                image: containrrr/watchtower:latest
+                container_name: watchtower
+                volumes:
+                  - /var/run/docker.sock:/var/run/docker.sock
+                command: nautical-backup # (9)! 
+            ```
 
-    ------8<------ "docker-example-tooltips.md"
-    1. Which containers to use. 
+            ------8<------ "docker-example-tooltips.md"
+            1. Which containers to use. 
 
-        Remove this line to update all contianers.
+                Remove this line to update all contianers.
 
-=== "Docker Cli"
-    ```bash
-    ------8<------ "docker-run-example.sh::6"
-    ------8<------ "docker-run-example.sh:10:"
-    
-    docker run -d \
-      --name watchtower \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      containrrr/watchtower \
-      nautical-backup #(9)!
-    ```
+        === "Docker Cli"
+            ```bash hl_lines="6"
+            ------8<------ "docker-run-example.sh::6"
+            ------8<------ "docker-run-example.sh:10:"
+            
+            docker run -d \
+              --name watchtower \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              containrrr/watchtower \
+              nautical-backup #(9)!
+            ```
 
-    ------8<------ "docker-example-tooltips.md"
-     1. Which containers to use. 
+            ------8<------ "docker-example-tooltips.md"
+            1. Which containers to use. 
 
-        Remove this line to update all contianers.
+                Remove this line to update all contianers.
 
+=== "Minor And Patch Updates"
+    !!! note ""
+        These examples specify the [Semver](https://semver.org) `vMAJOR` number, leaving `MINOR` `PATCH` out--this means that Watchtower will update `MINOR` and `PATCH` versions if available.
 
-### Latest Updates (All)
-If you're really feeling like living on the bleeding edge. You can use the `latest` tag to ensure you are always up to date.
+        === "Docker Compose"
+            ```yaml hl_lines="3"
+            ------8<------ "docker-compose-semver-major-example.yml:3:10"
+              
+              watchtower:
+                image: containrrr/watchtower:latest
+                container_name: watchtower
+                volumes:
+                  - /var/run/docker.sock:/var/run/docker.sock
+                command: nautical-backup # (9)! 
+            ```
 
-!!! danger "This will most likely break things at some point"
-    If you go this route, just ensure you aren't using Nautical for anything mission critical, and be prepared to either help troubleshoot or wait for a new version with a bug fix.
+            ------8<------ "docker-example-tooltips.md"
+            1. Which containers to use. 
 
-This is an example of using [Watchtower](https://github.com/containrrr/watchtower/) to keep Nautical on the `latest` version.
- 
-=== "Docker Compose"
-    ```yaml
-    ------8<------ "docker-compose-example.yml:3:4"
-        image: minituff/nautical-backup:latest
-    ------8<------ "docker-compose-example.yml:6:10"
-      
-      watchtower:
-        image: containrrr/watchtower:latest
-        container_name: watchtower
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-        command: nautical-backup # (9)! 
-    ```
+                Remove this line to update all contianers.
 
-    ------8<------ "docker-example-tooltips.md"
-    1. Which containers to use. 
+        === "Docker Cli"
+            ```bash  hl_lines="6"
+            ------8<------ "docker-run-example.sh::6"
+            ------8<------ "docker-run-semver-major-example.sh"
+            
+            docker run -d \
+              --name watchtower \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              containrrr/watchtower \
+              nautical-backup #(9)!
+            ```
 
-        Remove this line to update all contianers.
+            ------8<------ "docker-example-tooltips.md"
+            2. Which containers to use. 
 
-=== "Docker Cli"
-    ```bash
-    ------8<------ "docker-run-example.sh::6"
-      minituff/nautical-backup:latest
-    
-    docker run -d \
-      --name watchtower \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      containrrr/watchtower \
-      nautical-backup #(9)!
-    ```
+                Remove this line to update all contianers.
 
-    ------8<------ "docker-example-tooltips.md"
-     1. Which containers to use. 
+=== "Latest Updates (All)"
+    !!! note ""
+        If you're really feeling like living on the bleeding edge. You can use the `latest` tag to ensure you are always up to date.
+        This will get the latest [Semver](https://semver.org) `MAJOR`, `MINOR`, and `PATCH` updates.
 
-        Remove this line to update all contianers.
+        !!! danger "This will most likely break things at some point"
+            If you go this route, just ensure you aren't using Nautical for anything mission critical, and be prepared to either help troubleshoot or wait for a new version with a bug fix.
+
+        This is an example of using [Watchtower](https://github.com/containrrr/watchtower/) to keep Nautical on the `latest` version.
+        
+        === "Docker Compose"
+            ```yaml hl_lines="3"
+            ------8<------ "docker-compose-example.yml:3:4"
+                image: minituff/nautical-backup:latest
+            ------8<------ "docker-compose-example.yml:6:10"
+              
+              watchtower:
+                image: containrrr/watchtower:latest
+                container_name: watchtower
+                volumes:
+                  - /var/run/docker.sock:/var/run/docker.sock
+                command: nautical-backup # (9)! 
+            ```
+
+            ------8<------ "docker-example-tooltips.md"
+            1. Which containers to use. 
+
+                Remove this line to update all contianers.
+
+        === "Docker Cli"
+            ```bash  hl_lines="6"
+            ------8<------ "docker-run-example.sh::6"
+              minituff/nautical-backup:latest
+            
+            docker run -d \
+              --name watchtower \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              containrrr/watchtower \
+              nautical-backup #(9)!
+            ```
+
+            ------8<------ "docker-example-tooltips.md"
+            2. Which containers to use. 
+
+                Remove this line to update all contianers.
 
 
