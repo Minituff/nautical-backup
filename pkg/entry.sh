@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ "$TEST_MODE" == "true" ]; then
-    source pkg/logger.sh # Use the logger script
     source pkg/utils.sh
+    source pkg/logger.sh # Use the logger script
     source pkg/env.sh
 else
     source /app/logger.sh # Use the logger script

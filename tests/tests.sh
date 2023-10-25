@@ -112,7 +112,7 @@ pass() {
 fail() {
   local func_name=$1
   local test_num=$2
-  cecho "RED" "X $func_name $test_num FAIL"
+  cecho "RED" "X FAIL - $func_name $test_num"
 }
 
 test_docker() {
@@ -163,6 +163,11 @@ test_docker() {
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
   source pkg/entry.sh
+
+  # If test_name is blank, return
+  if [ -z "$test_name" ]; then
+    return
+  fi
 
   test_passed=true # Initialize a flag to indicate test status
 
@@ -255,6 +260,11 @@ test_rsync() {
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
   source pkg/entry.sh
+
+  # If test_name is blank, return
+  if [ -z "$test_name" ]; then
+    return
+  fi
 
   test_passed=true # Initialize a flag to indicate test status
 
@@ -740,7 +750,7 @@ test_skip_stopping_label_true() {
 test_report_file() {
   clear_files
   export BACKUP_ON_START="true"
-  export REPORT_FILE=""
+  export REPORT_FILE="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -765,7 +775,7 @@ test_report_file() {
 
   cleanup_on_success
 
-  export REPORT_FILE=false
+  export REPORT_FILE="false"
   export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
@@ -892,6 +902,62 @@ test_custom_rsync_args_both() {
     --expect "$expected_rsync_output" \
     --mock_labels "$mock_docker_label_lines" \
     --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+}
+
+test_report_file_on_backup_only() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export REPORT_FILE="true"
+  export REPORT_FILE_ON_BACKUP_ONLY="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines"
+
+  # Look for .txt files in the folder
+  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+
+  if [[ -z "$txt_files" ]]; then
+    fail "REPORT_FILE_ON_BACKUP_ONLY=true did not creat a report file on backup"
+    echo "No .txt files found in '$folder_path'."
+    exit 1
+  else
+    pass "REPORT_FILE_ON_BACKUP_ONLY=true created a report file on backup"
+  fi
+
+  cleanup_on_success
+  clear_files
+  export BACKUP_ON_START="false"
+  export REPORT_FILE="true"
+  export REPORT_FILE_ON_BACKUP_ONLY="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines"
+
+  # Look for .txt files in the folder
+  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+
+  if [[ -z "$txt_files" ]]; then
+    fail "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
+    echo "No .txt files found in '$folder_path'."
+    exit 1
+  else
+    pass "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
+  fi
+
 
   cleanup_on_success
 }
@@ -1053,10 +1119,10 @@ test_custom_rsync_args_both
 test_keep_src_dir_name_env
 test_keep_src_dir_name_label
 test_backup_on_start
+test_report_file_on_backup_only
 
 #test_log_level
 #test_report_log_level
-#test_report_file_on_backup_only
 #test_exit_after_init
 
 # Cleanup
