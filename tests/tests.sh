@@ -738,6 +738,57 @@ test_skip_stopping_label_true(){
     cleanup_on_success
 }
 
+test_report_file(){
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  test_docker \
+    --name "Test Docker commands on default settings" \
+    --mock_ps "$mock_docker_ps_lines" \
+
+  # Look for .txt files in the folder
+  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+
+  if [[ -z "$txt_files" ]]; then
+    fail "Test Report File not found when REPORT_FILE=true"
+    echo "No .txt files found in '$folder_path'."
+    exit 1
+  else
+    pass "Test Report File (enabled)"
+  fi
+
+
+  cleanup_on_success
+
+  export REPORT_FILE=false
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  test_docker \
+    --name "Test Docker commands on default settings" \
+    --mock_ps "$mock_docker_ps_lines" \
+
+  # Look for .txt files in the folder
+  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+
+  if [[ -z "$txt_files" ]]; then
+    pass "Test Report File (disabled)"
+  else
+    fail "Test Report File found when REPORT_FILE=false"
+    echo "No .txt files found in '$folder_path'."
+    exit 1
+  fi
+
+  cleanup_on_success
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -752,6 +803,7 @@ test_override_dest
 test_skip_stopping_env
 test_skip_stopping_label_true
 test_skip_stopping_label_false
+test_report_file
 
 # Cleanup
 teardown
