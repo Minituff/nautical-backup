@@ -23,7 +23,7 @@ Currently, the latest version of Nautical is <a href="https://hub.docker.com/r/m
 
 This will need to be done each time a new verison is released.
 === "Docker Compose"
-    ```yaml
+    ```yaml hl_lines="3"
     ------8<------ "docker-compose-semver-example.yml:3"
     ------8<------ "docker-compose-example.yml:6:10"
     ```
@@ -32,7 +32,7 @@ This will need to be done each time a new verison is released.
 
 === "Docker Cli"
 
-    ```bash
+    ```bash hl_lines="6"
     ------8<------ "docker-run-example.sh::6"
     ------8<------ "docker-run-semver-example.sh"
 
