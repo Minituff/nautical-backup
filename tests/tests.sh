@@ -980,6 +980,58 @@ test_keep_src_dir_name_label() {
   
   cleanup_on_success
 }
+
+test_backup_on_start() {
+  clear_files
+  export BACKUP_ON_START="false"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  disallowed_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  expected_docker_output=$(
+    echo "ps --no-trunc --format={{.ID}}:{{.Names}}" &&
+      echo "inspect --format {{json .Config.Labels}} abc123" &&
+      echo "stop container1" &&
+      echo "start container1"
+  )
+
+  test_docker \
+    --name "Test BACKUP_ON_START=false" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --disallow "$disallowed_docker_output"
+
+  cleanup_on_success
+
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  expected_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  test_docker \
+    --name "Test BACKUP_ON_START=true" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_docker_output"
+
+  cleanup_on_success
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1000,12 +1052,12 @@ test_custom_rsync_args_label
 test_custom_rsync_args_both
 test_keep_src_dir_name_env
 test_keep_src_dir_name_label
+test_backup_on_start
 
-#test_exit_after_init
-#test_backup_on_start
 #test_log_level
 #test_report_log_level
 #test_report_file_on_backup_only
+#test_exit_after_init
 
 # Cleanup
 teardown
