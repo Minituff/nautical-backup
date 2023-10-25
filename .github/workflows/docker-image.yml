@@ -26,6 +26,11 @@ jobs:
         echo "Running unit tests..."
         ./tests/tests.sh
 
+    - name: Validate Dockerfile supports multi-arch
+      run: |
+        echo "Checking if the base docker image supports amd64 and arm64..."
+        ./tests/validate_dockerfile.sh
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
