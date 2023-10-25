@@ -64,7 +64,7 @@
   "hostRules": [
     {
       "hostType": "repology",
-      "timeout": 5000
+      "timeout": 240000
     }
   ]
 }
