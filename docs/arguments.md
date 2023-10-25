@@ -165,17 +165,17 @@ Will immediatly perform a backup when the container is started in addition to th
 BACKUP_ON_START=true
 ```
 
-## Exit Nautical after Initialization
-Usually combined with [Backup on Start](#backup-on-start); this variable will tell Nautical to immediately quit after initialization.
+## Run Once
+This variable will tell Nautical to immediately quit after the first backup.
+If combined with [Backup on Start](#backup-on-start), Nautical will immediately start a backup, then exit.
 
 > **Default**: false
 
 ```properties
-EXIT_AFTER_INIT=true
+RUN_ONCE=true
 ```
 
-With [Backup on Start](#backup-on-start) and [Exit Nautical after Initialization](#exit-nautical-after-initialization) both set to `true`, 
-then Nautical will perform 1 backup and then quit--regardless of the [CRON Schedule](#cron-schedule) <small>(All other [variables](./arguments.md) and [labels](./labels.md) still apply)</small>.
+Without [Backup on Start](#backup-on-start), the [CRON Schedule](#cron-schedule) will call the backup and then Nautical will exit.
 
 ## Mirror Source Directory Name to Destination
 Mirror the source folder name to the destination folder name. By default <small>(without any [overrides](#override-source-directory))</small>, this means both the `source` and `destination` folder names are the ^^same as the container name^^.
