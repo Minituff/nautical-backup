@@ -57,6 +57,9 @@ DEFAULT_EXIT_AFTER_INIT="false"
 # Log the rsync commands to the console (and/or report file)
 DEFAULT_LOG_RSYNC_COMMANDS="false"
 
+# Run the backup only once and then exit (whether it is from CRON or BACKUP_ON_START)
+DEFAULT_RUN_ONCE="false"
+
 # Do not include a trailing slash
 DEFAULT_SOURCE_LOCATION="/app/source"    
 DEFAULT_DEST_LOCATION=/app/destination
@@ -153,6 +156,13 @@ else
     logThis "LOG_RSYNC_COMMANDS: $LOG_RSYNC_COMMANDS" "DEBUG" "init"
 fi
 export LOG_RSYNC_COMMANDS
+
+if [ -z "$RUN_ONCE" ]; then
+    RUN_ONCE=$DEFAULT_RUN_ONCE
+else
+    logThis "RUN_ONCE: $RUN_ONCE" "DEBUG" "init"
+fi
+export RUN_ONCE
 
 # ------ Default Empty Values ------ #
 

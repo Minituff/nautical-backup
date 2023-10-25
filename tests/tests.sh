@@ -41,6 +41,7 @@ reset_environment_variables() {
   LOG_LEVEL="ERROR"
   BACKUP_ON_START="true"
   REPORT_FILE="false"
+  RUN_ONCE="false"
 
   TZ=""
   CRON_SCHEDULE=""
@@ -1098,6 +1099,106 @@ test_backup_on_start() {
   cleanup_on_success
 }
 
+test_logThis() {
+  clear_files
+  source pkg/logger.sh
+  local test_passed=true
+
+  # Temporarily redirect stdout and stderr
+  exec 3>&1 4>&2
+  exec 1>test_output.log 2>&1
+
+  # Test Case 1: Test with INFO level
+  script_logging_level="INFO"
+  logThis "This is an info message" "INFO"
+  expected="INFO: This is an info message"
+  actual=$(cat test_output.log)
+  if [[ "$actual" != "$expected" ]]; then
+    exec 1>&3 2>&4
+    fail "Test Logger" 
+    echo "Test Case 1 failed: Expected '$expected', got '$actual'"
+    test_passed=false
+  fi
+
+  > test_output.log  # Clear log file
+
+  # Test Case 2: Test with DEBUG level and script_logging_level set to INFO
+  script_logging_level="INFO"
+  logThis "This is a debug message" "DEBUG"
+  expected=""
+  actual=$(cat test_output.log)
+  if [[ "$actual" != "$expected" ]]; then
+    exec 1>&3 2>&4
+    fail "Test Logger"
+    echo "Test Case 2 failed: Expected '$expected', got '$actual'"
+    test_passed=false
+  fi
+
+  > test_output.log  # Clear log file
+
+  # Test Case 3: Test with DEBUG level and script_logging_level set to DEBUG
+  script_logging_level="DEBUG"
+  logThis "This is a debug message" "DEBUG"
+  expected="DEBUG: This is a debug message"
+  actual=$(cat test_output.log)
+  if [[ "$actual" != "$expected" ]]; then
+    exec 1>&3 2>&4
+    fail "Test Logger"
+    echo "Test Case 3 failed: Expected '$expected', got '$actual'"
+    test_passed=false
+  fi
+
+  > test_output.log  # Clear log file
+
+  # Add more test cases as needed
+
+  # Restore stdout and stderr
+  exec 1>&3 2>&4
+
+  # Cleanup
+  rm test_output.log
+
+  pass "Test Logger"
+  cleanup_on_success
+}
+
+test_logThis_report_file() {
+  clear_files
+  source pkg/logger.sh
+
+  # Mock DEST_LOCATION and report_file
+  DEST_LOCATION="./test_dest_report"
+  report_file="test_report.log"
+  mkdir -p "$DEST_LOCATION"
+  touch "$DEST_LOCATION/$report_file"
+
+  # Enable report file logging
+  REPORT_FILE="true"
+  report_file_logging_level="INFO"
+
+  # Test Case: INFO level message
+  logThis "Test INFO message" "INFO"
+  expected="INFO: Test INFO message"
+  
+  # Check report file
+  actual=$(tail -n 1 "$DEST_LOCATION/$report_file")
+  if [[ ! "$actual" =~ "$expected" ]]; then
+    fail "Test Logger Report File"
+    echo "Test Case Report File failed: Expected message not found in report file."
+    echo "Actual:"
+    echo "$actual"
+    echo "Expected:" 
+    echo "$expected"
+    exit 1
+  fi
+
+  # Cleanup
+  rm -rf "$DEST_LOCATION"
+
+  pass "Test Logger Report File"
+  cleanup_on_success
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1120,10 +1221,8 @@ test_keep_src_dir_name_env
 test_keep_src_dir_name_label
 test_backup_on_start
 test_report_file_on_backup_only
-
-#test_log_level
-#test_report_log_level
-#test_exit_after_init
+test_logThis
+test_logThis_report_file
 
 # Cleanup
 teardown

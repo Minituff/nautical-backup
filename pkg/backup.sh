@@ -224,3 +224,8 @@ done
 containers_skipped=$((number_of_containers - containers_completed))
 
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
+
+if [ "$RUN_ONCE" = "true" ]; then
+    logThis "Exiting since RUN_ONCE is true" "INFO" "init"
+    exit 0
+fi
