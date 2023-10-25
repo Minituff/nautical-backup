@@ -610,6 +610,132 @@ test_override_dest() {
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output" \
     --mock_labels "$mock_docker_label_lines"
+
+  cleanup_on_success
+}
+
+test_skip_stopping_env(){
+  clear_files
+  export BACKUP_ON_START="true"
+  export SKIP_STOPPING=container1,example2
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  disallowed_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  expected_docker_output=$(
+    echo "ps --no-trunc --format={{.ID}}:{{.Names}}" &&
+      echo "inspect --format {{json .Config.Labels}} abc123"
+  )
+
+  test_docker \
+    --name "Test SKIP_STOPPING Docker (env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/"
+  )
+  
+  test_rsync \
+    --name "Test SKIP_STOPPING Rsync (env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+    cleanup_on_success
+}
+
+test_skip_stopping_label_false(){
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  disallowed_docker_output=$(
+    echo "stop container1" &&
+      echo "start container1"
+  )
+
+  expected_docker_output=$(
+    echo "ps --no-trunc --format={{.ID}}:{{.Names}}" &&
+      echo "inspect --format {{json .Config.Labels}} abc123"
+  )
+
+  mock_docker_label_lines=$(
+      echo "{\"nautical-backup.stop-before-backup\":\"false\"}"
+  )
+
+  test_docker \
+    --name "Test SKIP_STOPPING Docker (label=false)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/"
+  )
+  
+  test_rsync \
+    --name "Test SKIP_STOPPING Rsync (label=false)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+    cleanup_on_success
+}
+
+test_skip_stopping_label_true(){
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  expected_docker_output=$(
+    echo "ps --no-trunc --format={{.ID}}:{{.Names}}" &&
+      echo "inspect --format {{json .Config.Labels}} abc123" &&
+      echo "stop container1" &&
+      echo "start container1"
+  )
+
+  mock_docker_label_lines=$(
+      echo "{\"nautical-backup.stop-before-backup\":\"true\"}"
+  )
+
+  test_docker \
+    --name "Test SKIP_STOPPING Docker (label=true)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --expect "$expected_docker_output"
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/"
+  )
+  
+  test_rsync \
+    --name "Test SKIP_STOPPING Rsync (label=true)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+    cleanup_on_success
 }
 
 # ---- Call Tests ----
@@ -623,6 +749,9 @@ test_enable_label
 test_require_label
 test_override_src
 test_override_dest
+test_skip_stopping_env
+test_skip_stopping_label_true
+test_skip_stopping_label_false
 
 # Cleanup
 teardown
