@@ -896,6 +896,90 @@ test_custom_rsync_args_both() {
   cleanup_on_success
 }
 
+test_keep_src_dir_name_env() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export KEEP_SRC_DIR_NAME=true
+  test_override_dest
+  cleanup_on_success
+
+  export BACKUP_ON_START="true"
+  export KEEP_SRC_DIR_NAME=false
+  export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
+  mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
+  mkdir -p tests/src/container3-new && touch tests/src/container3-new/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2" &&
+      echo "ghi789:container3"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1-override/ tests/dest/container1/" &&
+      echo "-ahq tests/src/container3-new/ tests/dest/container3/"
+  )
+
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1-override/" &&
+      echo "-ahq tests/src/container3/ tests/dest/container3-new/"
+  )
+
+  test_rsync \
+    --name "Test Source override with KEEP_SRC_DIR_NAME (env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --disallow "$disallowed_rsync_output" \
+    --expect "$expected_rsync_output"
+
+  cleanup_on_success
+}
+
+test_keep_src_dir_name_label() {
+  clear_files
+
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1-new && touch tests/src/container1-new/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.keep_src_dir_name\":\"false\"," &&
+      echo "\"nautical-backup.override-source-dir\":\"container1-new\"}"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1-new/ tests/dest/container1/"
+  )
+
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1-override-bad/"
+  )
+
+  test_rsync \
+    --name "Test Source override with KEEP_SRC_DIR_NAME (env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --disallow "$disallowed_rsync_output" \
+    --expect "$expected_rsync_output"
+
+    mock_docker_label_lines=$(
+    echo "{\"nautical-backup.keep_src_dir_name\":\"true\"," &&
+      echo "\"nautical-backup.override-source-dir\":\"container1-new\"}"
+  )
+
+  test_rsync \
+    --name "Test Source override with KEEP_SRC_DIR_NAME (env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines" \
+    --disallow "$disallowed_rsync_output" \
+    --expect "$expected_rsync_output"
+  
+  cleanup_on_success
+}
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -914,10 +998,12 @@ test_report_file
 test_custom_rsync_args_env
 test_custom_rsync_args_label
 test_custom_rsync_args_both
+test_keep_src_dir_name_env
+test_keep_src_dir_name_label
 
-#test_keep_src_dir_name
 #test_exit_after_init
 #test_backup_on_start
+#test_log_level
 #test_report_log_level
 #test_report_file_on_backup_only
 
