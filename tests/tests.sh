@@ -517,9 +517,15 @@ test_override_src() {
       echo "-ahq tests/src/container3-new/ tests/dest/container3-new/"
   )
 
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/container3/ tests/dest/container3/"
+  )
+
   test_rsync \
-    --name "Test Global Source override" \
+    --name "Test Source override (env)" \
     --mock_ps "$mock_docker_ps_lines" \
+    --disallow "$disallowed_rsync_output" \
     --expect "$expected_rsync_output"
 
   cleanup_on_success
@@ -536,11 +542,73 @@ test_override_src() {
   expected_rsync_output=$(
     echo "-ahq tests/src/container-override/ tests/dest/container-override/"
   )
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/"
+  )
   
   test_rsync \
-    --name "Test Label Source override" \
+    --name "Test Source override (label)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+  reset_environment_variables
+}
+
+test_override_dest() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export OVERRIDE_DEST_DIR=container1:container1-override,container2:container2-override,container3:container3-new
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/container3 && touch tests/src/container3/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2" &&
+      echo "ghi789:container3"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1-override/" &&
+      echo "-ahq tests/src/container3/ tests/dest/container3-new/"
+  )
+
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/container3/ tests/dest/container3/"
+  )
+
+  test_rsync \
+    --name "Test Destination override (env)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --disallow "$disallowed_rsync_output" \
+    --expect "$expected_rsync_output"
+
+  cleanup_on_success
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+      echo "{\"nautical-backup.override-destination-dir\":\"container-override\"}"
+  )
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container-override/"
+  )
+  disallowed_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/"
+  )
+  
+  test_rsync \
+    --name "Test Destination override (label)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output" \
     --mock_labels "$mock_docker_label_lines"
 }
 
@@ -554,6 +622,7 @@ test_skip_containers
 test_enable_label
 test_require_label
 test_override_src
+test_override_dest
 
 # Cleanup
 teardown

@@ -182,7 +182,7 @@ else
 fi
 export OVERRIDE_SOURCE_DIR
 
-if [ ! -z "$OVERRIDE_DEST_DIR" ]; then
+if [ -z "$OVERRIDE_DEST_DIR" ]; then
     OVERRIDE_DEST_DIR=$DEFAULT_OVERRIDE_DEST_DIR
 else
     logThis "OVERRIDE_DEST_DIR: $OVERRIDE_DEST_DIR" "DEBUG" "init"
