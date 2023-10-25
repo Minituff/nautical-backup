@@ -1,7 +1,8 @@
 # Use base docker image. Contains the docker commands we need to start and stop containers
 # Getting the multiplatform SHA is not easy. Use this tool https://github.com/estesp/manifest-tool
 # For example: docker run --rm mplatform/mquery docker:cli
-FROM docker:24.0.6-cli-alpine3.18@sha256:4865ba3135696b1c0e1b6bf323a5ef9402013244a69280543cf16aebc1da2b49
+FROM docker:24.0.6-cli-alpine3.18@sha256:789420937a26ebec564c47161164faf74d9de353539273ae7904229a5f3e5b54
+# OLD SHAsha256:4865ba3135696b1c0e1b6bf323a5ef9402013244a69280543cf16aebc1da2b49
 
 # The platform this image is created for (linux/amd64, linux/arm64)
 ARG TARGETPLATFORM
