@@ -41,7 +41,9 @@ jobs:
         ruby-version: head
     
     - name: Install Ruby dependencies
-      run: bundle update --bundler && bundle install
+      run: | 
+        bundle install
+        bundle update
     
     - name: Run unit tests
       run: bashcov ./tests/tests.sh
