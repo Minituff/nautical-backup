@@ -10,7 +10,8 @@ on:
       - 'v*'
 
 jobs:
-  call_test_docker_image:
+  call_tests:
+    name: Test image
     uses: ./.github/workflows/test_docker_image.yml
 
   push_to_registries:
@@ -19,9 +20,10 @@ jobs:
     permissions: # Sets the permissions granted to the GITHUB_TOKEN for the actions in this job.
       packages: write
       contents: read
+    needs: [call_tests]
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Log in to Docker Hub
       uses: docker/login-action@v3.0.0
       with:
