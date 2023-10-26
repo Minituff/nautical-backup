@@ -55,7 +55,13 @@ jobs:
       with:
         fail_ci_if_error: true
         file: coverage/coverage.json
-
+        
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage-report
+        path: coverage/coverage.json
+        
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
