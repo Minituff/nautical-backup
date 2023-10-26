@@ -55,7 +55,8 @@ jobs:
         # CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
         fail_ci_if_error: true
-        file: coverage/coverage.json
+        files: coverage/coverage.json
+        verbose: true
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
