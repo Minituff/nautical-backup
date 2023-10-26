@@ -17,6 +17,9 @@ jobs:
       packages: write
       contents: read
     steps:
+    - name: Check out the repo # Required to call another workflow file
+      uses: actions/checkout@v4
+
     # Call testing workflow
     - name: Call test_docker_image.yml
       uses: ./.github/workflows/test_docker_image.yml
