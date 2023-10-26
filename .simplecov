@@ -11,7 +11,7 @@ SimpleCov.start 'rails' do
   add_filter "pkg/test.sh"
   # add_filter "/pkg/test.sh"
   add_group "Pkg scripts", "/pkg"
-  formatter = SimpleCov::Formatter::JSONFormatter
+  # formatter = SimpleCov::Formatter::JSONFormatter
 
   # collate Dir["simplecov-resultset-*/.resultset.json"]
   # track_files 
