@@ -11,7 +11,6 @@ on:
 
 jobs:
   call_tests:
-    name: Test image
     uses: ./.github/workflows/test_docker_image.yml
 
   push_to_registries:
@@ -40,6 +39,9 @@ jobs:
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
       
       # This step uses docker/metadata-action to extract tags and labels that will be applied to the specified image. https://github.com/docker/metadata-action
       # The id "meta" allows the output of this step to be referenced in a subsequent step. The images value provides the base name for the tags and labels.
