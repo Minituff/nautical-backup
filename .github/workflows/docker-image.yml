@@ -5,67 +5,30 @@ on:
   push:
     # branches:
       # - 'main'
-      # - 'test'
+      # - 'dev'
     tags:
       - 'v*'
 
 jobs:
+  call_tests:
+    name: Run Tests
+    uses: ./.github/workflows/test_docker_image.yml
+
   push_to_registries:
-    name: Push Docker image to multiple registries
+    name: Push Docker image
     runs-on: ubuntu-latest
     permissions: # Sets the permissions granted to the GITHUB_TOKEN for the actions in this job.
       packages: write
       contents: read
-    
+    needs: [call_tests]
     steps:
-    - name: Check out the repo
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Validate Dockerfile supports multi-arch
-      run: |
-        echo "Checking if the base docker image supports amd64 and arm64..."
-        bash ./tests/validate_dockerfile.sh
-
-    - name: Run unit tests
-      run: |
-        echo "Running unit tests..."
-        bash ./tests/tests.sh
-
-
-    - name: Set up QEMU
+    - name: Set up QEMU # Allow multi-arch (arm64) builds
       uses: docker/setup-qemu-action@v3
-
+    
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-
-    - name: Build and export Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        load: true
-        tags: minituff/nautical-backup:test
-  
-    - name: Test Docker image
-      run: |
-        cd tests
-        docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
-        docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
-
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3.0.0
-      with:
-        # This is your Docker Hub username and password.
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      # Uses the docker/login-action action to log in to the Container registry registry using the account and password that will publish the packages. 
-      # Once published, the packages are scoped to the account defined here.
-    - name: Log in to the GitHub Container registry
-      uses: docker/login-action@v3.0.0
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
       
       # This step uses docker/metadata-action to extract tags and labels that will be applied to the specified image. https://github.com/docker/metadata-action
       # The id "meta" allows the output of this step to be referenced in a subsequent step. The images value provides the base name for the tags and labels.
@@ -86,6 +49,19 @@ jobs:
           # disabled if major zero
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
 
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3.0.0
+      with:
+        # This is your Docker Hub username and password.
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+      
+    - name: Log in to the GitHub Container registry
+      uses: docker/login-action@v3.0.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     # This step uses the docker/build-push-action action to build the image, based on your repository's Dockerfile. 
     # It uses the context parameter to define the build's context as the set of files located in the specified path. 
     # For more information, see "Usage" in the README of the docker/build-push-action repository. https://github.com/docker/build-push-action#usage

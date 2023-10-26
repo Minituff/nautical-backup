@@ -1,0 +1,54 @@
+name: Test Docker image
+
+on:
+  workflow_dispatch: # Allow manually running
+  workflow_call: # Allow another workflow to call this one
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+    branches: # Target
+      - 'main'
+      - 'dev'
+  # push:
+    # branches:
+      # - 'main'
+      # - 'test'
+    # tags:
+    #   - 'v*'
+
+jobs:
+  test_docker_image:
+    name: Test image
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate Dockerfile supports multi-arch
+      run: |
+        echo "Checking if the base docker image supports amd64 and arm64..."
+        bash ./tests/validate_dockerfile.sh
+
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        bash ./tests/tests.sh
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and export Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        load: true # Do not push this image
+        tags: minituff/nautical-backup:test
+  
+    - name: Run integation tests against Docker image
+      run: |
+        cd tests
+        docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
+        docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+
