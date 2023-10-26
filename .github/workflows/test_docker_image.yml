@@ -9,6 +9,7 @@ on:
       - reopned
     branches: # Target
       - 'main'
+      - 'dev'
   # push:
     # branches:
       # - 'main'
