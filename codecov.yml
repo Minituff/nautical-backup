@@ -1,7 +1,7 @@
 codecov:
-  disable_default_path_fixes: true
+  disable_default_path_fixes: false
 
 fixes:
   # Reduce the path /home/runner/work/nautical-backup/nautical-backup/pkg/backup.sh => nautical-backup/pkg/backup.sh
   # For Codecov to operate correctly, all file paths in the coverage report must match the [git file structure]
-  - "/home/runner/work/nautical-backup/::"
+  - "/home/runner/work/nautical-backup/nautical-backup/::"
