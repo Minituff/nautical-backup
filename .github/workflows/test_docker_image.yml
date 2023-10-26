@@ -52,6 +52,7 @@ jobs:
       uses: codecov/codecov-action@v4-beta
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CC_TEST_REPORTER_ID: minituff
       with:
         fail_ci_if_error: true
         file: coverage/.resultset.json
