@@ -24,8 +24,7 @@ jobs:
     name: Build and test Docker image
     runs-on: ubuntu-latest
     steps:
-    - name: Check out the repo
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Validate Dockerfile supports multi-arch
       run: |
