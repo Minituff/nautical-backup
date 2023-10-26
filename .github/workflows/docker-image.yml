@@ -16,41 +16,10 @@ jobs:
     permissions: # Sets the permissions granted to the GITHUB_TOKEN for the actions in this job.
       packages: write
       contents: read
-    
     steps:
-    - name: Check out the repo
-      uses: actions/checkout@v4
-
-    - name: Validate Dockerfile supports multi-arch
-      run: |
-        echo "Checking if the base docker image supports amd64 and arm64..."
-        bash ./tests/validate_dockerfile.sh
-
-    - name: Run unit tests
-      run: |
-        echo "Running unit tests..."
-        bash ./tests/tests.sh
-
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build and export Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        load: true
-        tags: minituff/nautical-backup:test
-  
-    - name: Test Docker image
-      run: |
-        cd tests
-        docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
-        docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
-
+    - name: Call test_docker_image.yml
+      uses: ./.github/workflows/test_docker_image.yml
+      
     - name: Log in to Docker Hub
       uses: docker/login-action@v3.0.0
       with:
