@@ -46,7 +46,7 @@ jobs:
         bundle update
     
     - name: Run unit tests
-      run: bashcov ./tests/tests.sh
+      run: bashcov ./tests/tests.sh && ll coverage
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta

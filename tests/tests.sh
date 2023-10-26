@@ -1111,7 +1111,7 @@ test_logThis() {
   script_logging_level="INFO"
   logThis "This is an info message" "INFO"
   expected="INFO: This is an info message"
-  actual=$(cat test_output.log)
+  actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
     fail "Test Logger" 
@@ -1125,7 +1125,7 @@ test_logThis() {
   script_logging_level="INFO"
   logThis "This is a debug message" "DEBUG"
   expected=""
-  actual=$(cat test_output.log)
+  actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
     fail "Test Logger"
@@ -1139,7 +1139,7 @@ test_logThis() {
   script_logging_level="DEBUG"
   logThis "This is a debug message" "DEBUG"
   expected="DEBUG: This is a debug message"
-  actual=$(cat test_output.log)
+  actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
     fail "Test Logger"
