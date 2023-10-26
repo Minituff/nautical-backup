@@ -1102,7 +1102,6 @@ test_backup_on_start() {
 test_logThis() {
   clear_files
   source pkg/logger.sh
-  local test_passed=true
 
   # Temporarily redirect stdout and stderr
   exec 3>&1 4>&2
@@ -1117,7 +1116,7 @@ test_logThis() {
     exec 1>&3 2>&4
     fail "Test Logger" 
     echo "Test Case 1 failed: Expected '$expected', got '$actual'"
-    test_passed=false
+    exit 1
   fi
 
   > test_output.log  # Clear log file
@@ -1131,7 +1130,7 @@ test_logThis() {
     exec 1>&3 2>&4
     fail "Test Logger"
     echo "Test Case 2 failed: Expected '$expected', got '$actual'"
-    test_passed=false
+    exit 1
   fi
 
   > test_output.log  # Clear log file
@@ -1145,7 +1144,7 @@ test_logThis() {
     exec 1>&3 2>&4
     fail "Test Logger"
     echo "Test Case 3 failed: Expected '$expected', got '$actual'"
-    test_passed=false
+    exit 1
   fi
 
   > test_output.log  # Clear log file
