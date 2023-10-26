@@ -46,7 +46,7 @@ jobs:
         load: true # Do not push this image
         tags: minituff/nautical-backup:test
   
-    - name: Test Docker image
+    - name: Run integation tests against Docker image
       run: |
         cd tests
         docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
