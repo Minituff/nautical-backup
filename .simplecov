@@ -1,5 +1,6 @@
 # test/test_helper.rb
 require 'simplecov'
+require "simplecov_json_formatter"
 
 # frozen_string_literal: true
 
