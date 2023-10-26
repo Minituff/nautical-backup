@@ -7,6 +7,8 @@ require 'simplecov'
 # .simplecov
 SimpleCov.start 'rails' do
   # any custom configs like groups and filters can be here at a central place
+  command_name 'Unit Tests'
+  enable_coverage_for_eval
   add_filter %r{^/.git/}
   add_filter %r{^/snippets/}
   add_filter %r{^/tests/}
