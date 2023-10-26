@@ -3,6 +3,12 @@ name: Test Docker image
 on:
   workflow_dispatch: # Allow manually running
   workflow_call: # Allow another workflow to call this one
+  pull_request:
+    types:
+      - opened
+      - reopned
+    branches: # Target
+      - 'main'
   # push:
     # branches:
       # - 'main'
