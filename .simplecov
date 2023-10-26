@@ -4,7 +4,9 @@ require "simplecov_json_formatter"
 
 # frozen_string_literal: true
 
+# Converts the `.resultset.json` to `coverage.json`
 SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+
 # .simplecov
 SimpleCov.start 'rails' do
   # any custom configs like groups and filters can be here at a central place
