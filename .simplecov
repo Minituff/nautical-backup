@@ -4,7 +4,8 @@ require "simplecov_json_formatter"
 
 # frozen_string_literal: true
 
-
+# Converts the `.resultset.json` to `coverage.json`
+formatter = SimpleCov::Formatter::JSONFormatter
 
 # .simplecov
 SimpleCov.start 'rails' do
@@ -19,7 +20,4 @@ SimpleCov.start 'rails' do
   add_filter "pkg/test.sh"
   # add_filter "/pkg/test.sh"
   add_group "Pkg scripts", "/pkg"
-  
-# Converts the `.resultset.json` to `coverage.json`
-  formatter = SimpleCov::Formatter::JSONFormatter
 end
