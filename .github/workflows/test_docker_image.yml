@@ -7,6 +7,8 @@ on:
     types:
       - opened
       - reopned
+      - edited
+      - synchronize
     branches: # Target
       - 'main'
       - 'dev'
