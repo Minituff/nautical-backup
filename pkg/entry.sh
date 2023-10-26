@@ -5,12 +5,15 @@ if [ "$TEST_MODE" == "true" ]; then
     source pkg/logger.sh # Use the logger script
     source pkg/env.sh
 else
+    # :nocov:
     source /app/logger.sh # Use the logger script
     source /app/utils.sh
     source app/env.sh
+    # :nocov:
 fi
 
 if [ "$TEST_MODE" != "true" ]; then
+    # :nocov:
     # Echo the CRON schedule for logging/debugging
     logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG" "init"
 
@@ -25,6 +28,7 @@ if [ "$TEST_MODE" != "true" ]; then
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
+    # :nocov:
 fi
 
 # Verify the source and destination locations

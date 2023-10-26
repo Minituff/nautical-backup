@@ -12,10 +12,10 @@ on:
     branches: # Target
       - 'main'
       - 'dev'
-  # push:
-    # branches:
+  push:
+    branches:
       # - 'main'
-      # - 'test'
+      - 'codecov'
     # tags:
     #   - 'v*'
 
@@ -31,10 +31,28 @@ jobs:
         echo "Checking if the base docker image supports amd64 and arm64..."
         bash ./tests/validate_dockerfile.sh
 
+    # - name: Run unit tests
+    #   run: |
+    #     echo "Running unit tests..."
+    #     bash ./tests/tests.sh
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: head
+    
+    - name: Install Ruby dependencies
+      run: bundle update --bundler && bundle install
+    
     - name: Run unit tests
-      run: |
-        echo "Running unit tests..."
-        bash ./tests/tests.sh
+      run: bashcov ./tests/tests.sh
+
+    - name: Upload reports to Codecov
+      uses: codecov/codecov-action@v4-beta
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_ORG_TOKEN }}
+      with:
+        fail_ci_if_error: true
+        file: coverage/codecov-result.json
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
