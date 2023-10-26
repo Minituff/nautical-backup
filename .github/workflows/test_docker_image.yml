@@ -30,6 +30,7 @@ jobs:
       run: |
         echo "Checking if the base docker image supports amd64 and arm64..."
         bash ./tests/validate_dockerfile.sh
+        exit 1
 
     - name: Run unit tests
       run: |
