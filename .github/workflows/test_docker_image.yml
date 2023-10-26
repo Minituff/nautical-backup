@@ -54,7 +54,7 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
         fail_ci_if_error: true
-        file: coverage/codecov-result.json
+        file: coverage/.resultset.json
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
