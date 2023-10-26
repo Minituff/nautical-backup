@@ -11,6 +11,8 @@ SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
 SimpleCov.start 'rails' do
   # any custom configs like groups and filters can be here at a central place
   command_name 'Unit Tests'
+  enable_coverage :branch
+  primary_coverage :branch
   enable_coverage_for_eval
   add_filter %r{^/.git/}
   add_filter %r{^/snippets/}
