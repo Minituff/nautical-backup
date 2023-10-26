@@ -21,10 +21,6 @@ jobs:
   test_docker_image:
     name: Build and test Docker image
     runs-on: ubuntu-latest
-    # permissions: # Sets the permissions granted to the GITHUB_TOKEN for the actions in this job.
-    #   packages: write
-    #   contents: read
-    
     steps:
     - name: Check out the repo
       uses: actions/checkout@v4
