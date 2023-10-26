@@ -1,7 +1,5 @@
 codecov:
   disable_default_path_fixes: true
-  fixes: 
-    - "/home/runner/work/nautical-backup/::"
 
 fixes:
   # Reduce the path /home/runner/work/nautical-backup/nautical-backup/pkg/backup.sh => nautical-backup/pkg/backup.sh
