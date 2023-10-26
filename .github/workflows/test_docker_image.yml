@@ -37,9 +37,6 @@ jobs:
         echo "Running unit tests..."
         bash ./tests/tests.sh
 
-    # - name: Set up QEMU
-    #   uses: docker/setup-qemu-action@v3
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -47,7 +44,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        load: true
+        load: true # Do not push this image
         tags: minituff/nautical-backup:test
   
     - name: Test Docker image

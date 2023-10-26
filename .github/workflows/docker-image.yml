@@ -3,9 +3,9 @@ name: Create and publish a Docker image
 on:
   workflow_dispatch: # Allow manually running
   push:
-    # branches:
+    branches:
       # - 'main'
-      # - 'test'
+      - 'dev'
     tags:
       - 'v*'
 
@@ -17,6 +17,7 @@ jobs:
       packages: write
       contents: read
     steps:
+    # Call testing workflow
     - name: Call test_docker_image.yml
       uses: ./.github/workflows/test_docker_image.yml
       
@@ -27,14 +28,15 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
       
-      # Uses the docker/login-action action to log in to the Container registry registry using the account and password that will publish the packages. 
-      # Once published, the packages are scoped to the account defined here.
     - name: Log in to the GitHub Container registry
       uses: docker/login-action@v3.0.0
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
       
       # This step uses docker/metadata-action to extract tags and labels that will be applied to the specified image. https://github.com/docker/metadata-action
       # The id "meta" allows the output of this step to be referenced in a subsequent step. The images value provides the base name for the tags and labels.
@@ -59,13 +61,13 @@ jobs:
     # It uses the context parameter to define the build's context as the set of files located in the specified path. 
     # For more information, see "Usage" in the README of the docker/build-push-action repository. https://github.com/docker/build-push-action#usage
     # It uses the tags and labels parameters to tag and label the image with the output from the "meta" step.
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v5.0.0
-      with:
-        context: .
-        push: true
-        platforms: linux/amd64,linux/arm64
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        build-args: |
-            NAUTICAL_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+    # - name: Build and push Docker images
+    #   uses: docker/build-push-action@v5.0.0
+    #   with:
+    #     context: .
+    #     push: true
+    #     platforms: linux/amd64,linux/arm64
+    #     tags: ${{ steps.meta.outputs.tags }}
+    #     labels: ${{ steps.meta.outputs.labels }}
+    #     build-args: |
+    #         NAUTICAL_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
