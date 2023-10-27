@@ -1,15 +1,16 @@
 require 'simplecov'
 require 'simplecov-cobertura'
-require "simplecov_json_formatter"
+# require "simplecov_json_formatter"
 require "simplecov-html"
 
 # frozen_string_literal: true
 
 SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter  # Converts the `.resultset.json` to `coverage.xml`
 
+#   SimpleCov::Formatter::JSONFormatter,
 # Use multiple formatters
 SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::JSONFormatter,
+  SimpleCov::Formatter::SimpleFormatter,
   SimpleCov::Formatter::CoberturaFormatter,
   SimpleCov::Formatter::HTMLFormatter,
 ])
