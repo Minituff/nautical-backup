@@ -47,13 +47,16 @@
     },
     {
       "description": "Dockerfile depedencies",
-      "groupName": "docker-deps",
+      "matchDatasources": ["docker"],
       "matchFileNames": [
-        "^Dockerfile$"
+        "Dockerfile"
       ],
       "labels": ["depedency"],
       "assignees": ["minituff"],
       "automerge": true,
+      "ignoreTests": false,
+      "schedule": ["at any time"],
+      "minimumReleaseAge": "3 days",
       "commitBody": "[bump version]",
       "extends": [
         "default:automergeDigest",
