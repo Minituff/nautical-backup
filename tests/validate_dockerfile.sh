@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Validating Dockerfile supports both amd64 and arm64 architectures..."
+
 # Read the Dockerfile and find the FROM line
 from_line=$(grep '^FROM ' Dockerfile)
 
@@ -13,7 +15,7 @@ if [[ $from_line =~ FROM[[:space:]]+([^@]+)@([^[:space:]]+) ]]; then
   echo "Full Image Name: '$full_image_name'"
   echo "SHA from image:  '$sha_from_dockerfile'"
 else
-  echo "FROM line with SHA not found in Dockerfile"
+  echo "FAIL: 'FROM' line with SHA not found in Dockerfile"
 fi
 
 # Run the docker command to get the SHA from mquery
@@ -24,16 +26,16 @@ echo "SHA from mquery: '$sha_from_mquery'"
 
 # Compare the two SHAs
 if [[ "$sha_from_dockerfile" == "$sha_from_mquery" ]]; then
-  echo "SHAs match. All is well."
+  echo "PASS: SHAs match. All is well."
 else
-  echo "SHAs do not match. Check your Dockerfile."
+  echo "FAIL: SHAs do not match. Check your Dockerfile."
   exit 1
 fi
 
 # Check for the presence of linux/amd64 and linux/arm64 in the output
 if echo "$mquery_output" | grep -q "linux/amd64" && echo "$mquery_output" | grep -q "linux/arm64"; then
-  echo "Both linux/amd64 and linux/arm64 are supported."
+  echo "PASS: Both linux/amd64 and linux/arm64 are supported."
 else
-  echo "One of linux/amd64 or linux/arm64 is not supported."
+  echo "FAIL: One of linux/amd64 or linux/arm64 is not supported."
   exit 1
 fi
