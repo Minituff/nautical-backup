@@ -1,4 +1,4 @@
-name: Test Docker image
+name: Run tests
 
 on:
   workflow_dispatch: # Allow manually running
@@ -21,7 +21,7 @@ on:
 
 jobs:
   test_docker_image:
-    name: Test image
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
