@@ -12,10 +12,10 @@ on:
     branches: # Target
       - 'main'
       - 'dev'
-  push:
-    branches:
+  # push:
+    # branches:
       # - 'main'
-      - 'codecov'
+      # - 'codecov'
     # tags:
     #   - 'v*'
 
