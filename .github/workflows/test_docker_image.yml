@@ -37,7 +37,7 @@ jobs:
     
     - name: Install Ruby dependencies
       run: |
-        gem install bashcov simplecov-cobertura
+        gem install bashcov simplecov-cobertura simplecov-html
     
     - name: Run unit tests
       run: bashcov ./tests/tests.sh && ls -la coverage
