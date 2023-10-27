@@ -802,7 +802,7 @@ test_report_file() {
 test_custom_rsync_args_env() {
   clear_files
   export BACKUP_ON_START="true"
-  export USE_DEFAULT_RSYNC_ARGS=false
+  export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS=-aq
 
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -872,7 +872,7 @@ test_custom_rsync_args_label() {
 test_custom_rsync_args_both() {
   clear_files
   export BACKUP_ON_START="true"
-  export USE_DEFAULT_RSYNC_ARGS=false
+  export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS=-something
 
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -971,7 +971,7 @@ test_keep_src_dir_name_env() {
   cleanup_on_success
 
   export BACKUP_ON_START="true"
-  export KEEP_SRC_DIR_NAME=false
+  export KEEP_SRC_DIR_NAME="false"
   export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
   mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
   mkdir -p tests/src/container3-new && touch tests/src/container3-new/test.txt
@@ -1111,7 +1111,7 @@ test_logThis() {
   script_logging_level="INFO"
   logThis "This is an info message" "INFO"
   expected="INFO: This is an info message"
-  actual=$(cat test_output.log)
+  actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
     fail "Test Logger" 
@@ -1125,7 +1125,7 @@ test_logThis() {
   script_logging_level="INFO"
   logThis "This is a debug message" "DEBUG"
   expected=""
-  actual=$(cat test_output.log)
+  actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
     fail "Test Logger"
@@ -1139,7 +1139,7 @@ test_logThis() {
   script_logging_level="DEBUG"
   logThis "This is a debug message" "DEBUG"
   expected="DEBUG: This is a debug message"
-  actual=$(cat test_output.log)
+  actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
     fail "Test Logger"

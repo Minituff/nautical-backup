@@ -10,7 +10,7 @@ A simple Docker volume backup tool.
   [![Pulls from DockerHub](https://img.shields.io/docker/pulls/minituff/nautical-backup?logo=docker)](https://hub.docker.com/r/minituff/nautical-backup)
   [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/minituff/nautical-backup/latest?label=latest%20version)](https://hub.docker.com/r/minituff/nautical-backup)
   [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/minituff/nautical-backup/latest?label=size)](https://hub.docker.com/r/minituff/nautical-backup)
-
+  [![Code Coverage](https://codecov.io/gh/Minituff/nautical-backup/graph/badge.svg?token=90PUDWN9XU)](https://codecov.io/gh/Minituff/nautical-backup)
 
 
 

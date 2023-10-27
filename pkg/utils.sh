@@ -24,6 +24,7 @@ process_csv() {
 verify_source_location() {
     local src_dir=$1
     logThis "Verifying source directory $src_dir..." "DEBUG" "init"
+    # :nocov:
     if [ ! -d "$src_dir" ]; then
         logThis "Error: Source directory $src_dir does not exist." "ERROR" "init"
         exit 1
@@ -31,11 +32,13 @@ verify_source_location() {
         logThis "Error: No read access to source directory $src_dir." "ERROR" "init"
         exit 1
     fi
+    # :nocov:
 }
 
 verify_destination_location() {
     local dest_dir=$1
     logThis "Verifying destination directory $dest_dir..." "DEBUG" "init"
+    # :nocov:
     if [ ! -d "$dest_dir" ]; then
         logThis "Error: Destination directory $dest_dir does not exist." "ERROR" "init"
         exit 1
@@ -46,4 +49,5 @@ verify_destination_location() {
         logThis "Error: No write access to destination directory $dest_dir." "ERROR" "init"
         exit 1
     fi
+    # :nocov:
 }

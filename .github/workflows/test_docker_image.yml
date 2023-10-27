@@ -1,4 +1,4 @@
-name: Test Docker image
+name: Tests
 
 on:
   workflow_dispatch: # Allow manually running
@@ -15,13 +15,46 @@ on:
   # push:
     # branches:
       # - 'main'
-      # - 'test'
+      # - 'codecov'
     # tags:
     #   - 'v*'
 
 jobs:
+  unit_test_and_coverage:
+    name: Unit tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: head
+    
+    - name: Install Ruby dependencies
+      run: |
+        gem install bashcov simplecov-cobertura simplecov-html
+    
+    - name: Run unit tests
+      run: bashcov ./tests/tests.sh && ls -la coverage
+
+    - name: Upload reports to Codecov
+      uses: codecov/codecov-action@v4-beta
+      # uses: codecov/codecov-action@v3
+      env: # Required for v4
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      with:
+        fail_ci_if_error: true
+        files: coverage/coverage.xml # The json file will not work here
+
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage
+        path: coverage/
+        retention-days: 5
+
   test_docker_image:
-    name: Test image
+    name: Docker image tests
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -30,11 +63,6 @@ jobs:
       run: |
         echo "Checking if the base docker image supports amd64 and arm64..."
         bash ./tests/validate_dockerfile.sh
-
-    - name: Run unit tests
-      run: |
-        echo "Running unit tests..."
-        bash ./tests/tests.sh
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
