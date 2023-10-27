@@ -1,71 +1,45 @@
-Nautical Backup is designed to be a simple tool to backup your docker volumes.
 
 Essentially, this is an automated and configurable backup tool built around [rsync](https://en.wikipedia.org/wiki/Rsync). 
-## Backups Made Easy
 
-Nautical requires almost no configuration when container volumes are all in a folder matching its `container-name` within the source directory. Of course, we can use [variables](./arguments.md) and [labels](./labels.md) to override these defaults.
+## The Basics
+Essentially, Nautical runs `Bash` commands on a `CRON` schedule to:
 
-⚓ Here is an example of an *easy-mode* configuration:
+1. Stop the container <small>(if configured)</small>
+2. Run the backup via `rsync`
+3. Restart the container <small>(if stopped)</small>
 
-| Container Name | *Example* Source Data Directory     | *Example* Desitnation Data Directory   |
-| -------------- | ----------------------------------- | -------------------------------------- |
-| homeassistant  | `/opt/docker-volumes/homeassistant` | `/mnt/nfs-share/backups/homeassistant` |
-| homepage       | `/opt/docker-volumes/homepage`      | `/mnt/nfs-share/backups/homepage`      |
-| trilium        | `/opt/docker-volumes/trilium`       | `/mnt/nfs-share/backups/trilium`       |
-| dozzle         | *No data directory*                 | *No backup*                            |
-
-## Logical Workflow
-Once the CRON job triggers the script to run, the following steps will be executed in order:
-
-1. All running contianers will be listed by `name` and `id`
-2. The `source` and `destination` paths will be overritten if necessary.
-    *  This is done using [overrides](./arguments.md#override-source-directory)
-3. The `source` and `destination` will be verified
-    * *read* permissions for the source
-    * *read & write* permissions for the destination
-4. The container will be *skipped* if:
-    * The container fails the previous step
-    * The container does not have a matching `source` folder <small>(if not using [overrides](./arguments.md#override-source-directory))</small>
-    * The container is in the [skip](./arguments.md#skip-containers) list
-5. The container will be stoped ❌
-6. The `source` folder will be copied to the `destination`
-    * Except for excluded files
-7. The container will be started again ✔️
-8. A `Backup Report (today's date).txt` will be created in `destination`
-      * This report can be disabled using [variables](./arguments.md#report-file)
+⚗️ **Need more control?** There are many more options available via [variables](./arguments.md) and [labels](./labels.md).
 
 
-!!! warning "The container needs a matching `directory` name inside the `source` folder."
-    !!! abstract "Only if you are not using [overrides](./arguments.md#override-source-directory)."
-    For example:
 
-    * A container named `portainer` will be backed up with the mounted directory `/source/portainer`
-    
-    * A container named `trilium` will be backed up with the mounted directory `/source/trilium`
+##  Sample Configuration
+Nautical requires almost no configuration when container volumes are all in a folder matching its `container-name` within the source directory.  <small>Of course, we can use [variables](./arguments.md) and [labels](./labels.md) to override these defaults. </small>
 
-    * A container named `portainer` will be ==skipped== with the mounted directory `/source/portainer-data`
+Let's take a look at an example:
 
-    A container with *no* directory will just be skipped. For example:
+| Container Name | Source Data Directory                 | Destination Data Directory                    |
+| -------------- | ------------------------------------- | --------------------------------------------- |
+| homeassistant  | `/opt/docker-volumes/homeassistant`   | `/mnt/nfs-share/backups/homeassistant`        |
+| homepage       | `/opt/docker-volumes/homepage`        | `/mnt/nfs-share/backups/homepage`             |
+| trilium        | `/opt/docker-volumes/trilium`         | `/mnt/nfs-share/backups/trilium`              |
+| dozzle         | *N/A* <small>(no data folder)</small> | *N/A*       <small>(no backup needed)</small> |
 
-    * A container named `dozzle` has no mounted directory, so it wil be skipped.
+!!! example "Here is how Nautical fits into the *Sample Configuration*"
+    === "Docker Compose"
+        ```yaml
+        ------8<------ "docker-compose-example.yml:3:8"
+              - /opt/docker-volumes:/app/source #(2)!
+              - /mnt/nfs-share/backups:/app/destination #(3)!
+        ```
+        
+        ------8<------ "docker-example-tooltips.md"
 
+    === "Docker Cli"
+        ```bash
+        ------8<------ "docker-run-example.sh::4"
+          -v /opt/docker-volumes:/app/source \ #(2)!
+          -v /mnt/nfs-share/backups:/app/destination \ #(3)!
+        ------8<------ "docker-run-example.sh:10:"
+        ```
 
-## Selection Example
- This example can help explain how Nautical decides which containers to backup.
-
- Assume the `src` directory is folder mounted in the container: `-v /src:/app/source`
-
-| Conatianer Name | Data Directory       | Action | Reasoning                                 |
-| --------------- | -------------------- | ------ | ----------------------------------------- |
-| homeassistant   | `/src/homeassistant` | Backup |                                           |
-| unifi           | `/src/unifi`         | Backup |                                           |
-| tautulli        | `/src/plex-data`     | Skip   | Container name and data dir don't match   |
-| homepage        | `/src/home-continer` | Skip   | Container name and data dir don't match   |
-| dozzle          | *No data directory*  | Skip   | No data directory matching container name |
-| watchtower      | *No data directory*  | Skip   | No data directory matching container name |
-| traefik         | `/src/traefik/data`  | Backup | `traefik` and all subfolders              |
-| portainer       | `/src/portainer`     | Backup |                                           |
-| trilium         | `/src/trilium`       | Backup |                                           |
-
-!!! note "`homepage` and `tautulli` can still be backed up."
-    You just need to use [Source Location Overrides](./arguments.md#override-source-directory)
+        ------8<------ "docker-example-tooltips.md"

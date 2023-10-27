@@ -1,4 +1,4 @@
-For a full list of configuration options, see the [Variables](./arguments.md) section.
+For a full list of configuration options, see the [Variables](./arguments.md) and [Labels](./labels.md) sections.
 
 ## Docker Compose Example
 
