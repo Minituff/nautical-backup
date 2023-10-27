@@ -31,27 +31,22 @@ jobs:
         echo "Checking if the base docker image supports amd64 and arm64..."
         bash ./tests/validate_dockerfile.sh
 
-    # - name: Run unit tests
-    #   run: |
-    #     echo "Running unit tests..."
-    #     bash ./tests/tests.sh
-
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: head
     
     - name: Install Ruby dependencies
-      run: | 
+      run: |
         gem install bashcov simplecov-cobertura
     
     - name: Run unit tests
       run: bashcov ./tests/tests.sh && ls -la coverage
 
     - name: Upload reports to Codecov
-      # uses: codecov/codecov-action@v4-beta
-      uses: codecov/codecov-action@v3
-      # env: # Required for v4
-        # CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      uses: codecov/codecov-action@v4-beta
+      # uses: codecov/codecov-action@v3
+      env: # Required for v4
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
         fail_ci_if_error: true
         files: coverage/coverage.xml
