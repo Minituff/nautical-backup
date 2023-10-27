@@ -1,4 +1,4 @@
-name: Run tests
+name: Tests
 
 on:
   workflow_dispatch: # Allow manually running
@@ -20,16 +20,11 @@ on:
     #   - 'v*'
 
 jobs:
-  test_docker_image:
-    name: Run tests
+  unit_test_and_coverage:
+    name: Unit tests and coverage
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-
-    - name: Validate Dockerfile supports multi-arch
-      run: |
-        echo "Checking if the base docker image supports amd64 and arm64..."
-        bash ./tests/validate_dockerfile.sh
 
     - uses: ruby/setup-ruby@v1
       with:
@@ -57,7 +52,18 @@ jobs:
         name: code-coverage
         path: coverage/
         retention-days: 5
-        
+
+  test_docker_image:
+    name: Docker image tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate Dockerfile supports multi-arch
+      run: |
+        echo "Checking if the base docker image supports amd64 and arm64..."
+        bash ./tests/validate_dockerfile.sh
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
