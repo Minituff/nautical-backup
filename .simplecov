@@ -7,11 +7,11 @@ require "simplecov-html"
 # SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter  # Converts the `.resultset.json` to `coverage.xml`
 
 # Use multiple formatters
-# SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
-#   SimpleCov::Formatter::SimpleFormatter,
-#   SimpleCov::Formatter::CoberturaFormatter,
-#   SimpleCov::Formatter::HTMLFormatter,
-# ])
+SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+  SimpleCov::Formatter::SimpleFormatter,
+  SimpleCov::Formatter::CoberturaFormatter,
+  SimpleCov::Formatter::HTMLFormatter,
+])
 
 
 # .simplecov
