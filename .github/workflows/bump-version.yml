@@ -6,15 +6,21 @@ on:
       - main
     paths:
       - 'Dockerfile'  # If file has changed
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Requires '[bump version]' to be present in the Git commit message or commit body
+    # This is used so we don't accidentally publish an image on a commit to main.cancel-timeout-minutes: 
+    # Renovate will add '[bump version]' when it changes dependencies within the Dockerfile.
     if: contains(github.event.head_commit.message, '[bump version]')
     permissions:
       contents: write
+    
     steps:
       - uses: actions/checkout@v4
       
+      # Bump the `patch` level
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
@@ -22,16 +28,15 @@ jobs:
           github_token: ${{ secrets.REPO_GITHUB_SECRET }}
           fetch_all_tags: false
           default_bump: patch
-
+      
+      # This new Github Release will kickoff the the pipeline at `docker-image.yml`
+      # A release tag is needed for the pipeline to run correctly
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1.13.0
         with:
+          # Get the tag name from previous step
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: ${{ steps.tag_version.outputs.new_tag }}
           generateReleaseNotes: true
           makeLatest: true
-      
-      # - name: Start build image
-      #   run: |
-      #     # Explicitly run our release workflow for this new tag
-      #     gh workflow run docker-image.yml --ref ${{ steps.tag_version.outputs.new_tag }
+

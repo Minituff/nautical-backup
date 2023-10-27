@@ -56,7 +56,7 @@
       "automerge": true,
       "ignoreTests": false,
       "schedule": ["at any time"],
-      "minimumReleaseAge": "3 days",
+      "minimumReleaseAge": "2 days",
       "commitBody": "[bump version]",
       "extends": [
         "default:automergeDigest",
@@ -67,7 +67,7 @@
   "hostRules": [
     {
       "hostType": "repology",
-      "timeout": 240000
+      "timeout": 60000
     }
   ]
 }
