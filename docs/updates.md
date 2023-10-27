@@ -1,4 +1,4 @@
-Updating Nautical <small>(and any continer)</small> is a balance between *convenience*, *reliability* and *security*.
+Updating Nautical <small>(and any container)</small> is a balance between *convenience*, *reliability* and *security*.
 
 Updating your container will bring new features, bug fixes and security patches but can also introduce intended behavior.
 
@@ -14,14 +14,14 @@ Nautical uses [Semver](https://semver.org) like this.
     * This usually means you will need to change the Nautical configuration.
 * **MINOR** - Add functionality in a backward compatible manner.
     * Everything *should* continue working without changes to the Nautical configuration.
-* **PATCH** - A small change such as updating a depedency, log output, or minor fix.
+* **PATCH** - A small change such as updating a dependency, log output, or minor fix.
     * From the user perspective, nothing will have changed, but under the hood, small improvements were made.
 
 ## Manual Updates
 To manually update Nautical, simply re-deploy using either of these configs, but specify the latest version of the Nautical.
 Currently, the latest version of Nautical is <a href="https://hub.docker.com/r/minituff/nautical-backup"><img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/minituff/nautical-backup/latest?label= " /></a>. <small>(do not add the `v`)</small>
 
-This will need to be done each time a new verison is released.
+This will need to be done each time a new version is released.
 === "Docker Compose"
     ```yaml hl_lines="3"
     ------8<------ "docker-compose-semver-example.yml:3"
@@ -66,7 +66,7 @@ While convenient, automatic updates may break things. For this reason we recomme
             ------8<------ "docker-example-tooltips.md"
             1. Which containers to use. 
 
-                Remove this line to update all contianers.
+                Remove this line to update all containers.
 
         === "Docker Cli"
             ```bash hl_lines="6"
@@ -83,7 +83,7 @@ While convenient, automatic updates may break things. For this reason we recomme
             ------8<------ "docker-example-tooltips.md"
             1. Which containers to use. 
 
-                Remove this line to update all contianers.
+                Remove this line to update all containers.
 
 === "Minor And Patch Updates"
     !!! note ""
@@ -104,7 +104,7 @@ While convenient, automatic updates may break things. For this reason we recomme
             ------8<------ "docker-example-tooltips.md"
             1. Which containers to use. 
 
-                Remove this line to update all contianers.
+                Remove this line to update all containers.
 
         === "Docker Cli"
             ```bash  hl_lines="6"
@@ -121,7 +121,7 @@ While convenient, automatic updates may break things. For this reason we recomme
             ------8<------ "docker-example-tooltips.md"
             2. Which containers to use. 
 
-                Remove this line to update all contianers.
+                Remove this line to update all containers.
 
 === "Latest Updates (All)"
     !!! note ""
@@ -150,7 +150,7 @@ While convenient, automatic updates may break things. For this reason we recomme
             ------8<------ "docker-example-tooltips.md"
             1. Which containers to use. 
 
-                Remove this line to update all contianers.
+                Remove this line to update all containers.
 
         === "Docker Cli"
             ```bash  hl_lines="6"
@@ -167,6 +167,6 @@ While convenient, automatic updates may break things. For this reason we recomme
             ------8<------ "docker-example-tooltips.md"
             2. Which containers to use. 
 
-                Remove this line to update all contianers.
+                Remove this line to update all containers.
 
 

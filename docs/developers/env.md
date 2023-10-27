@@ -1,4 +1,4 @@
-These enviornment variables are not needed for normal installations.
+These environment variables are not needed for normal installations.
 
 This documentation is intended for developers only.
 

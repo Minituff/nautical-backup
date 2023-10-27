@@ -1,4 +1,4 @@
-Docker Labels allow us to apply settings to Nautical on a per-container basis. Instead of applying [environment variables](./arguments.md), we can apply the label to the each container seperately.
+Docker Labels allow us to apply settings to Nautical on a per-container basis. Instead of applying [environment variables](./arguments.md), we can apply the label to the each container separately.
 
 ### How to add labels
 
@@ -59,10 +59,10 @@ Remember, these labels can be added to any container <small> (other than Nautica
 
 ### Label vs Environment Variable Priority
 If a container has an Environment Variable applied as well as a conflicting Label, then:
-> The continer Label takes priority over the global Natical environment variable.
+> The container Label takes priority over the global Nautical environment variable.
 
 ## Enable or Disable Nautical
-This Docker label can be used to acheive 2 things:
+This Docker label can be used to achieve 2 things:
 
 1. Opt a container **OUT** of backup
 1. Opt a container **IN** to a backup <small>(with the Nautical [Require Label](./arguments.md#require-label) environment variable set to `true`)</small>
@@ -135,7 +135,7 @@ With this label set to `false`, the container will not be stopped before perform
 nautical-backup.stop-before-backup=false
 ```
 
-!!! warning "Not stoppping containers can produce *corrupt* backups."
+!!! warning "Not stopping containers can produce *corrupt* backups."
     Containers with databases--particularly SQL--need to be shutdown before backup.
 
     Only do this on containers you know for certain do not need to be shutdown before backup.
@@ -181,7 +181,7 @@ Mirror the source folder name to the destination folder name. By default <small>
 
 When using a [source directory override](#override-source-directory-name), then the `nautical-backup.keep_src_dir_name=true` setting<small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a [destination directory overrides](#override-destination-directory-name).
 
-If a [destination directory override](#override-destination-directory-name) is applied for a container, then the override ^^will^^ be used instead of mirrioring the source name, regardless of the `KEEP_SRC_DIR_NAME` setting. 
+If a [destination directory override](#override-destination-directory-name) is applied for a container, then the override ^^will^^ be used instead of mirroring the source name, regardless of the `KEEP_SRC_DIR_NAME` setting. 
 
 > **Default If Missing**: true
 
@@ -192,9 +192,9 @@ nautical-backup.keep_src_dir_name=false
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-destination) variable, but applied only to this container.</small>
 
 ## Use Default rsync Arguments
-Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
+Use the default `rsync` arguments `-raq` <small>(recursive, archive, quiet)</small>
 
-Useful when using [Custom rsync Arugments](#custom-rsync-arguments)
+Useful when using [Custom rsync Arguments](#custom-rsync-arguments)
 
 > **Default**: *none* <small>(use global setting)</small>
 
@@ -202,7 +202,7 @@ Useful when using [Custom rsync Arugments](#custom-rsync-arguments)
 nautical-backup.use-default-rsync-args=false
 ```
 
-!!! note "This label will *override* the global setting applied through [Enviornment Variables](./arguments.md)"
+!!! note "This label will *override* the global setting applied through [Environment Variables](./arguments.md)"
     * A value of `true` will use the default rsync arguments regardless of the global setting.
     * A value of `false` will ^^**not**^^ use the default rsync arguments regardless of the global setting.
     * Not setting the label value will use the [global setting](./arguments.md#custom-rsync-arguments)
@@ -218,8 +218,8 @@ Apply custom `rsync` args <small>(in addition to the [default](#use-default-rsyn
 nautical-backup.rsync-custom-args=--exclude='*.log' --exclude='*.txt'
 ```
 
-!!! note "This label will *override* the global setting applied through [Enviornment Variables](./arguments.md)"
-    * *Any value* will override the global rsync arguemnts configured through [global settings](./arguments.md#custom-rsync-arguments).
+!!! note "This label will *override* the global setting applied through [Environment Variables](./arguments.md)"
+    * *Any value* will override the global rsync arguments configured through [global settings](./arguments.md#custom-rsync-arguments).
     * A value of <small>(space)</small> `"nautical-backup.rsync-custom-args= "` will ^^cancel^^ any [global setting](./arguments.md#custom-rsync-arguments) for this container only.
     * Not setting the label value will use the [global setting](./arguments.md#custom-rsync-arguments).
 

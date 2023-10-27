@@ -29,7 +29,7 @@ Commonly, we run containers on our host machine, then use an NFS share as the ba
     mount -a
     ```
 
-    !!! success "A succesful `mount -a` will return *nothing* in the console"
+    !!! success "A successful `mount -a` will return *nothing* in the console"
 
 4. Verify *read* and *write* access
     ```bash

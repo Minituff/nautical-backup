@@ -16,7 +16,7 @@ There are two easy ways to get MkDocs up and running locally:
 
 ### Docker
 
-If Docker is already installed on your machine, then running the docs locally is extrememly easy.
+If Docker is already installed on your machine, then running the docs locally is extremely easy.
 
 Verify Requirements
 ```bash
@@ -27,8 +27,8 @@ docker compose version
 # Docker Compose version v2.15.1
 ```
 
-The `docs/docker-compose.yml` file within the repo already has all the relavant information needed to get the docs up and running.
-The official [Docker image](https://hub.docker.com/r/squidfunk/mkdocs-material/) already contains all the requierments
+The `docs/docker-compose.yml` file within the repo already has all the relevant information needed to get the docs up and running.
+The official [Docker image](https://hub.docker.com/r/squidfunk/mkdocs-material/) already contains all the requirements
 
 ???+ abstract "Our `docker-compose.yml`"
    
@@ -63,7 +63,7 @@ docker compose up
 
 1. We need to run the `docker compose up` command from the `docs` directory.
 
-MKDocs will now be avilable at: http://127.0.0.1:8000
+MKDocs will now be available at: http://127.0.0.1:8000
 
 ### Python and pip
 
@@ -93,7 +93,7 @@ Material for MkDocs is published as a [Python package](https://pypi.org/project/
 
     1. Notice the `(.env)` in the terminal.
    
-        This is how you know you have activated the virtual enviornment.
+        This is how you know you have activated the virtual environment.
 
 
     !!! tip "About virtual environments"
@@ -107,7 +107,7 @@ Material for MkDocs is published as a [Python package](https://pypi.org/project/
     pip install mkdocs-material
     ```
    
-    !!! warning "Ensure you are in the virtual enviornment"
+    !!! warning "Ensure you are in the virtual environment"
 
         If you are not in the `env` this will install the requirements to the main python directory, which is not ideal.
 
@@ -122,10 +122,10 @@ Material for MkDocs is published as a [Python package](https://pypi.org/project/
     mkdocs serve
     ```
 
-    1. We must be in the docs direcory before serving
+    1. We must be in the docs directory before serving
    
 
-   MKDocs will now be avilable at: http://127.0.0.1:8000
+   MKDocs will now be available at: http://127.0.0.1:8000
 
 <br>
 <br>

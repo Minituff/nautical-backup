@@ -9,7 +9,6 @@ Here is a list of a few of our favorite remote backup solutions:
 * https://kopia.io
 * https://borgbackup.org
 * https://restic.net
-* https://restic.net
 * https://duplicacy.com
 * https://duplicati.com
 

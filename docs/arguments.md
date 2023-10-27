@@ -4,7 +4,7 @@ See the [Installation Section](./installation.md), which contains a few examples
 
 ### Environment Variable vs Label Priority
 If a container has an Environment Variable applied as well as a conflicting Label, then:
-> The continer Label takes priority over the global Natical environment variable.
+> The container Label takes priority over the global Nautical environment variable.
 
 ## Time Zone
 
@@ -46,7 +46,7 @@ This list can either be the container `name` or full `id`.
     ```
 
 !!! tip "Getting the full container ID"
-    Usally, it's easier to just use the `container-name`, but if you need to use the full ID, these commands will help:
+    Usually, it's easier to just use the `container-name`, but if you need to use the full ID, these commands will help:
 
     * `docker ps --no-trunc`
     * `docker inspect <container name>`
@@ -54,7 +54,7 @@ This list can either be the container `name` or full `id`.
 <small>🔄 This is the same action as the [Disable Nautical](./labels.md#enable-or-disable-nautical) label, but applied globally.</small>
 
 ## Require Label
-Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *each* contianer or it will be skipped.
+Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *each* container or it will be skipped.
 
 > **Default**: false
 
@@ -69,7 +69,7 @@ Allows a source directory and container-name that do not match.
 
 > **Default**: *empty* <small>(use container name)</small>
 
-> **Format**: `<container-name>:<local source folder name>`  <small>(comma seperated for multiple items)</small>
+> **Format**: `<container-name>:<local source folder name>`  <small>(comma separated for multiple items)</small>
 
 Normally a container is backed up *only* when the `container-name` is the exact same as the `source folder name`.
 
@@ -84,7 +84,7 @@ Normally a container is backed up *only* when the `container-name` is the exact 
 
 === "Example 2"
 
-    We can override multiple containers if we seperate them with a comma.
+    We can override multiple containers if we separate them with a comma.
     ```properties
     OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
     ```
@@ -102,7 +102,7 @@ Changes the destination backup name to be something other than the container nam
 
 > **Default**: *empty* <small>(use container name)</small>
 
-> **Format**: `<container-name>:<new destination folder name>`  <small>(comma seperated for multiple items)</small>
+> **Format**: `<container-name>:<new destination folder name>`  <small>(comma separated for multiple items)</small>
 
 Normally, a container is backed to a folder with the ^^same name^^ as the `container-name`. 
 
@@ -148,7 +148,7 @@ Bypass stopping the container before performing a backup. This can be useful for
 ```properties
 SKIP_STOPPING=example1,example2
 ```
-!!! warning "Not stoppping containers can produce *corrupt* backups."
+!!! warning "Not stopping containers can produce *corrupt* backups."
     Containers with databases--particularly SQL--need to be shutdown before backup.
 
     Only do this on containers you know for certain do not need to be shutdown before backup.
@@ -157,7 +157,7 @@ SKIP_STOPPING=example1,example2
 <small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-before-backup) label, but applied globally.</small>
 
 ## Backup on Start
-Will immediatly perform a backup when the container is started in addition to the CRON sheduled backup.
+Will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
 
 > **Default**: false
 
@@ -182,7 +182,7 @@ Mirror the source folder name to the destination folder name. By default <small>
 
 When using a [source directory override](#override-source-directory), then the `KEEP_SRC_DIR_NAME=true` setting <small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a [destination directory override](#override-destination-directory).
 
-If a [destination directory override](#override-destination-directory) is applied for a container, then the override ^^will^^ be used instead of mirrioring the source name, regardless of the `KEEP_SRC_DIR_NAME` setting. 
+If a [destination directory override](#override-destination-directory) is applied for a container, then the override ^^will^^ be used instead of mirroring the source name, regardless of the `KEEP_SRC_DIR_NAME` setting. 
 
 > **Default**: true
 
@@ -205,7 +205,7 @@ LOG_LEVEL=INFO
 
 ## Report Log Level
 Set the log level for the generated report file.
-Only used if the repot file is [enabled](#report-file).
+Only used if the report file is [enabled](#report-file).
 
 > **Default**: INFO
 
@@ -228,9 +228,9 @@ REPORT_FILE_ON_BACKUP_ONLY=false
 
 ## Use Default rsync Arguments
 
-Use the default `rsync` arguemnts `-raq` <small>(recursive, archive, quiet)</small>
+Use the default `rsync` arguments `-raq` <small>(recursive, archive, quiet)</small>
 
-Useful when using [Custom rsync Arugments](#custom-rsync-arguments)
+Useful when using [Custom rsync Arguments](#custom-rsync-arguments)
 
 > **Default**: true
 
