@@ -49,14 +49,13 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
         fail_ci_if_error: true
-        files: coverage/coverage.xml
-        verbose: true
+        files: coverage/coverage.xml # The json file will not work here
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
       with:
-        name: code-coverage-report
-        path: coverage/coverage.xml
+        name: code-coverage
+        path: coverage/
         retention-days: 5
         
     - name: Set up Docker Buildx
