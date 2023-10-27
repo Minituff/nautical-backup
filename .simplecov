@@ -1,11 +1,13 @@
 # test/test_helper.rb
 require 'simplecov'
 require "simplecov_json_formatter"
+require 'simplecov-cobertura'
 
 # frozen_string_literal: true
 
 # Converts the `.resultset.json` to `coverage.json`
-SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+# SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 
 # .simplecov
 SimpleCov.start 'rails' do
