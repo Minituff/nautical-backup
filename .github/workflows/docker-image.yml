@@ -13,6 +13,7 @@ jobs:
   call_tests:
     name: Run Tests
     uses: ./.github/workflows/test_docker_image.yml
+    secrets: inherit
 
   push_to_registries:
     name: Push Docker image
