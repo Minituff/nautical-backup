@@ -44,6 +44,7 @@ if [ "$BACKUP_ON_START" = "true" ]; then
     fi
 fi
 
+# :nocov:
 if [ "$EXIT_AFTER_INIT" = "true" ]; then
     logThis "Exiting since EXIT_AFTER_INIT is true" "INFO" "init"
     exit 0
@@ -59,3 +60,4 @@ logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO"
 if [ "$TEST_MODE" != "true" ]; then
     /usr/sbin/crond -f -l 8 # Start cron and keep container running
 fi
+# :nocov:
