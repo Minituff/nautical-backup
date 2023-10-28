@@ -74,26 +74,26 @@ Allows a source directory and container-name that do not match.
 Normally a container is backed up *only* when the `container-name` is the exact same as the `source folder name`.
 
 === "Example 1"
+    !!! note ""
+        For example, a container named `Pi.Alert` will be skipped with a source directory name of `pialert`.
+        To fix this, we can override the source directory name so that it does not need to match the container name.
 
-    For example, a container named `Pi.Alert` will be skipped with a source directory name of `pialert`.
-    To fix this, we can override the source directory name so that it does not need to match the container name.
-
-    ```properties
-    OVERRIDE_SOURCE_DIR=Pi.Alert:pialert
-    ```
+        ```properties
+        OVERRIDE_SOURCE_DIR=Pi.Alert:pialert
+        ```
 
 === "Example 2"
+    !!! note ""
+        We can override multiple containers if we separate them with a comma.
+        ```properties
+        OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
+        ```
+        <small> The example above would yield the following results:</small>
 
-    We can override multiple containers if we separate them with a comma.
-    ```properties
-    OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
-    ```
-    <small> The example above would yield the following results:</small>
-
-    | Container Name | Old Source Directory | New Source Directory         |
-    | -------------- | -------------------- | ---------------------------- |
-    | example1       | `src/example1`       | `src/example1-new-dest-data` |
-    | ctr2           | `src/ctr2`           | `src/newdest`                |
+        | Container Name | Old Source Directory | New Source Directory           |
+        |----------------|----------------------|--------------------------------|
+        | example1       | `src/example1`       | `src/example1-new-source-data` |
+        | ctr2           | `src/ctr2`           | `src/ctr2-new-source`          |
 
 <small>🔄 This is the same action as the [Override Source Directory](./labels.md#override-source-directory-name) label, but applied globally.</small>
 
@@ -107,27 +107,27 @@ Changes the destination backup name to be something other than the container nam
 Normally, a container is backed to a folder with the ^^same name^^ as the `container-name`. 
 
 === "Example 1"
+    !!! note ""
+        For example, let's say we have a container named `Pi.Alert`. By default, the container will be backed up to a folder named `Pi.Alert`.
+        If we want to change this destination folder name to be `pialert`, we can do that using overrides.
 
-    For example, let's say we have a container named `Pi.Alert`. By default, the container will be backed up to a folder named `Pi.Alert`.
-    If we want to change this destination folder name to be `pialert`, we can do that using overrides.
-
-    ```properties
-    OVERRIDE_DEST_DIR=Pi.Alert:pialert
-    ```
+        ```properties
+        OVERRIDE_DEST_DIR=Pi.Alert:pialert
+        ```
 
 
 === "Example 2"
+    !!! note ""
+        ```properties
+        OVERRIDE_DEST_DIR=example1:example1-new-dest-data,ctr2:newdest
+        ```
 
-    ```properties
-    OVERRIDE_DEST_DIR=example1:example1-new-dest-data,ctr2:newdest
-    ```
+        <small> The example above would yield the following results:</small>
 
-    <small> The example above would yield the following results:</small>
-
-    | Container Name | Old Destination Directory | New Destination Directory     |
-    | -------------- | ------------------------- | ----------------------------- |
-    | example1       | `dest/example1`           | `dest/example1-new-dest-data` |
-    | ctr2           | `dest/ctr2`               | `dest/newdest`                |
+        | Container Name | Old Destination Directory | New Destination Directory     |
+        |----------------|---------------------------|-------------------------------|
+        | example1       | `dest/example1`           | `dest/example1-new-dest-data` |
+        | ctr2           | `dest/ctr2`               | `dest/newdest`                |
 
 <small>🔄 This is the same action as the [Override Destination Directory](./labels.md#override-destination-directory-name) label, but applied globally.</small>
 
@@ -178,7 +178,7 @@ RUN_ONCE=true
 Without [Backup on Start](#backup-on-start), the [CRON Schedule](#cron-schedule) will call the backup and then Nautical will exit.
 
 ## Mirror Source Directory Name to Destination
-Mirror the source folder name to the destination folder name. By default <small>(without any [overrides](#override-source-directory))</small>, this means both the `source` and `destination` folder names are the ^^same as the container name^^.
+Mirror the source folder name to the destination folder name. 
 
 When using a [source directory override](#override-source-directory), then the `KEEP_SRC_DIR_NAME=true` setting <small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a [destination directory override](#override-destination-directory).
 
@@ -190,6 +190,47 @@ If a [destination directory override](#override-destination-directory) is applie
 KEEP_SRC_DIR_NAME=false
 ```
 
+=== "Example 1"
+    !!! note ""
+        ```properties
+        OVERRIDE_SOURCE_DIR=Pi.Alert:pialert
+        ```
+
+        Here we override the `source` folder to `Pi.Alert` to `pialert`, and since `KEEP_SRC_DIR_NAME=true` <small> (which is the default) </small> the `destination` folder will also be named `pialert`.
+
+        | Container Name | Source Directory | Destination Directory |
+        |----------------|------------------|-----------------------|
+        | Pi.Alert       | `src/pialert`    | `destination/pialert` |
+
+=== "Example 2"
+    !!! note ""
+        ```properties
+        KEEP_SRC_DIR_NAME=false
+        OVERRIDE_SOURCE_DIR=Pi.Alert:pialert
+        ```
+
+        Here we override the `source` folder to `Pi.Alert` to `pialert`, and since `KEEP_SRC_DIR_NAME=false` the `destination` folder will not be mirrored, so the *container-name* `Pi.Alert` will be used.
+
+        | Container Name | Source Directory | Destination Directory  |
+        |----------------|------------------|------------------------|
+        | Pi.Alert       | `src/pialert`    | `destination/Pi.Alert` |
+
+=== "Example 3"
+    !!! note ""
+        ```properties
+        OVERRIDE_SOURCE_DIR=Pi.Alert:pialert
+        OVERRIDE_DEST_DIR=Pi.Alert:pialert-backup
+        ```
+
+        Here we override the `source` folder to `Pi.Alert` to `pialert`.
+
+        We also override the `destination` folder to `pialert-backup`.
+
+        Since a *destination override* is used, the `KEEP_SRC_DIR_NAME` setting is *not* used for this container.
+
+        | Container Name | Source Directory | Destination Directory        |
+        |----------------|------------------|------------------------------|
+        | Pi.Alert       | `src/Pi.Alert`   | `destination/pialert-backup` |
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./labels.md#mirror-source-directory-name-to-destination) label, but applied globally.</small>
 
 ## Console Log Level

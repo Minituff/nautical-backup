@@ -75,6 +75,7 @@ nautical-backup.enable=true
 
 === "Example 1 (Opt out)"
     !!! note ""
+        With the [Require Label](./arguments.md#require-label) environment variable *not set* or set to `false`.
         ```yaml
         services: # Example Service #1 config ...
           labels:
@@ -99,7 +100,8 @@ nautical-backup.enable=true
 
 
 === "Example 2 (Opt in)"
-    !!! note " With [Require Label](./arguments.md#require-label) environment variable set to `true`"
+    !!! note ""
+        With the [Require Label](./arguments.md#require-label) environment variable set to `true`
         ```yaml title=""
         services: # Example Service #1 config ...
           labels:

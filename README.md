@@ -37,7 +37,7 @@ services:
       - CRON_SCHEDULE=0 4 * * *
       - SKIP_CONTAINERS=example1,example2,example3
 ```
-Docker Run
+Docker CLI
 ```bash
 docker run -d \
   --name nautical-backup \

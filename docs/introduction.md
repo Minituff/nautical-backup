@@ -17,12 +17,11 @@ Nautical requires almost no configuration when container volumes are all in a fo
 
 Let's take a look at an example:
 
-| Container Name | Source Data Directory                 | Destination Data Directory                    |
-| -------------- | ------------------------------------- | --------------------------------------------- |
-| homeassistant  | `/opt/docker-volumes/homeassistant`   | `/mnt/nfs-share/backups/homeassistant`        |
-| homepage       | `/opt/docker-volumes/homepage`        | `/mnt/nfs-share/backups/homepage`             |
-| trilium        | `/opt/docker-volumes/trilium`         | `/mnt/nfs-share/backups/trilium`              |
-| dozzle         | *N/A* <small>(no data folder)</small> | *N/A*       <small>(no backup needed)</small> |
+| Container Name                                      | Source Data Directory                 | Destination Data Directory                    |
+| --------------------------------------------------- | ------------------------------------- | --------------------------------------------- |
+| [homepage](https://github.com/gethomepage/homepage) | `/opt/docker-volumes/homepage`        | `/mnt/nfs-share/backups/homepage`             |
+| [trilium](https://github.com/zadam/trilium)         | `/opt/docker-volumes/trilium`         | `/mnt/nfs-share/backups/trilium`              |
+| [dozzle](https://github.com/amir20/dozzle)          | *N/A* <small>(no data folder)</small> | *N/A*       <small>(no backup needed)</small> |
 
 !!! example "Here is how Nautical fits into the *Sample Configuration*"
     === "Docker Compose"

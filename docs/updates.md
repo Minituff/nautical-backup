@@ -43,7 +43,7 @@ This will need to be done each time a new version is released.
 
 
 ## Automatic Updates
-[Watchtower](https://github.com/containrrr/watchtower/) is an excellent tool to keep your Docker containers update.
+[Watchtower](https://github.com/containrrr/watchtower/) is an excellent tool to keep your Docker containers updated.
 
 While convenient, automatic updates may break things. For this reason we recommend only automatically updating to the latest `PATCH` version.
 
