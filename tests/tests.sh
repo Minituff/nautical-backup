@@ -175,17 +175,30 @@ test_docker() {
   mapfile -t docker_actual_output <"$DOCKER_COMMANDS_FILE"
   mapfile -t docker_actual_output_copy <"$DOCKER_COMMANDS_FILE"
 
-  for expected_docker in "${expected_docker_output_arr[@]}"; do # Use the _arr array here
+  # Loop through each expected Docker command
+  for expected_docker in "${expected_docker_output_arr[@]}"; do
     found=false
-    for docker_actual in "${docker_actual_output[@]}"; do
+
+    # Loop through each actual Docker command
+    for index in "${!docker_actual_output[@]}"; do
+      docker_actual=${docker_actual_output[index]}
+
+      # If the expected Docker command is found in the actual output
       if [[ "$docker_actual" == "$expected_docker" ]]; then
         found=true
+
+        # Remove the found element from the actual output array
+        unset 'docker_actual_output[index]'
+
+        # Since we found a match, no need to continue this inner loop
         break
       fi
     done
+
+    # If the expected Docker command was not found in the actual output
     if [ "$found" = false ]; then
       fail "$test_name"
-      echo "'$expected_docker' not found in expected_docker_output."
+      echo "DOCKER '$expected_docker' not found in actual output."
       test_passed=false
     fi
   done
@@ -439,8 +452,8 @@ test_enable_label() {
     echo "abc123:container1"
   )
   mock_docker_label_lines=$(
-    echo "\"com.docker.compose.oneoff\":\"False",\" &&
-      echo "\"nautical-backup.enable\":\"false\""
+    echo "{\"com.docker.compose.oneoff\":\"false"\", &&
+      echo "\"nautical-backup.enable\":\"false\"}"
   )
 
   disallowed_docker_output=$(
@@ -462,7 +475,7 @@ test_enable_label() {
       echo "start container1"
   )
   mock_docker_label_lines=$(
-    echo "{\"com.docker.compose.oneoff\":\"False",\" &&
+    echo "{\"com.docker.compose.oneoff\":\"false"\", &&
       echo "\"nautical-backup.enable\":\"true\"}"
   )
 
@@ -486,7 +499,7 @@ test_require_label() {
     echo "abc123:container1"
   )
   mock_docker_label_lines=$(
-    echo "{\"com.docker.compose.oneoff\":\"False",\" &&
+    echo "{\"com.docker.compose.oneoff\":\"False"\", &&
       echo "\"nautical-backup.enable\":\"false\"}"
   )
 
@@ -513,7 +526,7 @@ test_require_label() {
       echo "start container1"
   )
   mock_docker_label_lines=$(
-    echo "{\"com.docker.compose.oneoff\":\"False",\" &&
+    echo "{\"com.docker.compose.oneoff\":\"False"\", &&
       echo "\"nautical-backup.enable\":\"true\"}"
   )
 
@@ -869,7 +882,7 @@ test_custom_rsync_args_label() {
       echo "def456:container2"
   )
   mock_docker_label_lines=$(
-    echo "{\"nautical-backup.use-default-rsync-args\":\"false\"," &&
+    echo "{\"nautical-backup.use-default-rsync-args\":\"false\"", &&
       echo "\"nautical-backup.rsync-custom-args\":\"-aq\"}"
   )
   expected_rsync_output=$(

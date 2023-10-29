@@ -99,6 +99,7 @@ BackupAdditionalFolders() {
 
 BackupContainer() {
     local container=$1
+    local labels=$2
 
     local skip_stopping=0
     for skip in "${SKIP_STOPPING[@]}"; do
@@ -108,9 +109,6 @@ BackupContainer() {
             break
         fi
     done
-
-    # Use docker inspect to get the labels for the container
-    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.stop-before-backup":"false"'; then
         logThis "Skipping stopping of $container because of label." "DEBUG"
@@ -219,7 +217,7 @@ for entry in $containers; do
     fi
 
     # Use docker inspect to get the labels for the container
-    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
+    local labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.enable":"true"'; then
         logThis "Enabling $name based on label." "DEBUG"
@@ -250,10 +248,11 @@ for entry in $containers; do
     done
 
     if [ $skip -eq 0 ]; then
+        new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
         # if echo "$labels" | grep -q '"nautical-backup.additional-folder.when":"before"'; then
         #     new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
         # fi
-        BackupContainer "$name"
+        BackupContainer "$name" "$labels"
         # if echo "$labels" | grep -q '"nautical-backup.additional-folder.when":"after"'; then
         #     new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
         # fi
