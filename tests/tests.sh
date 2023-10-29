@@ -1253,7 +1253,6 @@ test_additional_folders() {
     --disallow "$disallowed_rsync_output"
 
   cleanup_on_success
-
   clear_files
   export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
@@ -1275,33 +1274,6 @@ test_additional_folders() {
 
   test_rsync \
     --name "Test additional folders with custom args" \
-    --mock_ps "$mock_docker_ps_lines" \
-    --expect "$expected_rsync_output" \
-    --disallow "$disallowed_rsync_output"
-
-  cleanup_on_success
-
-  clear_files
-  export BACKUP_ON_START="true"
-  export ADDITIONAL_FOLDERS="add1"
-  export ADDITIONAL_FOLDERS_WHEN="both"
-
-  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
-  mkdir -p tests/dest
-
-  mock_docker_ps_lines=$()
-
-  disallowed_rsync_output=$(
-    echo "anthing_to_not_allow"
-  )
-
-  expected_rsync_output=$(
-    echo "-ahq tests/src/add1/ tests/dest/add1/" &&
-      echo "-ahq tests/src/add1/ tests/dest/add1/"
-  )
-
-  test_rsync \
-    --name "Test additional folders both" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output"
