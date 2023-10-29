@@ -78,7 +78,7 @@ BackupAdditionalFolders() {
     local new_default_rsync_args=$2
     local new_custom_args=$3
 
-    if [ -z "$new_additional_folders" ]; then
+    if [ -z "$new_additional_folders" ] || [ "$new_additional_folders" == "null" ]; then
         return
     fi
 
@@ -170,6 +170,13 @@ BackupContainer() {
         # Run rsync
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
 
+        new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
+
+        # If the label is not set it defaults to 'during'
+        if ! echo "$labels" | grep -q '"nautical-backup.additional-folders.when"' || echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"during"'; then
+            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+        fi
+
         if [ $? -ne 0 ]; then
             logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
         fi
@@ -253,6 +260,10 @@ for entry in $containers; do
         fi
 
         new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
+
+        if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"before"'; then
+            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+        fi
 
         BackupContainer "$name" "$labels" "$default_rsync_args" "$custom_args"
 

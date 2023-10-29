@@ -1317,14 +1317,86 @@ test_additional_folders_label() {
       echo "-ahq tests/src/add2/ tests/dest/add2/"
   )
 
-
   test_rsync \
-    --name "Testing additional folders (label)" \
+    --name "Testing additional folders - after (label)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --mock_labels "$mock_docker_label_lines"
 
   cleanup_on_success
+  clear_files
+  export BACKUP_ON_START="true"
+
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.additional-folders\":\"add1\"", "\"nautical-backup.additional-folders.when\":\"before\"}"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/add1/ tests/dest/add1/" &&
+      echo "-ahq tests/src/container1/ tests/dest/container1/"
+  )
+
+
+  test_rsync \
+    --name "Testing additional folders - before (label)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+  cleanup_on_success
+}
+
+test_additional_folders_label_during() {
+  clear_files
+  export BACKUP_ON_START="true"
+
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
+  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
+  mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1" &&
+      echo "def456:container2"
+  )
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.additional-folders\":\"add1,add2\"", "\"nautical-backup.additional-folders.when\":\"during\"}"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/add1/ tests/dest/add1/" &&
+      echo "-ahq tests/src/add2/ tests/dest/add2/" &&
+      echo "-ahq tests/src/container2/ tests/dest/container2/" &&
+      echo "-ahq tests/src/add1/ tests/dest/add1/" &&
+      echo "-ahq tests/src/add2/ tests/dest/add2/"
+  )
+
+  test_rsync \
+    --name "Testing additional folders - during (label)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+  clear_files
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.additional-folders\":\"add1,add2\"}"
+  )
+
+  test_rsync \
+  --name "Testing additional folders - default (label)" \
+  --mock_ps "$mock_docker_ps_lines" \
+  --expect "$expected_rsync_output" \
+  --mock_labels "$mock_docker_label_lines"
 }
 # ---- Call Tests ----
 reset_environment_variables
@@ -1352,6 +1424,7 @@ test_logThis
 test_logThis_report_file
 test_additional_folders_env
 test_additional_folders_label
+test_additional_folders_label_during
 
 # Cleanup
 teardown
