@@ -74,8 +74,8 @@ currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
 containers_completed=0
 
 BackupAdditionalFolders() {
-    local _default_rsync_args=$1
-    local _custom_args=$1
+    local new_default_rsync_args=$1
+    local new_custom_args=$2
 
     for additional_folder in "${ADDITIONAL_FOLDERS[@]}"; do
         local src_dir="$SOURCE_LOCATION/$additional_folder"
@@ -83,9 +83,9 @@ BackupAdditionalFolders() {
 
         logThis "Backing up $additional_folder as it's in the ADDITIONAL_FOLDERS list." "DEBUG"
 
-        logThis "RUNNING: 'rsync $_default_rsync_args $_custom_args $src_dir/ $dest_dir/'" "DEBUG"
+        logThis "RUNNING: 'rsync $new_default_rsync_args $new_custom_args $src_dir/ $dest_dir/'" "DEBUG"
 
-        eval rsync $_default_rsync_args $_custom_args $src_dir/ $dest_dir/
+        eval rsync $new_default_rsync_args $new_custom_args $src_dir/ $dest_dir/
 
         logThis "Backed up folder '$additional_folder'" "INFO"
 

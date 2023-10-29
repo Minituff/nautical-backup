@@ -1198,6 +1198,62 @@ test_logThis_report_file() {
   cleanup_on_success
 }
 
+test_additional_folders() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export ADDITIONAL_FOLDERS="add1,add2"
+
+  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
+  mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$()
+
+  disallowed_rsync_output=$(
+    echo "anthing_to_not_allow"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/add1/ tests/dest/add1/" &&
+      echo "-ahq tests/src/add2/ tests/dest/add2/"
+  )
+
+  test_rsync \
+    --name "Test additional folders" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+
+  clear_files
+  export BACKUP_ON_START="true"
+  export USE_DEFAULT_RSYNC_ARGS="false"
+  export RSYNC_CUSTOM_ARGS="-aq"
+  export ADDITIONAL_FOLDERS="add1"
+
+  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$()
+
+  disallowed_rsync_output=$(
+     echo "-ahq tests/src/add1/ tests/dest/add1/"
+  )
+
+  expected_rsync_output=$(
+    echo "-aq tests/src/add1/ tests/dest/add1/"
+  )
+
+  test_rsync \
+    --name "Test additional folders with custom args" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1222,6 +1278,7 @@ test_backup_on_start
 test_report_file_on_backup_only
 test_logThis
 test_logThis_report_file
+test_additional_folders
 
 # Cleanup
 teardown
