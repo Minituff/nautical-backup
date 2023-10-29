@@ -173,8 +173,8 @@ test_docker() {
   test_passed=true # Initialize a flag to indicate test status
 
   mapfile -t docker_actual_output <"$DOCKER_COMMANDS_FILE"
+  mapfile -t docker_actual_output_copy <"$DOCKER_COMMANDS_FILE"
 
-  # Check if each expected command is in the actual output
   for expected_docker in "${expected_docker_output_arr[@]}"; do # Use the _arr array here
     found=false
     for docker_actual in "${docker_actual_output[@]}"; do
@@ -189,7 +189,6 @@ test_docker() {
       test_passed=false
     fi
   done
-
   # Check if any disallowed command is in the actual output
   for disallowed_docker in "${disallowed_docker_output_arr[@]}"; do # Use the _arr array here
     for docker_actual in "${docker_actual_output[@]}"; do
@@ -204,11 +203,11 @@ test_docker() {
   if [ "$test_passed" = true ]; then
     pass "$test_name"
   else
-    fail "$test_name" "Commands do not match expected output."
-    echo "Expected:"
+    fail "$test_name"
+    cecho "YELLOW" "Expected:"
     printf "%s\n" "${expected_docker_output_arr[@]}"
-    echo "Actual:"
-    printf "%s\n" "${docker_actual_output[@]}"
+    cecho "YELLOW" "Actual:"
+    printf "%s\n" "${docker_actual_output_copy[@]}"
     cleanup_on_fail
   fi
 }
@@ -294,7 +293,6 @@ test_rsync() {
 
     # If the expected rsync command was not found in the actual output
     if [ "$found" = false ]; then
-      fail $test_name
       echo "RSYNC '$expected_rsync' not found in actual output."
       test_passed=false
     fi
@@ -322,9 +320,9 @@ test_rsync() {
     pass $test_name
   else
     fail "$test_name"
-    echo "Expected:"
+    cecho "YELLOW" "Expected:"
     printf "%s\n" "${expected_rsync_output_arr[@]}"
-    echo "Actual:"
+    cecho "YELLOW" "Actual:"
     printf "%s\n" "${rsync_actual_output_copy[@]}"
   fi
 }
