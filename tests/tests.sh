@@ -61,6 +61,7 @@ reset_environment_variables() {
   RSYNC_CUSTOM_ARGS=""
   OVERRIDE_SOURCE_DIR=""
   OVERRIDE_DEST_DIR=""
+  ADDITIONAL_FOLDERS=""
 }
 
 clear_files() {
@@ -1239,7 +1240,7 @@ test_logThis_report_file() {
   cleanup_on_success
 }
 
-test_additional_folders() {
+test_additional_folders_env() {
   clear_files
   export BACKUP_ON_START="true"
   export ADDITIONAL_FOLDERS="add1,add2"
@@ -1248,7 +1249,7 @@ test_additional_folders() {
   mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
   mkdir -p tests/dest
 
-  mock_docker_ps_lines=$()
+  mock_docker_ps_lines=$(echo "")
 
   disallowed_rsync_output=$(
     echo "anthing_to_not_allow"
@@ -1260,7 +1261,7 @@ test_additional_folders() {
   )
 
   test_rsync \
-    --name "Test additional folders" \
+    --name "Test additional folders (env)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output"
@@ -1275,7 +1276,7 @@ test_additional_folders() {
   mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
   mkdir -p tests/dest
 
-  mock_docker_ps_lines=$()
+  mock_docker_ps_lines=$(echo "")
 
   disallowed_rsync_output=$(
     echo "-ahq tests/src/add1/ tests/dest/add1/"
@@ -1286,7 +1287,7 @@ test_additional_folders() {
   )
 
   test_rsync \
-    --name "Test additional folders with custom args" \
+    --name "Test additional folders with custom args (env)" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output"
@@ -1294,6 +1295,37 @@ test_additional_folders() {
   cleanup_on_success
 }
 
+test_additional_folders_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
+  mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.additional-folders\":\"add1,add2\"", "\"nautical-backup.additional-folders.when\":\"after\"}"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
+      echo "-ahq tests/src/add1/ tests/dest/add1/" &&
+      echo "-ahq tests/src/add2/ tests/dest/add2/"
+  )
+
+
+  test_rsync \
+    --name "Testing additional folders (label)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
+
+  cleanup_on_success
+}
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1318,7 +1350,8 @@ test_backup_on_start
 test_report_file_on_backup_only
 test_logThis
 test_logThis_report_file
-test_additional_folders
+test_additional_folders_env
+test_additional_folders_label
 
 # Cleanup
 teardown

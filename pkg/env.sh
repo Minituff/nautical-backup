@@ -32,7 +32,7 @@ DEFAULT_REPORT_FILE="true"
 # Run the backup immediately on start
 DEFAULT_BACKUP_ON_START="false"
 
-# Use the default rsync args "-raq" (recursive, archive, quiet)
+# Use the default rsync args "-ahq" (archive, human-readable, quiet)
 DEFAULT_USE_DEFAULT_RSYNC_ARGS="true"
 
 # Require the Docker Label `nautical-backup.enable=true` to be present on each contianer or it will be skipped.
