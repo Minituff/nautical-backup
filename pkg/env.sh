@@ -84,6 +84,12 @@ DEFAULT_OVERRIDE_SOURCE_DIR=""
 # Assuming OVERRIDE_DEST_DIR is passed as an environment variable in the format "container1:dir1,container2:dir2,..."
 DEFAULT_OVERRIDE_DEST_DIR=""
 
+# Directores to be backed up that are not associated with a container
+DEFAULT_ADDITIONAL_FOLDERS=""
+
+# When do backup the additional folders? "before", "after", or "both" the container backups
+DEFAULT_ADDITIONAL_FOLDERS_WHEN="before"
+
 logThis "Perparing enviornment variables..." "DEBUG" "init"
 
 if [ -z "$TEST_MODE" ]; then
@@ -172,18 +178,31 @@ else
 fi
 export RUN_ONCE
 
+if [ -z "$ADDITIONAL_FOLDERS_WHEN" ]; then
+    ADDITIONAL_FOLDERS_WHEN=$DEFAULT_ADDITIONAL_FOLDERS_WHEN
+else
+    logThis "ADDITIONAL_FOLDERS_WHEN: $ADDITIONAL_FOLDERS_WHEN" "DEBUG" "init"
+fi
+export ADDITIONAL_FOLDERS_WHEN
+
 # ------ Default Empty Values ------ #
+
+if [ -z "$ADDITIONAL_FOLDERS" ]; then
+    ADDITIONAL_FOLDERS=$DEFAULT_ADDITIONAL_FOLDERS
+else
+    logThis "ADDITIONAL_FOLDERS: $ADDITIONAL_FOLDERS" "DEBUG" "init"
+fi
 
 if [ -z "$SKIP_CONTAINERS" ]; then
     SKIP_CONTAINERS=$DEFAULT_SKIP_CONTAINERS
 else
-    logThis "SKIP_CONTAINERS: ${CONTAINER_SKIP_LIST[@]}" "DEBUG" "init"
+    logThis "SKIP_CONTAINERS: ${SKIP_CONTAINERS}" "DEBUG" "init"
 fi
 
 if [ -z "$SKIP_STOPPING" ]; then
     SKIP_STOPPING=$DEFAULT_SKIP_STOPPING
 else
-    logThis "SKIP_STOPPING: ${SKIP_STOPPING_LIST[@]}" "DEBUG" "init"
+    logThis "SKIP_STOPPING: ${SKIP_STOPPING}" "DEBUG" "init"
 fi
 
 if [ -z "$RSYNC_CUSTOM_ARGS" ]; then
@@ -233,14 +252,25 @@ export SELF_CONTAINER_ID=$(cat /proc/self/cgroup | grep 'docker' | sed 's/^.*\//
 # Add the self container ID to the default skips
 CONTAINER_SKIP_LIST+=("$SELF_CONTAINER_ID")
 
+# Convert the array to a string
 CONTAINER_SKIP_LIST_STR=$(
     IFS=,
     echo "${CONTAINER_SKIP_LIST[*]}"
-)                              # Convert the array to a string
+)
 export CONTAINER_SKIP_LIST_STR # Export the string
 
+# Convert the array to a string
 SKIP_STOPPING_STR=$(
     IFS=,
     echo "${SKIP_STOPPING[*]}"
-)                        # Convert the array to a string
+)                        
 export SKIP_STOPPING_STR # Export the string
+
+ADDITIONAL_FOLDERS_LIST=()
+process_csv ADDITIONAL_FOLDERS_LIST "$ADDITIONAL_FOLDERS"
+# Convert the array to a string
+ADDITIONAL_FOLDERS_LIST_STR=$(
+    IFS=,
+    echo "${ADDITIONAL_FOLDERS_LIST[*]}"
+)
+export ADDITIONAL_FOLDERS_LIST_STR # Export the string

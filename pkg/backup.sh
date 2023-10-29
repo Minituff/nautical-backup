@@ -18,6 +18,11 @@ if [ ! -z "$SKIP_STOPPING_STR" ]; then
     IFS=',' read -ra SKIP_STOPPING <<<"$SKIP_STOPPING_STR"
 fi
 
+# Convert the string back to an array
+if [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
+    IFS=',' read -ra ADDITIONAL_FOLDERS <<<"$ADDITIONAL_FOLDERS_LIST_STR"
+fi
+
 # Function to populate override directories
 populate_override_dirs() {
     local -n override_dirs_ref=$1 # Use nameref to update the associative array passed as argument
@@ -68,6 +73,25 @@ fi
 currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
 containers_completed=0
 
+BackupAdditionalFolders() {
+    local _default_rsync_args=$1
+    local _custom_args=$1
+
+    for additional_folder in "${ADDITIONAL_FOLDERS[@]}"; do
+        local src_dir="$SOURCE_LOCATION/$additional_folder"
+        local dest_dir="$DEST_LOCATION/$additional_folder"
+
+        logThis "Backing up $additional_folder as it's in the ADDITIONAL_FOLDERS list." "DEBUG"
+
+        logThis "RUNNING: 'rsync $_default_rsync_args $_custom_args $src_dir/ $dest_dir/'" "DEBUG"
+
+        eval rsync $_default_rsync_args $_custom_args $src_dir/ $dest_dir/
+
+        logThis "Backed up folder '$additional_folder'" "INFO"
+
+    done
+}
+
 BackupContainer() {
     local container=$1
 
@@ -102,7 +126,7 @@ BackupContainer() {
         logThis "Overriding source directory for $container to $src_name from label" "DEBUG"
     fi
 
-    # Start with the source directory as as the destination directory (unless overridden or disabled) 
+    # Start with the source directory as as the destination directory (unless overridden or disabled)
     local dest_dir="$DEST_LOCATION/${src_name}"
 
     if [ "$KEEP_SRC_DIR_NAME" = "false" ] || echo "$labels" | grep -q '"nautical-backup.keep_src_dir_name":"false"'; then
@@ -174,6 +198,10 @@ BackupContainer() {
     fi
 }
 
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] || [ "$ADDITIONAL_FOLDERS_WHEN" = "both" ]; then
+    BackupAdditionalFolders $default_rsync_args $custom_args
+fi
+
 # Loop through all running containers
 IFS=$'\n'
 for entry in $containers; do
@@ -224,6 +252,10 @@ done
 containers_skipped=$((number_of_containers - containers_completed))
 
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
+
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "after" ] || [ "$ADDITIONAL_FOLDERS_WHEN" = "both" ]; then
+    BackupAdditionalFolders $default_rsync_args $custom_args
+fi
 
 if [ "$RUN_ONCE" = "true" ]; then
     logThis "Exiting since RUN_ONCE is true" "INFO" "init"
