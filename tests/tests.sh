@@ -269,23 +269,43 @@ test_rsync() {
 
   test_passed=true # Initialize a flag to indicate test status
 
-  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_RFILE"
+  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_RFILE" # Make a copy because we reduce this array
+  mapfile -t rsync_actual_output_copy <"$RSYNC_COMMANDS_RFILE"
 
   # Check if each expected command is in the actual output
   for expected_rsync in "${expected_rsync_output_arr[@]}"; do
     found=false
-    for actual_rsync in "${rsync_actual_output[@]}"; do
+
+    # Loop through each actual rsync command
+    for index in "${!rsync_actual_output[@]}"; do
+      actual_rsync=${rsync_actual_output[index]}
+
+      # If the expected rsync command is found in the actual output
       if [[ "$actual_rsync" == "$expected_rsync" ]]; then
         found=true
+
+        # Remove the found element from the actual output array
+        unset 'rsync_actual_output[index]'
+
+        # Since we found a match, no need to continue this inner loop
         break
       fi
     done
+
+    # If the expected rsync command was not found in the actual output
     if [ "$found" = false ]; then
       fail $test_name
       echo "RSYNC '$expected_rsync' not found in actual output."
       test_passed=false
     fi
   done
+
+  # Check if the actual output array is larger than the expected output array
+  if [[ ${#rsync_actual_output[@]} -gt 0 ]]; then
+    fail $test_name
+    echo "Actual output contains more lines than expected."
+    test_passed=false
+  fi
 
   # Check if any disallowed command is in the actual output
   for disallowed_rsync in "${disallowed_rsync_output_arr[@]}"; do
@@ -305,7 +325,7 @@ test_rsync() {
     echo "Expected:"
     printf "%s\n" "${expected_rsync_output_arr[@]}"
     echo "Actual:"
-    printf "%s\n" "${rsync_actual_output[@]}"
+    printf "%s\n" "${rsync_actual_output_copy[@]}"
   fi
 }
 
@@ -655,11 +675,12 @@ test_skip_stopping_env() {
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
 
+  clear_files
+
   test_rsync \
     --name "Test SKIP_STOPPING Rsync (env)" \
     --mock_ps "$mock_docker_ps_lines" \
-    --expect "$expected_rsync_output" \
-    --mock_labels "$mock_docker_label_lines"
+    --expect "$expected_rsync_output"
 
   cleanup_on_success
 }
@@ -698,6 +719,8 @@ test_skip_stopping_label_false() {
   expected_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
+
+  clear_files
 
   test_rsync \
     --name "Test SKIP_STOPPING Rsync (label=false)" \
@@ -738,6 +761,8 @@ test_skip_stopping_label_true() {
   expected_rsync_output=$(
     echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
+
+  clear_files
 
   test_rsync \
     --name "Test SKIP_STOPPING Rsync (label=true)" \
@@ -959,14 +984,13 @@ test_report_file_on_backup_only() {
     pass "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
   fi
 
-
   cleanup_on_success
 }
 
 test_keep_src_dir_name_env() {
   clear_files
   export BACKUP_ON_START="true"
-  export KEEP_SRC_DIR_NAME=true
+  export KEEP_SRC_DIR_NAME="true"
   test_override_dest
   cleanup_on_success
 
@@ -1027,24 +1051,30 @@ test_keep_src_dir_name_label() {
   )
 
   test_rsync \
-    --name "Test Source override with KEEP_SRC_DIR_NAME (env)" \
+    --name "Test Source override with KEEP_SRC_DIR_NAME=false (env)" \
     --mock_ps "$mock_docker_ps_lines" \
     --mock_labels "$mock_docker_label_lines" \
     --disallow "$disallowed_rsync_output" \
     --expect "$expected_rsync_output"
 
-    mock_docker_label_lines=$(
+  mock_docker_label_lines=$(
     echo "{\"nautical-backup.keep_src_dir_name\":\"true\"," &&
       echo "\"nautical-backup.override-source-dir\":\"container1-new\"}"
   )
 
+  clear_files
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/container1-new/ tests/dest/container1-new/"
+  )
+
   test_rsync \
-    --name "Test Source override with KEEP_SRC_DIR_NAME (env)" \
+    --name "Test Source override with KEEP_SRC_DIR_NAME=true (label)" \
     --mock_ps "$mock_docker_ps_lines" \
     --mock_labels "$mock_docker_label_lines" \
     --disallow "$disallowed_rsync_output" \
     --expect "$expected_rsync_output"
-  
+
   cleanup_on_success
 }
 
@@ -1114,12 +1144,12 @@ test_logThis() {
   actual=$(cat test_output.log | tr -d '\n' | tr -d '\000') # Remove new line and null bytes
   if [[ "$actual" != "$expected" ]]; then
     exec 1>&3 2>&4
-    fail "Test Logger" 
+    fail "Test Logger"
     echo "Test Case 1 failed: Expected '$expected', got '$actual'"
     exit 1
   fi
 
-  > test_output.log  # Clear log file
+  >test_output.log # Clear log file
 
   # Test Case 2: Test with DEBUG level and script_logging_level set to INFO
   script_logging_level="INFO"
@@ -1133,7 +1163,7 @@ test_logThis() {
     exit 1
   fi
 
-  > test_output.log  # Clear log file
+  >test_output.log # Clear log file
 
   # Test Case 3: Test with DEBUG level and script_logging_level set to DEBUG
   script_logging_level="DEBUG"
@@ -1147,7 +1177,7 @@ test_logThis() {
     exit 1
   fi
 
-  > test_output.log  # Clear log file
+  >test_output.log # Clear log file
 
   # Add more test cases as needed
 
@@ -1178,7 +1208,7 @@ test_logThis_report_file() {
   # Test Case: INFO level message
   logThis "Test INFO message" "INFO"
   expected="INFO: Test INFO message"
-  
+
   # Check report file
   actual=$(tail -n 1 "$DEST_LOCATION/$report_file")
   if [[ ! "$actual" =~ "$expected" ]]; then
@@ -1186,7 +1216,7 @@ test_logThis_report_file() {
     echo "Test Case Report File failed: Expected message not found in report file."
     echo "Actual:"
     echo "$actual"
-    echo "Expected:" 
+    echo "Expected:"
     echo "$expected"
     exit 1
   fi
@@ -1238,7 +1268,7 @@ test_additional_folders() {
   mock_docker_ps_lines=$()
 
   disallowed_rsync_output=$(
-     echo "-ahq tests/src/add1/ tests/dest/add1/"
+    echo "-ahq tests/src/add1/ tests/dest/add1/"
   )
 
   expected_rsync_output=$(
@@ -1247,6 +1277,33 @@ test_additional_folders() {
 
   test_rsync \
     --name "Test additional folders with custom args" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+
+  clear_files
+  export BACKUP_ON_START="true"
+  export ADDITIONAL_FOLDERS="add1"
+  export ADDITIONAL_FOLDERS_WHEN="both"
+
+  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$()
+
+  disallowed_rsync_output=$(
+    echo "anthing_to_not_allow"
+  )
+
+  expected_rsync_output=$(
+    echo "-ahq tests/src/add1/ tests/dest/add1/" &&
+      echo "-ahq tests/src/add1/ tests/dest/add1/"
+  )
+
+  test_rsync \
+    --name "Test additional folders both" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_rsync_output" \
     --disallow "$disallowed_rsync_output"

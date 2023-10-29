@@ -77,6 +77,10 @@ BackupAdditionalFolders() {
     local new_default_rsync_args=$1
     local new_custom_args=$2
 
+    if [ -z "$ADDITIONAL_FOLDERS" ]; then
+        return
+    fi
+
     for additional_folder in "${ADDITIONAL_FOLDERS[@]}"; do
         local src_dir="$SOURCE_LOCATION/$additional_folder"
         local dest_dir="$DEST_LOCATION/$additional_folder"
