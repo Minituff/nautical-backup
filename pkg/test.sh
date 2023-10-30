@@ -182,6 +182,8 @@ declare -A expected_env_vars=(
     ["RSYNC_CUSTOM_ARGS"]=""
     ["OVERRIDE_SOURCE_DIR"]=""
     ["DEFAULT_OVERRIDE_DEST_DIR"]=""
+    ["ADDITIONAL_FOLDERS"]=""
+    ["ADDITIONAL_FOLDERS_WHEN"]="before"
 )
 
 if [ "$1" == "test1" ]; then

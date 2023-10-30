@@ -18,6 +18,11 @@ if [ ! -z "$SKIP_STOPPING_STR" ]; then
     IFS=',' read -ra SKIP_STOPPING <<<"$SKIP_STOPPING_STR"
 fi
 
+# Convert the string back to an array
+# if [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
+#     IFS=',' read -ra ADDITIONAL_FOLDERS <<<"$ADDITIONAL_FOLDERS_LIST_STR"
+# fi
+
 # Function to populate override directories
 populate_override_dirs() {
     local -n override_dirs_ref=$1 # Use nameref to update the associative array passed as argument
@@ -68,8 +73,35 @@ fi
 currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
 containers_completed=0
 
+BackupAdditionalFolders() {
+    IFS=',' read -ra new_additional_folders <<<"$1"
+    local new_default_rsync_args=$2
+    local new_custom_args=$3
+
+    if [ -z "$new_additional_folders" ] || [ "$new_additional_folders" == "null" ]; then
+        return
+    fi
+
+    for additional_folder in "${new_additional_folders[@]}"; do
+        local src_dir="$SOURCE_LOCATION/$additional_folder"
+        local dest_dir="$DEST_LOCATION/$additional_folder"
+
+        logThis "Backing up additional folder $additional_folder as it's in the ADDITIONAL_FOLDERS list." "DEBUG"
+
+        logThis "RUNNING: 'rsync $new_default_rsync_args $new_custom_args $src_dir/ $dest_dir/'" "DEBUG"
+
+        eval rsync $new_default_rsync_args $new_custom_args $src_dir/ $dest_dir/
+
+        logThis "Backed up additional folder '$additional_folder'" "INFO"
+
+    done
+}
+
 BackupContainer() {
     local container=$1
+    local labels=$2
+    local default_rsync_args=$3
+    local custom_args=$4
 
     local skip_stopping=0
     for skip in "${SKIP_STOPPING[@]}"; do
@@ -79,9 +111,6 @@ BackupContainer() {
             break
         fi
     done
-
-    # Use docker inspect to get the labels for the container
-    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.stop-before-backup":"false"'; then
         logThis "Skipping stopping of $container because of label." "DEBUG"
@@ -102,7 +131,7 @@ BackupContainer() {
         logThis "Overriding source directory for $container to $src_name from label" "DEBUG"
     fi
 
-    # Start with the source directory as as the destination directory (unless overridden or disabled) 
+    # Start with the source directory as as the destination directory (unless overridden or disabled)
     local dest_dir="$DEST_LOCATION/${src_name}"
 
     if [ "$KEEP_SRC_DIR_NAME" = "false" ] || echo "$labels" | grep -q '"nautical-backup.keep_src_dir_name":"false"'; then
@@ -134,25 +163,19 @@ BackupContainer() {
             fi
         fi
 
-        if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"true"'; then
-            logThis "Using default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
-            default_rsync_args=$DEFAULT_RSYNC_ARGS
-        elif echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
-            logThis "Not using default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
-            default_rsync_args=""
-        fi
+        logThis "Backing up $container data..." "INFO"
 
-        if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
-            new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
-            custom_args=$new_custom_rsync_args
-            logThis "Using custom rsync args for $container" "DEBUG"
-        fi
-
-        logThis "Backing up $container data..."
         logThis "RUNNING: 'rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/'" "DEBUG"
 
         # Run rsync
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
+
+        new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
+
+        # If the label is not set it defaults to 'during'
+        if ! echo "$labels" | grep -q '"nautical-backup.additional-folders.when"' || echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"during"'; then
+            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+        fi
 
         if [ $? -ne 0 ]; then
             logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
@@ -173,6 +196,10 @@ BackupContainer() {
         logThis "Directory $src_dir does not exist. Skipping" "WARN"
     fi
 }
+
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
+    BackupAdditionalFolders "$ADDITIONAL_FOLDERS_LIST_STR" "$default_rsync_args" "$custom_args"
+fi
 
 # Loop through all running containers
 IFS=$'\n'
@@ -217,13 +244,39 @@ for entry in $containers; do
     done
 
     if [ $skip -eq 0 ]; then
-        BackupContainer "$name"
+
+        if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
+            logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
+            default_rsync_args=""
+        fi
+
+        if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
+            new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
+            custom_args=$new_custom_rsync_args
+            logThis "Using custom rsync args for $container" "DEBUG"
+        fi
+
+        new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
+
+        if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"before"'; then
+            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+        fi
+
+        BackupContainer "$name" "$labels" "$default_rsync_args" "$custom_args"
+
+        if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"after"'; then
+            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+        fi
     fi
 done
 
 containers_skipped=$((number_of_containers - containers_completed))
 
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
+
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "after" ]; then
+    BackupAdditionalFolders $ADDITIONAL_FOLDERS_LIST_STR $default_rsync_args $custom_args
+fi
 
 if [ "$RUN_ONCE" = "true" ]; then
     logThis "Exiting since RUN_ONCE is true" "INFO" "init"
