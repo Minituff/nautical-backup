@@ -187,7 +187,7 @@ nautical-backup.additional-folders.when=after
           labels:
             - "nautical-backup.additional-folders=service-additional"
         
-        ------8<------ "docker-compose-example-no-tooltips.yml:3:10"
+        ------8<------ "docker-compose-example-no-tooltips.yml:4:10"
         ```
         
 === "Example 2"
@@ -205,7 +205,7 @@ nautical-backup.additional-folders.when=after
             - "nautical-backup.additional-folders=service-additional"
             - "nautical-backup.additional-folders.when=after"
         
-        ------8<------ "docker-compose-example-no-tooltips.yml:3:10"
+        ------8<------ "docker-compose-example-no-tooltips.yml:4:10"
               - /mnt/service-additional:/app/source/service-additional #(1)!
         ```
 

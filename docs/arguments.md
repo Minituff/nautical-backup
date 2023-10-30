@@ -44,7 +44,7 @@ ADDITIONAL_FOLDERS=folder1,folder_name2
 
 ⌛ **When to backup additional folders?**
 
-Use this setting to decide if the additional folders are backed up *before* or *after* the other containers are.
+Use this setting to decide if the additional folders are backed up *before* or *after* the containers.
 
 > **Default**: before
 
