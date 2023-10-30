@@ -28,6 +28,51 @@ Allow changing the schedule for when the backup is started.
 CRON_SCHEDULE=0 4 * * *
 ```
 
+## Additional Folders
+Allows Nautical to backup folders that are not associated with containers.
+
+> **Default**: *empty* <small>(no additional folders)</small>
+
+> **Format**: `<folder_name>`  <small>(comma separated for multiple items)</small>
+
+
+```properties
+ADDITIONAL_FOLDERS=folder1,folder_name2
+```
+
+⌛ **When to backup additional folders?**
+
+Use this setting to decide if the additional folders are backed up *before* or *after* the other containers are.
+
+> **Default**: before
+
+> **Options**: before, after
+
+```properties
+ADDITIONAL_FOLDERS_WHEN=after
+```
+
+???+ example "Additional Folders Example"
+    This example shows us how to add two additional folders to our backup that are not associated with a container.
+    Here, the *additional* folders will be backed up first, followed by any containers Nautical finds.
+
+    The `additional2` folder already exists within the `/opt/volume-data` so it does not need a mount point.
+
+    ```yaml
+    ------8<------ "docker-compose-example-no-tooltips.yml:3:8"
+          - /opt/volume-data:/app/source
+          - /mnt/nfs-share/backups:/app/destination
+          - /mnt/additional:/app/source/additional #(1)!
+        environment:
+          - ADDITIONAL_FOLDERS=additional,additional2 #(2)!
+          - ADDITIONAL_FOLDERS_WHEN=before #(3)!
+    ```
+    
+    1. Mount `additional` inside the `/app/source` directory in the container
+    2. Tell Nautical to process both the `additional` and `additional2` folders
+    3. Tell Nautical *when* to backup the additional folders.
+            * `before` is the default 
+
 ## Skip Containers
 Tell Nautical to skip backup of containers in this list.
 
@@ -91,7 +136,7 @@ Normally a container is backed up *only* when the `container-name` is the exact 
         <small> The example above would yield the following results:</small>
 
         | Container Name | Old Source Directory | New Source Directory           |
-        |----------------|----------------------|--------------------------------|
+        | -------------- | -------------------- | ------------------------------ |
         | example1       | `src/example1`       | `src/example1-new-source-data` |
         | ctr2           | `src/ctr2`           | `src/ctr2-new-source`          |
 
@@ -125,7 +170,7 @@ Normally, a container is backed to a folder with the ^^same name^^ as the `conta
         <small> The example above would yield the following results:</small>
 
         | Container Name | Old Destination Directory | New Destination Directory     |
-        |----------------|---------------------------|-------------------------------|
+        | -------------- | ------------------------- | ----------------------------- |
         | example1       | `dest/example1`           | `dest/example1-new-dest-data` |
         | ctr2           | `dest/ctr2`               | `dest/newdest`                |
 
@@ -199,7 +244,7 @@ KEEP_SRC_DIR_NAME=false
         Here we override the `source` folder to `Pi.Alert` to `pialert`, and since `KEEP_SRC_DIR_NAME=true` <small> (which is the default) </small> the `destination` folder will also be named `pialert`.
 
         | Container Name | Source Directory | Destination Directory |
-        |----------------|------------------|-----------------------|
+        | -------------- | ---------------- | --------------------- |
         | Pi.Alert       | `src/pialert`    | `destination/pialert` |
 
 === "Example 2"
@@ -212,7 +257,7 @@ KEEP_SRC_DIR_NAME=false
         Here we override the `source` folder to `Pi.Alert` to `pialert`, and since `KEEP_SRC_DIR_NAME=false` the `destination` folder will not be mirrored, so the *container-name* `Pi.Alert` will be used.
 
         | Container Name | Source Directory | Destination Directory  |
-        |----------------|------------------|------------------------|
+        | -------------- | ---------------- | ---------------------- |
         | Pi.Alert       | `src/pialert`    | `destination/Pi.Alert` |
 
 === "Example 3"
@@ -229,7 +274,7 @@ KEEP_SRC_DIR_NAME=false
         Since a *destination override* is used, the `KEEP_SRC_DIR_NAME` setting is *not* used for this container.
 
         | Container Name | Source Directory | Destination Directory        |
-        |----------------|------------------|------------------------------|
+        | -------------- | ---------------- | ---------------------------- |
         | Pi.Alert       | `src/Pi.Alert`   | `destination/pialert-backup` |
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./labels.md#mirror-source-directory-name-to-destination) label, but applied globally.</small>
 
@@ -286,9 +331,9 @@ Apply custom `rsync` args <small>(in addition to the [default](#use-default-rsyn
 
 > **Default**: *empty* <small>(no custom rsync args will be applied)</small>
 
-There are many `rsync` arguments and customizations that be be used here.
+There are many `rsync` [arguments](https://linux.die.net/man/1/rsync) that be be used here.
 
-=== "Example 1"
+???+ example "Custom rsync Arguments Example"
     ```properties
     # Don't backup any .log or any .txt files
     RSYNC_CUSTOM_ARGS=--exclude='*.log' --exclude='*.txt'

@@ -1398,6 +1398,7 @@ test_additional_folders_label_during() {
   --expect "$expected_rsync_output" \
   --mock_labels "$mock_docker_label_lines"
 }
+
 # ---- Call Tests ----
 reset_environment_variables
 

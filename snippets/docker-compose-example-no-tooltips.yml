@@ -1,0 +1,14 @@
+---
+version: '3'
+services:
+  nautical-backup:
+    image: minituff/nautical-backup:1.0
+    container_name: nautical-backup
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /source:/app/source
+      - /destination:/app/destination
+    environment:
+      - TZ=America/Los_Angeles
+      - CRON_SCHEDULE=0 4 * * *
+      - SKIP_CONTAINERS=example1,example2,example3

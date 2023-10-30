@@ -86,13 +86,13 @@ BackupAdditionalFolders() {
         local src_dir="$SOURCE_LOCATION/$additional_folder"
         local dest_dir="$DEST_LOCATION/$additional_folder"
 
-        logThis "Backing up $additional_folder as it's in the ADDITIONAL_FOLDERS list." "DEBUG"
+        logThis "Backing up additional folder $additional_folder as it's in the ADDITIONAL_FOLDERS list." "DEBUG"
 
         logThis "RUNNING: 'rsync $new_default_rsync_args $new_custom_args $src_dir/ $dest_dir/'" "DEBUG"
 
         eval rsync $new_default_rsync_args $new_custom_args $src_dir/ $dest_dir/
 
-        logThis "Backed up folder '$additional_folder'" "INFO"
+        logThis "Backed up additional folder '$additional_folder'" "INFO"
 
     done
 }
@@ -213,7 +213,7 @@ for entry in $containers; do
     fi
 
     # Use docker inspect to get the labels for the container
-    local labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
+    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.enable":"true"'; then
         logThis "Enabling $name based on label." "DEBUG"

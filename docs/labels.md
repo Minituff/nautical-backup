@@ -144,6 +144,41 @@ nautical-backup.stop-before-backup=false
 
 <small>🔄 This is a similar action to the [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable, but applied only to this container.</small>
 
+## Additional Folders
+Use this label to backup more folders associated with the container.
+
+The additional folders must either exist or be mounted into the `app/source` folder within Nautical.
+
+> **Default If Missing**: *none* <small> (no additional folders)</small>
+
+> **Format**: `<folder_name>`  <small>(comma separated for multiple items)</small>
+
+
+```properties
+nautical-backup.additional-folders=folder1,folder_name2
+```
+
+⌛ **When to backup additional folders?**
+
+Use this setting to decide if when the additional folders are backed up.
+
+> **Default**: during
+
+> **Options**: during, before, after
+
+```properties
+nautical-backup.additional-folders.when=after
+```
+
+- [x] **During** <small>(Default)</small> - Backup the additional folders while the container parent is stopped. This is the safest option.
+- [ ] **Before** -  Backup the additional folders *before* the parent container is stopped.
+- [ ] **After** -  Backup the additional folders *after* the parent container is restarted.
+
+
+???+ example "Additional Folders Example"
+    INSERT HERE
+
+
 ## Override Source Directory Name
 
 Changes the source directory name that Nautical will look for.
