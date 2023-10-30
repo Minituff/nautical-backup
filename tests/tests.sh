@@ -115,6 +115,7 @@ fail() {
   local func_name=$1
   local test_num=$2
   cecho "RED" "X FAIL - $func_name $test_num"
+  exit 1
 }
 
 test_docker() {
@@ -541,7 +542,7 @@ test_require_label() {
     --disallow "$disallowed_docker_output"
 
   clear_files
-  
+
   test_docker \
     --name "Test REQUIRE_LABEL no label" \
     --mock_ps "$mock_docker_ps_lines" \

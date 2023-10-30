@@ -245,11 +245,8 @@ for entry in $containers; do
 
     if [ $skip -eq 0 ]; then
 
-        if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"true"'; then
-            logThis "Using default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
-            default_rsync_args=$DEFAULT_RSYNC_ARGS
-        elif echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
-            logThis "Not using default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
+        if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
+            logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
             default_rsync_args=""
         fi
 
