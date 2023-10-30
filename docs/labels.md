@@ -170,14 +170,51 @@ Use this setting to decide if when the additional folders are backed up.
 nautical-backup.additional-folders.when=after
 ```
 
-- [x] **During** <small>(Default)</small> - Backup the additional folders while the container parent is stopped. This is the safest option.
+- [x] **During** <small>(Default)</small> - Backup the additional folders while the parent container  is stopped. <small>(This is the safest option)</small>.
 - [ ] **Before** -  Backup the additional folders *before* the parent container is stopped.
 - [ ] **After** -  Backup the additional folders *after* the parent container is restarted.
 
 
-???+ example "Additional Folders Example"
-    INSERT HERE
+=== "Example 1"
+    !!! example ""
+        
+        In this example, the `service-additional` folder already exists withing the `source` directory, so no additional mount point is needed.
+        
+        ```yaml
+        version: '3'
+        services:
+          # Service config ...
+          labels:
+            - "nautical-backup.additional-folders=service-additional"
+        
+        ------8<------ "docker-compose-example-no-tooltips.yml:3:10"
+        ```
+        
+=== "Example 2"
+    !!! example ""
 
+        In this example, the `service-additional` folder is mounted from a different directory on the host machine.
+
+        Also, the additional folders are backed up *after* the service is restarted.
+
+        ```yaml
+        version: '3'
+        services:
+          # Service config ...
+          labels:
+            - "nautical-backup.additional-folders=service-additional"
+            - "nautical-backup.additional-folders.when=after"
+        
+        ------8<------ "docker-compose-example-no-tooltips.yml:3:10"
+              - /mnt/service-additional:/app/source/service-additional #(1)!
+        ```
+
+        1. Mount `service-additional` inside the `/app/source` directory in the container
+
+
+!!! abstract "If the same folder is called out by the [Additional Folders](./arguments.md#additional-folders) variable and a service label--it will be backed up twice."
+
+<small>🔄 This is the same action as the [Additional Folders](./arguments.md#additional-folders) variable, but applied only to this container.</small>
 
 ## Override Source Directory Name
 

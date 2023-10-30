@@ -31,6 +31,8 @@ CRON_SCHEDULE=0 4 * * *
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 
+The additional folders must either exist or be mounted into the `app/source` folder within Nautical.
+
 > **Default**: *empty* <small>(no additional folders)</small>
 
 > **Format**: `<folder_name>`  <small>(comma separated for multiple items)</small>
@@ -72,6 +74,10 @@ ADDITIONAL_FOLDERS_WHEN=after
     2. Tell Nautical to process both the `additional` and `additional2` folders
     3. Tell Nautical *when* to backup the additional folders.
             * `before` is the default 
+
+!!! abstract "If the same folder is named in the [Additional Folders](./labels.md#additional-folders) label and a service env variable--it will be backed up twice."
+
+<small>🔄 This is the same action as the [Additional Folders](./labels.md#additional-folders) label, but applied globally.</small>
 
 ## Skip Containers
 Tell Nautical to skip backup of containers in this list.
