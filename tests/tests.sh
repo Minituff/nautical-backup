@@ -123,6 +123,7 @@ test_docker() {
   local disallowed_docker_output
   local expected_docker_output
   local test_name
+  local expect_strict=false
 
   # Parse named parameters
   while [[ "$#" -gt 0 ]]; do
@@ -146,6 +147,9 @@ test_docker() {
     --expect)
       expected_docker_output="$2"
       shift
+      ;;
+    --expect_strict)
+      expect_strict=true  # Set expect_strict to true if flag is passed
       ;;
     *)
       echo "Unknown parameter passed: $1"
@@ -203,6 +207,15 @@ test_docker() {
       test_passed=false
     fi
   done
+
+  if [ "$expect_strict" = true ]; then
+    # Check if the actual output array is larger than the expected output array
+    if [[ ${#docker_actual_output[@]} -gt 0 ]]; then
+      echo "Actual output contains more lines than expected."
+      test_passed=false
+    fi
+  fi
+
   # Check if any disallowed command is in the actual output
   for disallowed_docker in "${disallowed_docker_output_arr[@]}"; do # Use the _arr array here
     for docker_actual in "${docker_actual_output[@]}"; do
@@ -366,13 +379,16 @@ test_docker_commands() {
     echo "ps --no-trunc --format={{.ID}}:{{.Names}}" &&
       echo "inspect --format {{json .Config.Labels}} abc123" &&
       echo "stop container1" &&
-      echo "start container1"
+      echo "start container1" && 
+      echo "inspect --format {{json .Config.Labels}} def456" &&
+      echo "inspect --format {{json .Config.Labels}} ghi789"
   )
 
   test_docker \
     --name "Test Docker commands on default settings" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_docker_output" \
+    --expect_strict \
     --disallow "$disallowed_docker_output"
 
   cleanup_on_success
@@ -1343,7 +1359,6 @@ test_additional_folders_label() {
       echo "-ahq tests/src/container1/ tests/dest/container1/"
   )
 
-
   test_rsync \
     --name "Testing additional folders - before (label)" \
     --mock_ps "$mock_docker_ps_lines" \
@@ -1393,10 +1408,10 @@ test_additional_folders_label_during() {
   )
 
   test_rsync \
-  --name "Testing additional folders - default (label)" \
-  --mock_ps "$mock_docker_ps_lines" \
-  --expect "$expected_rsync_output" \
-  --mock_labels "$mock_docker_label_lines"
+    --name "Testing additional folders - default (label)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --mock_labels "$mock_docker_label_lines"
 }
 
 # ---- Call Tests ----
