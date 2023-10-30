@@ -149,7 +149,7 @@ test_docker() {
       shift
       ;;
     --expect_strict)
-      expect_strict=true  # Set expect_strict to true if flag is passed
+      expect_strict=true # Set expect_strict to true if flag is passed
       ;;
     *)
       echo "Unknown parameter passed: $1"
@@ -245,6 +245,7 @@ test_rsync() {
   local mock_docker_labels
   local expected_rsync_output
   local disallowed_rsync_output
+  local disable_expect_strict=false
 
   # Parse named parameters
   while [[ "$#" -gt 0 ]]; do
@@ -268,6 +269,9 @@ test_rsync() {
     --disallow)
       disallowed_rsync_output="$2"
       shift
+      ;;
+    --disable_expect_strict)
+      disable_expect_strict=true # Set disable_strict to true if flag is passed
       ;;
     *)
       echo "Unknown parameter passed: $1"
@@ -325,11 +329,13 @@ test_rsync() {
     fi
   done
 
-  # Check if the actual output array is larger than the expected output array
-  if [[ ${#rsync_actual_output[@]} -gt 0 ]]; then
-    fail $test_name
-    echo "Actual output contains more lines than expected."
-    test_passed=false
+  if [ "$disable_expect_strict" = false ]; then
+    # Check if the actual output array is larger than the expected output array
+    if [[ ${#rsync_actual_output[@]} -gt 0 ]]; then
+      fail $test_name
+      echo "Actual output contains more lines than expected."
+      test_passed=false
+    fi
   fi
 
   # Check if any disallowed command is in the actual output
@@ -379,7 +385,7 @@ test_docker_commands() {
     echo "ps --no-trunc --format={{.ID}}:{{.Names}}" &&
       echo "inspect --format {{json .Config.Labels}} abc123" &&
       echo "stop container1" &&
-      echo "start container1" && 
+      echo "start container1" &&
       echo "inspect --format {{json .Config.Labels}} def456" &&
       echo "inspect --format {{json .Config.Labels}} ghi789"
   )
@@ -527,13 +533,17 @@ test_require_label() {
 
   expected_docker_output=$()
 
-  test_docker --name "Test REQUIRE_LABEL + nautical-backup.enable=false" \
+  test_docker \
+    --name "Test REQUIRE_LABEL + nautical-backup.enable=false" \
     --mock_ps "$mock_docker_ps_lines" \
     --mock_labels "$mock_docker_label_lines" \
     --expect "$expected_docker_output" \
     --disallow "$disallowed_docker_output"
 
-  test_docker --name "Test REQUIRE_LABEL no label" \
+  clear_files
+  
+  test_docker \
+    --name "Test REQUIRE_LABEL no label" \
     --mock_ps "$mock_docker_ps_lines" \
     --expect "$expected_docker_output" \
     --disallow "$disallowed_docker_output"
