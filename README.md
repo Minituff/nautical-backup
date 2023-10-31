@@ -26,7 +26,7 @@ Docker Compose
 version: '3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:1.0
+    image: minituff/nautical-backup:1.1
     container_name: nautical-backup
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -47,5 +47,5 @@ docker run -d \
   -e TZ="America/Los_Angeles" \
   -e CRON_SCHEDULE="0 4 * * *" \
   -e SKIP_CONTAINERS="example1,example2,example3" \
-  minituff/nautical-backup:1.0
+  minituff/nautical-backup:1.1
 ```
