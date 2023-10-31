@@ -265,6 +265,38 @@ nautical-backup.keep_src_dir_name=false
 
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-destination) variable, but applied only to this container.</small>
 
+
+## Curl Requests
+Send a `CURL` request *before* or *after* backing up the container. This can be used to alert the service before shutdown and/or ensure the service came online correctly.
+
+> **Default**: *empty* <small>(nothing will be done)</small>
+
+> **FORMAT**: The entirety of a `curl` request
+
+
+```properties
+nautical-backup.curl.before=curl -X GET 'google.com'
+nautical-backup.curl.after=curl -X POST 'http://192.168.1.21.com/do-something'
+nautical-backup.curl.during=curl -X PATCH 'bing.com'
+```
+
+There are 3 moments when you can run a `curl` request <small>(You can use more than 1)</small>:
+
+- [ ] **Before** - Run the `curl` command *before* the parent container is stopped.
+- [ ] **After** -  Run the `curl` command *after* the parent container is restarted.
+- [ ] **During** - Run the `curl` command while the parent container is stopped <small>(Before it is restarted)</small>.
+
+!!! example "Test your `curl` request"
+    Before setting the environment variable, it is a good idea to ensure it works first. Here is an example.
+
+    Ensure Nautical is running first, then run:
+    ```bash
+    docker exec -it nautical-backup \
+      curl -X GET 'google.com'
+    ```
+
+<small>🔄 This is the same action as the [Curl Requests](./arguments.md#curl-requests) variable, but applied only to this container.</small>
+
 ## Use Default rsync Arguments
 Use the default `rsync` arguments `-raq` <small>(recursive, archive, quiet)</small>
 

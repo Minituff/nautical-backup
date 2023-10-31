@@ -2,7 +2,7 @@
 Essentially, this is an automated and configurable backup tool built around [rsync](https://en.wikipedia.org/wiki/Rsync). 
 
 ## The Basics
-Essentially, Nautical runs `Bash` commands on a `CRON` schedule to:
+Nautical runs `Bash` commands on a `CRON` schedule to:
 
 1. Stop the container <small>(if configured)</small>
 2. Run the backup via `rsync`
