@@ -69,6 +69,10 @@ DEFAULT_TEST_DEST_LOCATION="tests/dest"
 
 DEFAULT_TEST_MODE="false"
 
+# Run a curl request before the backup starts
+DEFAULT_PRE_BACKUP_CURL=""
+DEFAULT_POST_BACKUP_CURL=""
+
 # ------ Default Empty Values------ #
 
 DEFAULT_SKIP_CONTAINERS=""
@@ -184,6 +188,20 @@ else
     logThis "ADDITIONAL_FOLDERS_WHEN: $ADDITIONAL_FOLDERS_WHEN" "DEBUG" "init"
 fi
 export ADDITIONAL_FOLDERS_WHEN
+
+if [ -z "$PRE_BACKUP_CURL" ]; then
+    PRE_BACKUP_CURL=$DEFAULT_PRE_BACKUP_CURL
+else
+    logThis "PRE_BACKUP_CURL: $PRE_BACKUP_CURL" "DEBUG" "init"
+fi
+export PRE_BACKUP_CURL
+
+if [ -z "$POST_BACKUP_CURL" ]; then
+    POST_BACKUP_CURL=$DEFAULT_POST_BACKUP_CURL
+else
+    logThis "POST_BACKUP_CURL: $POST_BACKUP_CURL" "DEBUG" "init"
+fi
+export POST_BACKUP_CURL
 
 # ------ Default Empty Values ------ #
 

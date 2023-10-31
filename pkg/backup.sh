@@ -197,6 +197,23 @@ BackupContainer() {
     fi
 }
 
+CurlCommand() {
+    local curl_command=$1
+    logThis "$curl_command" "DEBUG"
+    
+    if eval "$curl_command"; then
+        logThis "Curl command was successful" "DEBUG"
+    else
+        logThis "Curl command was successful" "ERROR"
+    fi
+
+}
+
+if [ ! -z "$PRE_BACKUP_CURL" ]; then
+    logThis "Running pre-backup curl command..." "INFO"
+    CurlCommand "$PRE_BACKUP_CURL"
+fi
+
 if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
     BackupAdditionalFolders "$ADDITIONAL_FOLDERS_LIST_STR" "$default_rsync_args" "$custom_args"
 fi
