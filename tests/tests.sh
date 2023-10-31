@@ -2,10 +2,12 @@
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
-RSYNC_COMMANDS_RFILE=$(mktemp /tmp/rsync_commands.XXXXXX)
+RSYNC_COMMANDS_FILE=$(mktemp /tmp/rsync_commands.XXXXXX)
+CURL_COMMANDS_FILE=$(mktemp /tmp/curl_commands.XXXXXX)
 export MOCK_DOCKER_INSPECT_OUTPUT=""
 export DOCKER_COMMANDS_FILE
-export RSYNC_COMMANDS_RFILE
+export RSYNC_COMMANDS_FILE
+export CURL_COMMANDS_FILE
 
 # Mock function for docker
 docker() {
@@ -24,10 +26,18 @@ export -f docker
 # Mock function for rsync
 rsync() {
   RSYNC_COMMANDS_RUN+=("$@") # Capture the command for later verification
-  echo "$@" >>"$RSYNC_COMMANDS_RFILE"
+  echo "$@" >>"$RSYNC_COMMANDS_FILE"
   /usr/bin/rsync "$@" # Call the real rsync
 }
 export -f rsync
+
+# Mock function for curl
+curl() {
+  CURL_COMMANDS_RUN+=("$@") # Capture the command for later verification
+  echo "$@" >>"$CURL_COMMANDS_FILE"
+  # /usr/bin/curl "$@" # Call the real curl
+}
+export -f curl
 
 print_array() {
   local arr=("$@")
@@ -65,13 +75,15 @@ reset_environment_variables() {
 }
 
 clear_files() {
-  >$RSYNC_COMMANDS_RFILE
+  >$RSYNC_COMMANDS_FILE
   >$DOCKER_COMMANDS_FILE
+  >$CURL_COMMANDS_FILE
 }
 
 teardown() {
   rm "$DOCKER_COMMANDS_FILE"
-  rm "$RSYNC_COMMANDS_RFILE"
+  rm "$RSYNC_COMMANDS_FILE"
+  rm "$CURL_COMMANDS_FILE"
   rm -rf tests/src
   rm -rf tests/dest
 
@@ -300,8 +312,8 @@ test_rsync() {
 
   test_passed=true # Initialize a flag to indicate test status
 
-  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_RFILE" # Make a copy because we reduce this array
-  mapfile -t rsync_actual_output_copy <"$RSYNC_COMMANDS_RFILE"
+  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_FILE" # Make a copy because we reduce this array
+  mapfile -t rsync_actual_output_copy <"$RSYNC_COMMANDS_FILE"
 
   # Check if each expected command is in the actual output
   for expected_rsync in "${expected_rsync_output_arr[@]}"; do
@@ -361,6 +373,108 @@ test_rsync() {
   fi
 }
 
+test_curl() {
+  local test_name
+  local expected_curl_output
+  local disallowed_curl_output
+  local disable_expect_strict=false
+
+  # Parse named parameters
+  while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --name)
+      test_name="$2"
+      shift
+      ;;
+    --expect)
+      expected_curl_output="$2"
+      shift
+      ;;
+    --disallow)
+      disallowed_curl_output="$2"
+      shift
+      ;;
+    --disable_expect_strict)
+      disable_expect_strict=true # Set disable_strict to true if flag is passed
+      ;;
+    *)
+      echo "Unknown parameter passed: $1"
+      cleanup_on_fail
+      ;;
+    esac
+    shift
+  done
+
+  IFS=$'\n' read -rd '' -a expected_curl_output_arr <<<"$expected_curl_output"
+  IFS=$'\n' read -rd '' -a disallowed_curl_output_arr <<<"$disallowed_curl_output"
+
+  # If test_name is blank, return
+  if [ -z "$test_name" ]; then
+    return
+  fi
+
+  test_passed=true # Initialize a flag to indicate test status
+
+  mapfile -t curl_actual_output <"$CURL_COMMANDS_FILE" # Make a copy because we reduce this array
+  mapfile -t curl_actual_output_copy <"$CURL_COMMANDS_FILE"
+
+  # Check if each expected command is in the actual output
+  for expected_curl in "${expected_curl_output_arr[@]}"; do
+    found=false
+
+    # Loop through each actual curl command
+    for index in "${!curl_actual_output[@]}"; do
+      actual_curl=${curl_actual_output[index]}
+
+      # If the expected curl command is found in the actual output
+      if [[ "$actual_curl" == "$expected_curl" ]]; then
+        found=true
+
+        # Remove the found element from the actual output array
+        unset 'curl_actual_output[index]'
+
+        # Since we found a match, no need to continue this inner loop
+        break
+      fi
+    done
+
+    # If the expected curl command was not found in the actual output
+    if [ "$found" = false ]; then
+      echo "CURL '$expected_curl' not found in actual output."
+      test_passed=false
+    fi
+  done
+
+  if [ "$disable_expect_strict" = false ]; then
+    # Check if the actual output array is larger than the expected output array
+    if [[ ${#curl_actual_output[@]} -gt 0 ]]; then
+      fail $test_name
+      echo "Actual output contains more lines than expected."
+      test_passed=false
+    fi
+  fi
+
+  # Check if any disallowed command is in the actual output
+  for disallowed_curl in "${disallowed_curl_output_arr[@]}"; do
+    for actual_curl in "${curl_actual_output[@]}"; do
+      if [[ "$actual_curl" == "$disallowed_curl" ]]; then
+        fail $test_name
+        echo "curl '$disallowed_curl' found in actual output but is disallowed."
+        test_passed=false
+      fi
+    done
+  done
+
+  if [ "$test_passed" = true ]; then
+    pass $test_name
+  else
+    fail "$test_name"
+    cecho "YELLOW" "Expected:"
+    printf "%s\n" "${expected_curl_output_arr[@]}"
+    cecho "YELLOW" "Actual:"
+    printf "%s\n" "${curl_actual_output_copy[@]}"
+  fi
+}
 # ---- Actual Tests ----
 
 test_docker_commands() {
@@ -1425,6 +1539,44 @@ test_additional_folders_label_during() {
     --mock_labels "$mock_docker_label_lines"
 }
 
+test_pre_and_post_backup_curl() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export PRE_BACKUP_CURL="curl -X GET 'google.com'"
+  export POST_BACKUP_CURL="curl -X GET 'bing.com'"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  expected_docker_output=$(
+      echo "stop container1" &&
+      echo "start container1"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_docker_output" \
+    --disallow "$disallowed_docker_output"
+
+  expected_curl_output=$(
+      echo "-X GET google.com"
+      echo "-X GET bing.com"
+  )
+
+  test_curl \
+    --name "Test Curl" \
+    --expect "$expected_curl_output"
+
+  cleanup_on_success
+
+  test_curl \
+    --name "Test curl (none)" \
+    --disallow "$expected_curl_output"
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1452,6 +1604,7 @@ test_logThis_report_file
 test_additional_folders_env
 test_additional_folders_label
 test_additional_folders_label_during
+test_pre_and_post_backup_curl
 
 # Cleanup
 teardown
