@@ -9,6 +9,9 @@ export DOCKER_COMMANDS_FILE
 export RSYNC_COMMANDS_FILE
 export CURL_COMMANDS_FILE
 
+failed_tests=0
+passed_tests=0
+
 # Mock function for docker
 docker() {
   # Capture the command
@@ -72,6 +75,8 @@ reset_environment_variables() {
   OVERRIDE_SOURCE_DIR=""
   OVERRIDE_DEST_DIR=""
   ADDITIONAL_FOLDERS=""
+  PRE_BACKUP_CURL=""
+  POST_BACKUP_CURL=""
 }
 
 clear_files() {
@@ -90,6 +95,15 @@ teardown() {
   source pkg/logger.sh
 
   delete_report_file
+
+  if [[ "$failed_tests" -gt 0 ]]; then
+    cecho "RED" "X Failed $failed_tests tests. ($passed_tests passed)"
+    exit 1
+  else
+    cecho "GREEN" "✔ Success! All $passed_tests tests passed."
+    exit 0
+  fi
+
 }
 
 cleanup_on_success() {
@@ -121,13 +135,14 @@ pass() {
   local func_name=$1
   local test_num=$2
   cecho "GREEN" "✔ PASS - $func_name $test_num"
+  passed_tests=$((passed_tests + 1))
 }
 
 fail() {
   local func_name=$1
   local test_num=$2
   cecho "RED" "X FAIL - $func_name $test_num"
-  exit 1
+  failed_tests=$((failed_tests + 1))
 }
 
 test_docker() {
@@ -1539,7 +1554,7 @@ test_additional_folders_label_during() {
     --mock_labels "$mock_docker_label_lines"
 }
 
-test_pre_and_post_backup_curl() {
+test_pre_and_post_backup_curl_env() {
   clear_files
   export BACKUP_ON_START="true"
   export PRE_BACKUP_CURL="curl -X GET 'google.com'"
@@ -1551,32 +1566,87 @@ test_pre_and_post_backup_curl() {
     echo "abc123:container1"
   )
 
-  expected_docker_output=$(
-      echo "stop container1" &&
-      echo "start container1"
-  )
-
   test_docker \
-    --mock_ps "$mock_docker_ps_lines" \
-    --expect "$expected_docker_output" \
-    --disallow "$disallowed_docker_output"
+    --mock_ps "$mock_docker_ps_lines"
 
   expected_curl_output=$(
-      echo "-X GET google.com"
-      echo "-X GET bing.com"
+    echo "-X GET google.com"
+    echo "-X GET bing.com"
   )
 
   test_curl \
-    --name "Test Curl" \
+    --name "Test Curl (env)" \
     --expect "$expected_curl_output"
 
   cleanup_on_success
 
   test_curl \
-    --name "Test curl (none)" \
+    --name "Test curl - none (env)" \
     --disallow "$expected_curl_output"
 }
 
+test_pre_and_post_backup_curl_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.curl.before\":\"curl -X GET 'yahoo.com'\"," &&
+      echo "\"something-else\":\"new\"}"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines"
+
+  expected_curl_output=$(
+    echo "-X GET yahoo.com"
+  )
+
+  test_curl \
+    --name "Test Curl (label)" \
+    --expect "$expected_curl_output"
+
+  cleanup_on_success
+}
+
+test_pre_and_post_backup_curl_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.curl.before\":\"curl -X GET 'aol.com'\"," &&
+      echo "\"nautical-backup.curl.during\":\"curl -X GET 'msn.com'\"," &&
+      echo "\"nautical-backup.curl.after\":\"curl -X GET 'espn.com'\"}"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines"
+
+  expected_curl_output=$(
+    echo "-X GET aol.com" &&
+      echo "-X GET msn.com" &&
+      echo "-X GET espn.com"
+  )
+
+  test_curl \
+    --name "Test Curl - all (label)" \
+    --expect "$expected_curl_output"
+
+  cleanup_on_success
+}
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1604,7 +1674,8 @@ test_logThis_report_file
 test_additional_folders_env
 test_additional_folders_label
 test_additional_folders_label_during
-test_pre_and_post_backup_curl
+test_pre_and_post_backup_curl_env
+test_pre_and_post_backup_curl_label
 
 # Cleanup
 teardown

@@ -170,6 +170,10 @@ BackupContainer() {
         # Run rsync
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
 
+        if [ $? -ne 0 ]; then
+            logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
+        fi
+
         new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
 
         # If the label is not set it defaults to 'during'
@@ -177,8 +181,10 @@ BackupContainer() {
             BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
         fi
 
-        if [ $? -ne 0 ]; then
-            logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
+        if echo "$labels" | grep -q '"nautical-backup.curl.during"'; then
+            curl_during=$(echo "$labels" | jq -r '.["nautical-backup.curl.during"]')
+            logThis "Running curl command for $container" "DEBUG"
+            CurlCommand "$curl_during"
         fi
 
         if [ $skip_stopping -eq 0 ]; then
@@ -261,6 +267,11 @@ for entry in $containers; do
     done
 
     if [ $skip -eq 0 ]; then
+        if echo "$labels" | grep -q '"nautical-backup.curl.before"'; then
+            curl_before=$(echo "$labels" | jq -r '.["nautical-backup.curl.before"]')
+            logThis "Running PRE-backup curl command for $container" "DEBUG"
+            CurlCommand "$curl_before"
+        fi
 
         if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
             logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
@@ -283,6 +294,12 @@ for entry in $containers; do
 
         if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"after"'; then
             BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+        fi
+
+        if echo "$labels" | grep -q '"nautical-backup.curl.after"'; then
+            curl_after=$(echo "$labels" | jq -r '.["nautical-backup.curl.after"]')
+            logThis "Running PRE-backup curl command for $container" "DEBUG"
+            CurlCommand "$curl_after"
         fi
     fi
 done
