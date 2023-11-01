@@ -297,6 +297,50 @@ There are 3 moments when you can run a `curl` request <small>(You can use more t
 
 <small>🔄 This is the same action as the [Curl Requests](./arguments.md#curl-requests) variable, but applied only to this container.</small>
 
+## Lifecycle Hooks
+Lifecycle Hooks allow you to run a command *inside* the container that Nautical is backing up.
+This can be used to shutdown services and/or test for a successful restart.
+
+> **Default**: *empty* <small>(no hooks)</small>
+
+> **FORMAT**: [docker exec format](https://docs.docker.com/engine/reference/commandline/exec)
+
+```properties
+nautical-backup.lifecycle.before=echo 'Hello from the container'
+nautical-backup.lifecycle.after=/bin/bash ./script.sh
+```
+
+!!! example "Test your lifecycle hooks"
+    Before setting the label, it is a good idea to ensure it works first. Here is an example.
+
+    ```bash
+    docker exec -it <container-name> echo 'Hello from the container'
+    docker exec -it <container-name> /bin/bash ./script.sh
+    ```
+
+⌛ **Timeouts**
+
+The default timeout for all lifecycle hooks is `60 seconds` <small>(60s)</small>.
+We can change this using another label.
+
+
+> **Default**: 60s
+
+> **FORMAT**: [timeout command format](https://ss64.com/bash/timeout.html)
+<small>(`s` for seconds, `m` for minutes `h` for hours, `d` for days, `0` to disable)</small>
+
+```properties
+nautical-backup.lifecycle.before.timeout=1m
+nautical-backup.lifecycle.after.timeout=0 # Disable timeout completely
+```
+
+???+ tip "Timeout examples"
+    You can test out the command timeout using the following format:
+    ```bash
+    docker exec -it <container-name> timeout 0 echo 'Hello from the other side'
+    docker exec -it <container-name> timeout 1m /bin/bash ./script.sh
+    ```
+
 ## Use Default rsync Arguments
 Use the default `rsync` arguments `-raq` <small>(recursive, archive, quiet)</small>
 

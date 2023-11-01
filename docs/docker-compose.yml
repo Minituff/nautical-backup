@@ -6,8 +6,8 @@ version: "3"
 services:
   mkdocs:
     image: squidfunk/mkdocs-material:latest
-    container_name: mkdocs
-    hostname: mkdocs
+    container_name: nautical-docs
+    hostname: nautical-docs
     command: "" # Serve the docs at http://127.0.0.1:8000
     volumes:
       - ../:/docs
