@@ -121,6 +121,29 @@ test_curl() {
     fi
 }
 
+test_timeout() {
+    EXPECTED_OUTPUT="/usr/bin/timeout"
+    ACTUAL_OUTPUT=$(which timeout)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which timeout' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    # Use 'timeout --version' to check if it returns something
+    if [[ $(timeout --version) ]]; then
+        echo "PASS: 'timeout --version' returns a value."
+    else
+        echo "FAIL: 'timeout --version' did not return a value."
+        exit 1
+    fi
+}
+
 
 test_tz() {
     EXPECTED_OUTPUT="America/Los_Angeles"
@@ -224,6 +247,7 @@ if [ "$1" == "test1" ]; then
     test_rsync
     test_jq
     test_curl
+    test_timeout
     test_alpine_release
 
     echo "All tests passed!"
