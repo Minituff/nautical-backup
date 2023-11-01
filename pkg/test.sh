@@ -100,7 +100,7 @@ test_jq() {
 
 test_curl() {
     EXPECTED_OUTPUT="/usr/bin/curl"
-    ACTUAL_OUTPUT=$(which jq)
+    ACTUAL_OUTPUT=$(which curl)
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
