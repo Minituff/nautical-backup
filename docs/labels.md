@@ -265,6 +265,82 @@ nautical-backup.keep_src_dir_name=false
 
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-destination) variable, but applied only to this container.</small>
 
+
+## Curl Requests
+Send a `CURL` request *before* or *after* backing up the container. This can be used to alert the service before shutdown and/or ensure the service came online correctly.
+
+> **Default**: *empty* <small>(nothing will be done)</small>
+
+> **FORMAT**: The entirety of a `curl` request
+
+
+```properties
+nautical-backup.curl.before=curl -X GET 'google.com'
+nautical-backup.curl.after=curl -X POST 'http://192.168.1.21.com/do-something'
+nautical-backup.curl.during=curl -X PATCH 'bing.com'
+```
+
+There are 3 moments when you can run a `curl` request <small>(You can use more than 1)</small>:
+
+- [ ] **Before** - Run the `curl` command *before* the parent container is stopped.
+- [ ] **After** -  Run the `curl` command *after* the parent container is restarted.
+- [ ] **During** - Run the `curl` command while the parent container is stopped <small>(Before it is restarted)</small>.
+
+!!! example "Test your `curl` request"
+    Before setting the environment variable, it is a good idea to ensure it works first. Here is an example.
+
+    Ensure Nautical is running first, then run:
+    ```bash
+    docker exec -it nautical-backup \
+      curl -X GET 'google.com'
+    ```
+
+<small>🔄 This is the same action as the [Curl Requests](./arguments.md#curl-requests) variable, but applied only to this container.</small>
+
+## Lifecycle Hooks
+Lifecycle Hooks allow you to run a command *inside* the container that Nautical is backing up.
+This can be used to shutdown services and/or test for a successful restart.
+
+> **Default**: *empty* <small>(no hooks)</small>
+
+> **FORMAT**: [docker exec format](https://docs.docker.com/engine/reference/commandline/exec)
+
+```properties
+nautical-backup.lifecycle.before=echo 'Hello from the container'
+nautical-backup.lifecycle.after=/bin/sh ./script.sh
+```
+
+!!! example "Test your lifecycle hooks"
+    Before setting the label, it is a good idea to ensure it works first. Here is an example.
+
+    ```bash
+    docker exec -it <container-name> echo 'Hello from the container'
+    docker exec -it <container-name> /bin/sh ./script.sh
+    ```
+
+⌛ **Timeouts**
+
+The default timeout for all lifecycle hooks is `60 seconds` <small>(60s)</small>.
+We can change this using another label.
+
+
+> **Default**: 60s
+
+> **FORMAT**: [timeout command format](https://ss64.com/bash/timeout.html)
+<small>(`s` for seconds, `m` for minutes `h` for hours, `d` for days, `0` to disable)</small>
+
+```properties
+nautical-backup.lifecycle.before.timeout=1m
+nautical-backup.lifecycle.after.timeout=0 # Disable timeout completely
+```
+
+???+ tip "Test your timeouts"
+    You can test out the command timeout using the following format:
+    ```bash
+    docker exec -it <container-name> timeout 0 echo 'Hello from the other side'
+    docker exec -it <container-name> timeout 1m /bin/sh ./script.sh
+    ```
+
 ## Use Default rsync Arguments
 Use the default `rsync` arguments `-raq` <small>(recursive, archive, quiet)</small>
 

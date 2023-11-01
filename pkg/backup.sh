@@ -170,6 +170,10 @@ BackupContainer() {
         # Run rsync
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
 
+        if [ $? -ne 0 ]; then
+            logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
+        fi
+
         new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
 
         # If the label is not set it defaults to 'during'
@@ -177,8 +181,10 @@ BackupContainer() {
             BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
         fi
 
-        if [ $? -ne 0 ]; then
-            logThis "Error copying data for container $container. Skipping backup for this container." "ERROR"
+        if echo "$labels" | grep -q '"nautical-backup.curl.during"'; then
+            curl_during=$(echo "$labels" | jq -r '.["nautical-backup.curl.during"]')
+            logThis "Running curl command for $container" "DEBUG"
+            CurlCommand "$curl_during"
         fi
 
         if [ $skip_stopping -eq 0 ]; then
@@ -196,6 +202,37 @@ BackupContainer() {
         logThis "Directory $src_dir does not exist. Skipping" "WARN"
     fi
 }
+
+CurlCommand() {
+    local curl_command=$1
+    logThis "$curl_command" "DEBUG"
+
+    if eval "$curl_command"; then
+        logThis "Curl command was successful" "DEBUG"
+    else
+        logThis "Curl command failed" "ERROR"
+    fi
+
+}
+
+LifecycleHook() {
+    local cointainer_name=$1
+    local hook_command=$2
+    local timeout=$3
+
+    logThis "RUNNING 'timeout "$timeout" docker exec "$cointainer_name" "$hook_command"'" "DEBUG"
+
+    if eval timeout "$timeout" docker exec "$cointainer_name" "$hook_command"; then
+        logThis "LifecycleHook successful" "DEBUG"
+    else
+        logThis "LifecycleHook failed" "ERROR"
+    fi
+}
+
+if [ ! -z "$PRE_BACKUP_CURL" ]; then
+    logThis "Running PRE-backup curl command..." "INFO"
+    CurlCommand "$PRE_BACKUP_CURL"
+fi
 
 if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
     BackupAdditionalFolders "$ADDITIONAL_FOLDERS_LIST_STR" "$default_rsync_args" "$custom_args"
@@ -244,16 +281,33 @@ for entry in $containers; do
     done
 
     if [ $skip -eq 0 ]; then
+        if echo "$labels" | grep -q '"nautical-backup.curl.before"'; then
+            curl_before=$(echo "$labels" | jq -r '.["nautical-backup.curl.before"]')
+            logThis "Running PRE-backup curl command for $name" "DEBUG"
+            CurlCommand "$curl_before"
+        fi
+
+        # Handle BEFORE lifecycle hook
+        if echo "$labels" | grep -q '"nautical-backup.lifecycle.before"'; then
+            lifecycle_before=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.before"]')
+            logThis "Running PRE-backup lifecycle hook for $name" "DEBUG"
+            
+            lifecycle_before_timeout="60s"
+            if echo "$labels" | grep -q '"nautical-backup.lifecycle.before.timeout"'; then
+                lifecycle_before_timeout=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.before.timeout"]')
+            fi
+            LifecycleHook "$name" "$lifecycle_before" "$lifecycle_before_timeout"
+        fi
 
         if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
-            logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $container" "DEBUG"
+            logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $name" "DEBUG"
             default_rsync_args=""
         fi
 
         if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
             new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
             custom_args=$new_custom_rsync_args
-            logThis "Using custom rsync args for $container" "DEBUG"
+            logThis "Using custom rsync args for $name" "DEBUG"
         fi
 
         new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
@@ -267,6 +321,24 @@ for entry in $containers; do
         if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"after"'; then
             BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
         fi
+
+        # Handle AFTER lifecycle hook
+        if echo "$labels" | grep -q '"nautical-backup.lifecycle.after"'; then
+            lifecycle_after=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.after"]')
+            logThis "Running PRE-backup lifecycle hook for $name" "DEBUG"
+            
+            lifecycle_after_timeout="60s"
+            if echo "$labels" | grep -q '"nautical-backup.lifecycle.after.timeout"'; then
+                lifecycle_after_timeout=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.after.timeout"]')
+            fi
+            LifecycleHook "$name" "$lifecycle_after" "$lifecycle_after_timeout"
+        fi
+
+        if echo "$labels" | grep -q '"nautical-backup.curl.after"'; then
+            curl_after=$(echo "$labels" | jq -r '.["nautical-backup.curl.after"]')
+            logThis "Running PRE-backup curl command for $name" "DEBUG"
+            CurlCommand "$curl_after"
+        fi
     fi
 done
 
@@ -276,6 +348,11 @@ logThis "Success. $containers_completed containers backed up! $containers_skippe
 
 if [ "$ADDITIONAL_FOLDERS_WHEN" = "after" ]; then
     BackupAdditionalFolders $ADDITIONAL_FOLDERS_LIST_STR $default_rsync_args $custom_args
+fi
+
+if [ ! -z "$POST_BACKUP_CURL" ]; then
+    logThis "Running POST-backup curl command..." "INFO"
+    CurlCommand "$POST_BACKUP_CURL"
 fi
 
 if [ "$RUN_ONCE" = "true" ]; then

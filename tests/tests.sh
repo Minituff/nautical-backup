@@ -2,10 +2,17 @@
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
-RSYNC_COMMANDS_RFILE=$(mktemp /tmp/rsync_commands.XXXXXX)
+RSYNC_COMMANDS_FILE=$(mktemp /tmp/rsync_commands.XXXXXX)
+CURL_COMMANDS_FILE=$(mktemp /tmp/curl_commands.XXXXXX)
+TIMEOUT_COMMANDS_FILE=$(mktemp /tmp/timeout_commands.XXXXXX)
 export MOCK_DOCKER_INSPECT_OUTPUT=""
 export DOCKER_COMMANDS_FILE
-export RSYNC_COMMANDS_RFILE
+export RSYNC_COMMANDS_FILE
+export CURL_COMMANDS_FILE
+export TIMEOUT_COMMANDS_FILE
+
+failed_tests=0
+passed_tests=0
 
 # Mock function for docker
 docker() {
@@ -24,10 +31,27 @@ export -f docker
 # Mock function for rsync
 rsync() {
   RSYNC_COMMANDS_RUN+=("$@") # Capture the command for later verification
-  echo "$@" >>"$RSYNC_COMMANDS_RFILE"
+  echo "$@" >>"$RSYNC_COMMANDS_FILE"
   /usr/bin/rsync "$@" # Call the real rsync
 }
 export -f rsync
+
+# Mock function for curl
+curl() {
+  CURL_COMMANDS_RUN+=("$@") # Capture the command for later verification
+  echo "$@" >>"$CURL_COMMANDS_FILE"
+  # /usr/bin/curl "$@" # Call the real curl
+}
+export -f curl
+
+# Mock function for curl
+timeout() {
+  TIMEOUT_COMMANDS_RUN+=("$@") # Capture the command for later verification
+  echo "$@" >>"$TIMEOUT_COMMANDS_FILE"
+  # /usr/bin/timeout "$@" # Call the real timeout
+}
+export -f timeout
+
 
 print_array() {
   local arr=("$@")
@@ -62,22 +86,36 @@ reset_environment_variables() {
   OVERRIDE_SOURCE_DIR=""
   OVERRIDE_DEST_DIR=""
   ADDITIONAL_FOLDERS=""
+  PRE_BACKUP_CURL=""
+  POST_BACKUP_CURL=""
 }
 
 clear_files() {
-  >$RSYNC_COMMANDS_RFILE
+  >$RSYNC_COMMANDS_FILE
   >$DOCKER_COMMANDS_FILE
+  >$CURL_COMMANDS_FILE
+  >$TIMEOUT_COMMANDS_FILE
 }
 
 teardown() {
   rm "$DOCKER_COMMANDS_FILE"
-  rm "$RSYNC_COMMANDS_RFILE"
+  rm "$RSYNC_COMMANDS_FILE"
+  rm "$CURL_COMMANDS_FILE"
   rm -rf tests/src
   rm -rf tests/dest
 
   source pkg/logger.sh
 
   delete_report_file
+
+  if [[ "$failed_tests" -gt 0 ]]; then
+    cecho "RED" "X Failed $failed_tests tests. ($passed_tests passed)"
+    exit 1
+  else
+    cecho "GREEN" "✔ Success! All $passed_tests tests passed."
+    exit 0
+  fi
+
 }
 
 cleanup_on_success() {
@@ -109,13 +147,14 @@ pass() {
   local func_name=$1
   local test_num=$2
   cecho "GREEN" "✔ PASS - $func_name $test_num"
+  passed_tests=$((passed_tests + 1))
 }
 
 fail() {
   local func_name=$1
   local test_num=$2
   cecho "RED" "X FAIL - $func_name $test_num"
-  exit 1
+  failed_tests=$((failed_tests + 1))
 }
 
 test_docker() {
@@ -300,8 +339,8 @@ test_rsync() {
 
   test_passed=true # Initialize a flag to indicate test status
 
-  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_RFILE" # Make a copy because we reduce this array
-  mapfile -t rsync_actual_output_copy <"$RSYNC_COMMANDS_RFILE"
+  mapfile -t rsync_actual_output <"$RSYNC_COMMANDS_FILE" # Make a copy because we reduce this array
+  mapfile -t rsync_actual_output_copy <"$RSYNC_COMMANDS_FILE"
 
   # Check if each expected command is in the actual output
   for expected_rsync in "${expected_rsync_output_arr[@]}"; do
@@ -358,6 +397,212 @@ test_rsync() {
     printf "%s\n" "${expected_rsync_output_arr[@]}"
     cecho "YELLOW" "Actual:"
     printf "%s\n" "${rsync_actual_output_copy[@]}"
+  fi
+}
+
+test_curl() {
+  local test_name
+  local expected_curl_output
+  local disallowed_curl_output
+  local disable_expect_strict=false
+
+  # Parse named parameters
+  while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --name)
+      test_name="$2"
+      shift
+      ;;
+    --expect)
+      expected_curl_output="$2"
+      shift
+      ;;
+    --disallow)
+      disallowed_curl_output="$2"
+      shift
+      ;;
+    --disable_expect_strict)
+      disable_expect_strict=true # Set disable_strict to true if flag is passed
+      ;;
+    *)
+      echo "Unknown parameter passed: $1"
+      cleanup_on_fail
+      ;;
+    esac
+    shift
+  done
+
+  IFS=$'\n' read -rd '' -a expected_curl_output_arr <<<"$expected_curl_output"
+  IFS=$'\n' read -rd '' -a disallowed_curl_output_arr <<<"$disallowed_curl_output"
+
+  # If test_name is blank, return
+  if [ -z "$test_name" ]; then
+    return
+  fi
+
+  test_passed=true # Initialize a flag to indicate test status
+
+  mapfile -t curl_actual_output <"$CURL_COMMANDS_FILE" # Make a copy because we reduce this array
+  mapfile -t curl_actual_output_copy <"$CURL_COMMANDS_FILE"
+
+  # Check if each expected command is in the actual output
+  for expected_curl in "${expected_curl_output_arr[@]}"; do
+    found=false
+
+    # Loop through each actual curl command
+    for index in "${!curl_actual_output[@]}"; do
+      actual_curl=${curl_actual_output[index]}
+
+      # If the expected curl command is found in the actual output
+      if [[ "$actual_curl" == "$expected_curl" ]]; then
+        found=true
+
+        # Remove the found element from the actual output array
+        unset 'curl_actual_output[index]'
+
+        # Since we found a match, no need to continue this inner loop
+        break
+      fi
+    done
+
+    # If the expected curl command was not found in the actual output
+    if [ "$found" = false ]; then
+      echo "CURL '$expected_curl' not found in actual output."
+      test_passed=false
+    fi
+  done
+
+  if [ "$disable_expect_strict" = false ]; then
+    # Check if the actual output array is larger than the expected output array
+    if [[ ${#curl_actual_output[@]} -gt 0 ]]; then
+      fail $test_name
+      echo "Actual output contains more lines than expected."
+      test_passed=false
+    fi
+  fi
+
+  # Check if any disallowed command is in the actual output
+  for disallowed_curl in "${disallowed_curl_output_arr[@]}"; do
+    for actual_curl in "${curl_actual_output[@]}"; do
+      if [[ "$actual_curl" == "$disallowed_curl" ]]; then
+        fail $test_name
+        echo "curl '$disallowed_curl' found in actual output but is disallowed."
+        test_passed=false
+      fi
+    done
+  done
+
+  if [ "$test_passed" = true ]; then
+    pass $test_name
+  else
+    fail "$test_name"
+    cecho "YELLOW" "Expected:"
+    printf "%s\n" "${expected_curl_output_arr[@]}"
+    cecho "YELLOW" "Actual:"
+    printf "%s\n" "${curl_actual_output_copy[@]}"
+  fi
+}
+
+test_timeout() {
+  local test_name
+  local expected_timeout_output
+  local disallowed_timeout_output
+  local disable_expect_strict=false
+
+  # Parse named parameters
+  while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --name)
+      test_name="$2"
+      shift
+      ;;
+    --expect)
+      expected_timeout_output="$2"
+      shift
+      ;;
+    --disallow)
+      disallowed_timeout_output="$2"
+      shift
+      ;;
+    --disable_expect_strict)
+      disable_expect_strict=true # Set disable_strict to true if flag is passed
+      ;;
+    *)
+      echo "Unknown parameter passed: $1"
+      cleanup_on_fail
+      ;;
+    esac
+    shift
+  done
+
+  IFS=$'\n' read -rd '' -a expected_timeout_output_arr <<<"$expected_timeout_output"
+  IFS=$'\n' read -rd '' -a disallowed_timeout_output_arr <<<"$disallowed_timeout_output"
+
+  # If test_name is blank, return
+  if [ -z "$test_name" ]; then
+    return
+  fi
+
+  test_passed=true # Initialize a flag to indicate test status
+
+  mapfile -t timeout_actual_output <"$TIMEOUT_COMMANDS_FILE" # Make a copy because we reduce this array
+  mapfile -t timeout_actual_output_copy <"$TIMEOUT_COMMANDS_FILE"
+
+  # Check if each expected command is in the actual output
+  for expected_timeout in "${expected_timeout_output_arr[@]}"; do
+    found=false
+
+    # Loop through each actual timeout command
+    for index in "${!timeout_actual_output[@]}"; do
+      actual_timeout=${timeout_actual_output[index]}
+
+      # If the expected timeout command is found in the actual output
+      if [[ "$actual_timeout" == "$expected_timeout" ]]; then
+        found=true
+
+        # Remove the found element from the actual output array
+        unset 'timeout_actual_output[index]'
+
+        # Since we found a match, no need to continue this inner loop
+        break
+      fi
+    done
+
+    # If the expected timeout command was not found in the actual output
+    if [ "$found" = false ]; then
+      echo "timeout '$expected_timeout' not found in actual output."
+      test_passed=false
+    fi
+  done
+
+  if [ "$disable_expect_strict" = false ]; then
+    # Check if the actual output array is larger than the expected output array
+    if [[ ${#timeout_actual_output[@]} -gt 0 ]]; then
+      fail $test_name
+      echo "Actual output contains more lines than expected."
+      test_passed=false
+    fi
+  fi
+
+  # Check if any disallowed command is in the actual output
+  for disallowed_timeout in "${disallowed_timeout_output_arr[@]}"; do
+    for actual_timeout in "${timeout_actual_output[@]}"; do
+      if [[ "$actual_timeout" == "$disallowed_timeout" ]]; then
+        fail $test_name
+        echo "timeout '$disallowed_timeout' found in actual output but is disallowed."
+        test_passed=false
+      fi
+    done
+  done
+
+  if [ "$test_passed" = true ]; then
+    pass $test_name
+  else
+    fail "$test_name"
+    cecho "YELLOW" "Expected:"
+    printf "%s\n" "${expected_timeout_output_arr[@]}"
+    cecho "YELLOW" "Actual:"
+    printf "%s\n" "${timeout_actual_output_copy[@]}"
   fi
 }
 
@@ -1425,6 +1670,154 @@ test_additional_folders_label_during() {
     --mock_labels "$mock_docker_label_lines"
 }
 
+test_pre_and_post_backup_curl_env() {
+  clear_files
+  export BACKUP_ON_START="true"
+  export PRE_BACKUP_CURL="curl -X GET 'google.com'"
+  export POST_BACKUP_CURL="curl -X GET 'bing.com'"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines"
+
+  expected_curl_output=$(
+    echo "-X GET google.com"
+    echo "-X GET bing.com"
+  )
+
+  test_curl \
+    --name "Test Curl (env)" \
+    --expect "$expected_curl_output"
+
+  cleanup_on_success
+
+  test_curl \
+    --name "Test curl - none (env)" \
+    --disallow "$expected_curl_output"
+}
+
+test_pre_and_post_backup_curl_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.curl.before\":\"curl -X GET 'yahoo.com'\"," &&
+      echo "\"something-else\":\"new\"}"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines"
+
+  expected_curl_output=$(
+    echo "-X GET yahoo.com"
+  )
+
+  test_curl \
+    --name "Test Curl (label)" \
+    --expect "$expected_curl_output"
+
+  cleanup_on_success
+}
+
+test_pre_and_post_backup_curl_label() {
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.curl.before\":\"curl -X GET 'aol.com'\"," &&
+      echo "\"nautical-backup.curl.during\":\"curl -X GET 'msn.com'\"," &&
+      echo "\"nautical-backup.curl.after\":\"curl -X GET 'espn.com'\"}"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines"
+
+  expected_curl_output=$(
+    echo "-X GET aol.com" &&
+      echo "-X GET msn.com" &&
+      echo "-X GET espn.com"
+  )
+
+  test_curl \
+    --name "Test Curl - all (label)" \
+    --expect "$expected_curl_output"
+
+  cleanup_on_success
+}
+
+
+test_lifecycle_hooks(){
+  clear_files
+  export BACKUP_ON_START="true"
+  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
+  mkdir -p tests/dest
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.lifecycle.before\":\"echo 'aol.com'\"," &&
+      echo "\"nautical-backup.lifecycle.after\":\"echo 'test2'\"}"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines"
+
+  expected_timeout_output=$(
+    echo "60s docker exec container1 echo aol.com" &&
+    echo "60s docker exec container1 echo test2"
+  )
+
+  test_timeout \
+    --name "Test lifecycle hooks" \
+    --expect "$expected_timeout_output"
+
+  clear_files
+
+  mock_docker_label_lines=$(
+    echo "{\"nautical-backup.lifecycle.before\":\"echo 'test3'\"," &&
+    echo "\"nautical-backup.lifecycle.before.timeout\":\"420s\"," &&
+    echo "\"nautical-backup.lifecycle.after.timeout\":\"2m\"," &&
+    echo "\"nautical-backup.lifecycle.after\":\"echo 'test4'\"}"
+  )
+
+  test_docker \
+    --mock_ps "$mock_docker_ps_lines" \
+    --mock_labels "$mock_docker_label_lines"
+
+  expected_timeout_output=$(
+    echo "420s docker exec container1 echo test3" &&
+      echo "2m docker exec container1 echo test4"
+  )
+
+  test_timeout \
+    --name "Test timeout" \
+    --expect "$expected_timeout_output"
+
+  cleanup_on_success
+}
+
 # ---- Call Tests ----
 reset_environment_variables
 
@@ -1452,6 +1845,9 @@ test_logThis_report_file
 test_additional_folders_env
 test_additional_folders_label
 test_additional_folders_label_during
+test_pre_and_post_backup_curl_env
+test_pre_and_post_backup_curl_label
+test_lifecycle_hooks
 
 # Cleanup
 teardown

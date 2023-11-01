@@ -182,6 +182,31 @@ Normally, a container is backed to a folder with the ^^same name^^ as the `conta
 
 <small>🔄 This is the same action as the [Override Destination Directory](./labels.md#override-destination-directory-name) label, but applied globally.</small>
 
+
+## Curl Requests
+Send a `CURL` request *before* or *after* backing up the containers. This can be used to alert services before shutdown and/or ensure the services came online correctly.
+
+> **Default**: *empty* <small>(nothing will be done)</small>
+
+> **FORMAT**: The entirety of a `curl` request
+
+
+```properties
+PRE_BACKUP_CURL=curl -X GET 'google.com'
+POST_BACKUP_CURL=curl -X POST 'http://192.168.1.21.com/do-something'
+```
+
+!!! example "Test your `curl` request"
+    Before setting the environment variable, it is a good idea to ensure it works first. Here is an example.
+
+    Ensure Nautical is running first, then run:
+    ```bash
+    docker exec -it nautical-backup \
+      curl -X GET 'google.com'
+    ```
+
+<small>🔄 This is the same action as the [Curl Requests](./labels.md#curl-requests) label, but applied globally.</small>
+
 ## Report file
 Enable or Disable the automatically generated report file.
 

@@ -97,6 +97,54 @@ test_jq() {
     fi
 }
 
+
+test_curl() {
+    EXPECTED_OUTPUT="/usr/bin/curl"
+    ACTUAL_OUTPUT=$(which curl)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which curl' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    # Use 'curl --version' to check if it returns something
+    if [[ $(curl --version) ]]; then
+        echo "PASS: 'curl --version' returns a value."
+    else
+        echo "FAIL: 'curl --version' did not return a value."
+        exit 1
+    fi
+}
+
+test_timeout() {
+    EXPECTED_OUTPUT="/usr/bin/timeout"
+    ACTUAL_OUTPUT=$(which timeout)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which timeout' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    # Use 'timeout 5s echo "hello"' to check if it returns something
+    if [[ $(timeout 5s echo "hello") ]]; then
+        echo "PASS: 'timeout 5s echo "hello"' returns a value."
+    else
+        echo "FAIL: 'timeout 5s echo "hello"' did not return a value."
+        exit 1
+    fi
+}
+
+
 test_tz() {
     EXPECTED_OUTPUT="America/Los_Angeles"
     ACTUAL_OUTPUT=$(echo $TZ)
@@ -184,6 +232,8 @@ declare -A expected_env_vars=(
     ["DEFAULT_OVERRIDE_DEST_DIR"]=""
     ["ADDITIONAL_FOLDERS"]=""
     ["ADDITIONAL_FOLDERS_WHEN"]="before"
+    ["PRE_BACKUP_CURL"]=""
+    ["POST_BACKUP_CURL"]=""
 )
 
 if [ "$1" == "test1" ]; then
@@ -196,6 +246,8 @@ if [ "$1" == "test1" ]; then
     test_bash
     test_rsync
     test_jq
+    test_curl
+    test_timeout
     test_alpine_release
 
     echo "All tests passed!"

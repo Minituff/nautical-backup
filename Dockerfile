@@ -17,6 +17,8 @@ ENV TZ_DATA_VERSION="2023c-r1"
 ENV DOS2UNIX_VERSION="7.4.4-r1"
 # renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
 ENV JQ_VERSION="1.6-r3"
+# renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
+ENV CURL_VERSION="8.4.0-r0"
 
 # Install dependencies
 RUN apk add --no-cache \
@@ -24,7 +26,8 @@ RUN apk add --no-cache \
     rsync="${RSYNC_VERSION}" \
     tzdata="${TZ_DATA_VERSION}" \
     dos2unix="${DOS2UNIX_VERSION}" \
-    jq="${JQ_VERSION}"
+    jq="${JQ_VERSION}" \ 
+    curl="${CURL_VERSION}"
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
