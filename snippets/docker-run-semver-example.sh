@@ -1,1 +1,1 @@
-  minituff/nautical-backup:1.1.0
+  minituff/nautical-backup:1.2.0
