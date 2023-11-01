@@ -55,6 +55,7 @@ extra:
 
 theme:
   name: material
+  logo: media/Logo-large.png
   features:
     # - navigation.tabs
     # - navigation.tabs.sticky
@@ -78,19 +79,12 @@ theme:
     # - toc.integrate # Table of contents on the left
     - content.action.edit
     - content.action.view
-    - navigation.footer  # Add the `prev` and `next` buttons in the fotter
+    - navigation.footer  # Add the `prev` and `next` buttons in the footer
   # font:
   #   text: 'Ubuntu'
   #   code: 'Ubuntu Mono'
   palette:
     # scheme: slate
-
-    # # Palette toggle for automatic mode
-    # - media: "(prefers-color-scheme)"
-    #   scheme: default
-    #   toggle:
-    #     icon: material/brightness-auto
-    #     name: Follow system preferences
 
     # Toggle light mode
     - media: "(prefers-color-scheme: light)"
@@ -104,8 +98,8 @@ theme:
     # Toggle dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: black
-      accent: orange
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Love my eyes!
@@ -137,7 +131,7 @@ markdown_extensions:
       base_path: snippets
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.inlinehilite
   - pymdownx.magiclink:
       repo_url_shorthand: true

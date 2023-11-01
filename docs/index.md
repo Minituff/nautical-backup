@@ -1,5 +1,5 @@
 <p style="text-align: center; margin-left: 1.6rem;">
-  <img alt="Logo" src="./media/Logo-transparent.png" width="450" />
+  <a href="#"><img alt="Logo" src="./media/Logo-transparent.png" width="450" /> </a>
 </p>
 
 <p align="center">
