@@ -307,7 +307,7 @@ This can be used to shutdown services and/or test for a successful restart.
 
 ```properties
 nautical-backup.lifecycle.before=echo 'Hello from the container'
-nautical-backup.lifecycle.after=/bin/bash ./script.sh
+nautical-backup.lifecycle.after=/bin/sh ./script.sh
 ```
 
 !!! example "Test your lifecycle hooks"
@@ -315,7 +315,7 @@ nautical-backup.lifecycle.after=/bin/bash ./script.sh
 
     ```bash
     docker exec -it <container-name> echo 'Hello from the container'
-    docker exec -it <container-name> /bin/bash ./script.sh
+    docker exec -it <container-name> /bin/sh ./script.sh
     ```
 
 ⌛ **Timeouts**
@@ -334,11 +334,11 @@ nautical-backup.lifecycle.before.timeout=1m
 nautical-backup.lifecycle.after.timeout=0 # Disable timeout completely
 ```
 
-???+ tip "Timeout examples"
+???+ tip "Test your timeouts"
     You can test out the command timeout using the following format:
     ```bash
     docker exec -it <container-name> timeout 0 echo 'Hello from the other side'
-    docker exec -it <container-name> timeout 1m /bin/bash ./script.sh
+    docker exec -it <container-name> timeout 1m /bin/sh ./script.sh
     ```
 
 ## Use Default rsync Arguments
