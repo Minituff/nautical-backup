@@ -135,11 +135,11 @@ test_timeout() {
         exit 1
     fi
 
-    # Use 'timeout --help' to check if it returns something
-    if [[ $(timeout --help) ]]; then
-        echo "PASS: 'timeout --help' returns a value."
+    # Use 'timeout 5s echo "hello"' to check if it returns something
+    if [[ $(timeout 5s echo "hello") ]]; then
+        echo "PASS: 'timeout 5s echo "hello"' returns a value."
     else
-        echo "FAIL: 'timeout --help' did not return a value."
+        echo "FAIL: 'timeout 5s echo "hello"' did not return a value."
         exit 1
     fi
 }
