@@ -25,7 +25,7 @@ export -f docker
 rsync() {
   RSYNC_COMMANDS_RUN+=("$@") # Capture the command for later verification
   echo "$@" >>"$RSYNC_COMMANDS_RFILE"
-  /usr/bin/rsync "$@" # Call the real rsync
+  command rsync "$@" # Call the real rsync
 }
 export -f rsync
 
