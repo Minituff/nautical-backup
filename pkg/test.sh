@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # Change this as alpine updates
 ALPINE_VERSION="3.18"
 

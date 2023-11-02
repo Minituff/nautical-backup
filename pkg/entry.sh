@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "$TEST_MODE" == "true" ]; then
     source pkg/utils.sh
