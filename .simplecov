@@ -17,7 +17,8 @@ SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
 
 
 # .simplecov
-SimpleCov.start 'rails' do
+SimpleCov.profiles.define 'bashcov' do
+  load_profile 'rails'
   command_name 'Unit Tests'
   enable_coverage :branch
   primary_coverage :branch
@@ -29,3 +30,4 @@ SimpleCov.start 'rails' do
 
   enable_coverage_for_eval # Must be at the bottom and Must be here, even though it throws a 'command not found' error
 end
+SimpleCov.load_profile 'bashcov' if ENV.key? 'BASHCOV_COMMAND_NAME'
