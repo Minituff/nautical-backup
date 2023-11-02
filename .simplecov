@@ -28,6 +28,8 @@ SimpleCov.profiles.define 'bashcov' do
   add_filter "pkg/test.sh"
   add_group "Pkg scripts", "/pkg"
 
-  enable_coverage_for_eval # Must be at the bottom and Must be here, even though it throws a 'command not found' error
+  # Must be at the bottom
+  enable_coverage_for_eval if respond_to? :enable_coverage_for_eval
 end
+
 SimpleCov.load_profile 'bashcov' if ENV.key? 'BASHCOV_COMMAND_NAME'
