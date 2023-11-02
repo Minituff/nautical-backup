@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ -z "$TEST_MODE" ]; then
     TEST_MODE="false"

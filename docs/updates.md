@@ -1,3 +1,8 @@
+---
+hide:
+  - footer
+---
+
 Updating Nautical <small>(and any container)</small> is a balance between *convenience*, *reliability* and *security*.
 
 Updating your container will bring new features, bug fixes and security patches but can also introduce intended behavior.

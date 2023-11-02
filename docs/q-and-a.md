@@ -1,3 +1,8 @@
+---
+hide:
+  - footer
+---
+
 ##  **Why do we need docker volume backups?**
 If your Docker Host machine doesn't take snapshots like a ZFS-based machine does, then you aren't protected against faulty configuration or complete deletion of our container data.
 

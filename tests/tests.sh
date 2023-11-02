@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
@@ -32,7 +32,7 @@ export -f docker
 rsync() {
   RSYNC_COMMANDS_RUN+=("$@") # Capture the command for later verification
   echo "$@" >>"$RSYNC_COMMANDS_FILE"
-  /usr/bin/rsync "$@" # Call the real rsync
+  command rsync "$@" # Call the real rsync
 }
 export -f rsync
 

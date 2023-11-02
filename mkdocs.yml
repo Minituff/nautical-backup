@@ -10,8 +10,8 @@ repo_url: 'https://github.com/minituff/nautical-backup'
 
 # copyright: 'Copyright &copy; 2023 James Tufarelli'
 
-# hide:
-#   - footer
+hide:
+  - footer
 
 # Plugins
 plugins:
@@ -46,10 +46,11 @@ nav:
  - Developer Documentation:
    - Contributing to the Docs: developers/docs.md
    - Developer Env Variables: developers/env.md
+   - Unit Tests: developers/tests.md
 
 
 extra:
-  generator: true  # "false" will Remove the "Made with Material for MkDocs" branding
+  generator: false  # "false" will Remove the "Made with Material for MkDocs" branding
   # version:
   #   provider: mike
 
