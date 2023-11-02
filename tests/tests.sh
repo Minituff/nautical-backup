@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)

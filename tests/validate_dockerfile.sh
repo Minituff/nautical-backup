@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Validating Dockerfile supports both amd64 and arm64 architectures..."
 

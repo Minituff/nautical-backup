@@ -7,7 +7,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
       - ./destination:/app/destination
-    entrypoint: /bin/bash app/test.sh test1
+    entrypoint: /usr/bin/env bash app/test.sh test1
     environment:
       - TZ=America/Los_Angeles
       - BACKUP_ON_START=true
@@ -21,6 +21,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
       - ./destination:/app/destination
-    entrypoint: /bin/bash app/test.sh test2
+    entrypoint: /usr/bin/env bash app/test.sh test2
     environment:
       - RETURN_AFTER_INIT=true
