@@ -9,7 +9,11 @@
 			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions zsh-syntax-highlighting",
 			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
 		},
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+		// "ghcr.io/devcontainers/features/ruby:1": {}
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+			"packages": "ruby-full,nano,curl,jq"
+		}
 	},
 
 	"customizations": {
@@ -37,12 +41,9 @@
 			}
 		}
 	},
-	"remoteUser": "root"
+	"remoteUser": "root",
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "gem install bashcov simplecov-cobertura simplecov-html"
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "uname -a",
-	// Configure tool-specific properties.
-	// "customizations": {},
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 }
