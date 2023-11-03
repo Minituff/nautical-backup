@@ -52,7 +52,6 @@ timeout() {
 }
 export -f timeout
 
-
 print_array() {
   local arr=("$@")
   for i in "${arr[@]}"; do
@@ -1764,8 +1763,7 @@ test_pre_and_post_backup_curl_label() {
   cleanup_on_success
 }
 
-
-test_lifecycle_hooks(){
+test_lifecycle_hooks() {
   clear_files
   export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -1786,7 +1784,7 @@ test_lifecycle_hooks(){
 
   expected_timeout_output=$(
     echo "60s docker exec container1 echo aol.com" &&
-    echo "60s docker exec container1 echo test2"
+      echo "60s docker exec container1 echo test2"
   )
 
   test_timeout \
@@ -1797,9 +1795,9 @@ test_lifecycle_hooks(){
 
   mock_docker_label_lines=$(
     echo "{\"nautical-backup.lifecycle.before\":\"echo 'test3'\"," &&
-    echo "\"nautical-backup.lifecycle.before.timeout\":\"420s\"," &&
-    echo "\"nautical-backup.lifecycle.after.timeout\":\"2m\"," &&
-    echo "\"nautical-backup.lifecycle.after\":\"echo 'test4'\"}"
+      echo "\"nautical-backup.lifecycle.before.timeout\":\"420s\"," &&
+      echo "\"nautical-backup.lifecycle.after.timeout\":\"2m\"," &&
+      echo "\"nautical-backup.lifecycle.after\":\"echo 'test4'\"}"
   )
 
   test_docker \
