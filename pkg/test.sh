@@ -3,6 +3,37 @@
 # Change this as alpine updates
 ALPINE_VERSION="3.18"
 
+test_docker() {
+    EXPECTED_OUTPUT="/usr/local/bin/docker"
+    ACTUAL_OUTPUT=$(which docker)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which docker' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: Output does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    # Use 'docker --version' to check if it returns something
+    if [[ $(docker --version) ]]; then
+        echo "PASS: 'docker --version' returns a value."
+    else
+        echo "FAIL: 'docker --version' did not return a value."
+        exit 1
+    fi
+
+    # Use 'docker ps' to check if it returns something
+    if [[ $(docker ps) ]]; then
+        echo "PASS: 'docker ps' returns a value."
+    else
+        echo "FAIL: 'docker ps' did not return a value."
+        exit 1
+    fi
+}
+
 test_cron() {
     # Expected output
     EXPECTED_OUTPUT="$CRON_SCHEDULE bash /app/backup.sh"
@@ -242,6 +273,7 @@ if [ "$1" == "test1" ]; then
 
     echo "Running integation tests..."
 
+    test_docker
     test_cron
     test_tz
     test_bash

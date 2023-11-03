@@ -1,6 +1,6 @@
 // For format details, see https://aka.ms/devcontainer.json.
 {
-	"name": "Nautical (Dev Container)",
+	"name": "Nautical",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
 	// Features to add to the dev container. More info: https://containers.dev/features.
@@ -10,7 +10,6 @@
 			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-		// "ghcr.io/devcontainers/features/ruby:1": {}
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
 			"packages": "ruby-full,nano,curl,jq"
 		}
@@ -25,7 +24,8 @@
 				"jeff-hykin.better-shellscript-syntax",
 				"tetradresearch.vscode-h2o",
 				"meronz.manpages",
-				"jeff-hykin.better-dockerfile-syntax"
+				"jeff-hykin.better-dockerfile-syntax",
+				"streetsidesoftware.code-spell-checker"
 			   ],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
@@ -42,8 +42,6 @@
 		}
 	},
 	"remoteUser": "root",
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "gem install bashcov simplecov-cobertura simplecov-html"
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+	"postCreateCommand": "./.devcontainer/postCreateCommand.sh"
+	// "forwardPorts": [],  // Use 'forwardPorts' to make a list of ports inside the container available locally.
 }
