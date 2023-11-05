@@ -11,6 +11,20 @@ ENV TARGETPLATFORM=${TARGETPLATFORM}
 ARG NAUTICAL_VERSION="main"
 ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
+LABEL maintainer="minituff"
+
+
+# Set version for s6 overlay 
+ARG S6_OVERLAY_VERSION="3.1.5.0"
+# amd64 = "x86_64". arm = "aarch64"
+ARG S6_OVERLAY_ARCH="x86_64" 
+
+# Install S6 Overlay
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
+
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
 
@@ -55,4 +69,5 @@ RUN \
     mv app/entry.sh /entry.sh
 
 # Run the entry script and pass all variables to it
-ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
+ENTRYPOINT ["/init"]
+# ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
