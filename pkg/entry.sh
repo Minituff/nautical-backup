@@ -71,26 +71,6 @@ if [ "$RETURN_AFTER_INIT" = "true" ]; then
     return
 fi
 
-SOCAT_PORT=8069
-# Function to start your socat server
-start_socat() {
-    # Start socat in the background
-    echo "Listening on port $SOCAT_PORT..."
-    socat TCP-LISTEN:${SOCAT_PORT},fork EXEC:"./app/httpd.sh",stderr 2>&1 &
-    SOCAT_PID=$!
-    echo $SOCAT_PID >/tmp/socat.pid
-}
-
-# Function to stop your socat server
-stop_socat() {
-    echo "Stopping server..."
-    if [[ -f /tmp/socat.pid ]]; then
-        SOCAT_PID=$(cat /tmp/socat.pid)
-        kill $SOCAT_PID
-        touch /tmp/test.txt
-        rm -f /tmp/socat.pid
-    fi
-}
 
 stop_crond() {
     killall crond

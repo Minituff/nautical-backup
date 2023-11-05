@@ -71,6 +71,11 @@ RUN \
 # add local files
 COPY --chmod=755 root/ /
 
+VOLUME [ "/app/source" ]
+VOLUME [ "/app/destination" ]
+
+EXPOSE 8069
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT ["/init"]
 # ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
