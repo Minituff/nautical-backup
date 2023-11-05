@@ -5,17 +5,16 @@ cleanup() {
     err=$?
     echo "Cleaning stuff up..."
     trap '' EXIT INT TERM
-    exit $err 
+    exit $err
 }
 sig_cleanup() {
     echo "SIG cleanup..."
     trap '' EXIT # some shells will call EXIT after the INT handler
-    false # sets $?
+    false        # sets $?
     cleanup
 }
 trap cleanup EXIT
 trap sig_cleanup INT QUIT TERM
-
 
 if [ "$TEST_MODE" == "true" ]; then
     source pkg/utils.sh
@@ -72,10 +71,45 @@ if [ "$RETURN_AFTER_INIT" = "true" ]; then
     return
 fi
 
+SOCAT_PORT=8069
+# Function to start your socat server
+start_socat() {
+    # Start socat in the background
+    echo "Listening on port $SOCAT_PORT..."
+    socat TCP-LISTEN:${SOCAT_PORT},fork EXEC:"./app/httpd.sh",stderr 2>&1 &
+    SOCAT_PID=$!
+    echo $SOCAT_PID >/tmp/socat.pid
+}
+
+# Function to stop your socat server
+stop_socat() {
+    echo "Stopping server..."
+    if [[ -f /tmp/socat.pid ]]; then
+        SOCAT_PID=$(cat /tmp/socat.pid)
+        kill $SOCAT_PID
+        touch /tmp/test.txt
+        rm -f /tmp/socat.pid
+    fi
+}
+
+stop_crond() {
+    killall crond
+}
+
+shutdown() {
+    stop_socat
+    stop_crond
+}
+
+# Trap SIGTERM signal and forward it to the stop_socat function
+trap 'shutdown' SIGTERM
+
 logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO" "init"
 
 if [ "$TEST_MODE" != "true" ]; then
-    exec ./app/httpd.sh start &
+    # exec ./app/httpd.sh start &
+    start_socat
+    wait $SOCAT_PID
     /usr/sbin/crond -f -l 8 # Start cron and keep container running
 fi
 # :nocov:
