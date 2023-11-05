@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
-# echo "Testinggg"
-# socat TCP-LISTEN:8069,fork EXEC:"/app/httpd.sh"
+# shellcheck shell=bash
 
 SOCAT_PORT=8069
 # Function to start your socat server
@@ -11,6 +9,8 @@ start_socat() {
     SOCAT_PID=$!
     echo $SOCAT_PID >/tmp/socat.pid
     echo "Listening on port $SOCAT_PORT (PID $SOCAT_PID)..."
+    
+    wait $SOCAT_PID # Keep the process open
 }
 
 start_socat

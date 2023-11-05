@@ -11,7 +11,7 @@
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "ruby-full,nano,curl,jq"
+			"packages": "ruby-full,nano,curl,jq,socat"
 		}
 	},
 
@@ -25,7 +25,8 @@
 				"tetradresearch.vscode-h2o",
 				"meronz.manpages",
 				"jeff-hykin.better-dockerfile-syntax",
-				"streetsidesoftware.code-spell-checker"
+				"streetsidesoftware.code-spell-checker",
+				"rangav.vscode-thunder-client"
 			   ],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
@@ -42,6 +43,6 @@
 		}
 	},
 	"remoteUser": "root",
-	"postCreateCommand": "./.devcontainer/postCreateCommand.sh"
-	// "forwardPorts": [],  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+	"forwardPorts": [8069]  // Use 'forwardPorts' to make a list of ports inside the container available locally.
 }
