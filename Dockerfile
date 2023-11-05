@@ -7,6 +7,13 @@ FROM docker:24.0.7-cli-alpine3.18@sha256:43651800218f833f6d09f586df8b174866a31b3
 ARG TARGETPLATFORM
 ENV TARGETPLATFORM=${TARGETPLATFORM}
 
+# Nautical Version (for example "v0.2.1") or "main" if not set
+ARG NAUTICAL_VERSION="main"
+ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
+
+# Copy all necessary files into the container (from /pkg in the repository to /app in the container)
+COPY pkg app
+
 # Packages are sourced from https://pkgs.alpinelinux.org/packages tracked from https://repology.org/projects/?inrepo=alpine_3_18
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
 
@@ -26,33 +33,26 @@ ENV CURL_VERSION="8.4.0-r0"
 ENV SOCAT_VERSION="1.7.4.4-r1"
 
 # Install dependencies
-RUN apk add --no-cache \
+RUN \
+    echo "**** install build packages ****" && \
+    apk add --no-cache --virtual=build-dependencies \
+    dos2unix="${DOS2UNIX_VERSION}" && \
+    echo "**** install runtime packages ****" && \
+    apk add --no-cache \
     bash="${BASH_VERSION}" \
     rsync="${RSYNC_VERSION}" \
     tzdata="${TZ_DATA_VERSION}" \
-    dos2unix="${DOS2UNIX_VERSION}" \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
-    socat="${SOCAT_VERSION}"
-
-# Copy all necessary files into the container (from /pkg in the repository to /app in the container)
-COPY pkg app
-
-# Make the entire /app folder executable
-RUN chmod -R +x /app
-
-# Make the all files in the /app folder Unix format
-RUN find /app -type f -print0 | xargs -0 dos2unix
-
-# Not needed anymore, so we can delete it
-RUN apk del dos2unix
-
-# Move the entrypoint script to the root directory for ease of access
-RUN mv app/entry.sh /entry.sh
-
-# Nautical Version (for example "v0.2.1") or "main" if not set
-ARG NAUTICAL_VERSION="main"
-ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
+    socat="${SOCAT_VERSION}" && \
+    echo "**** Makeing the entire /app folder executable ****" && \
+    chmod -R +x /app && \
+    echo "**** Making the all files in the /app folder Unix format ****" && \
+    find /app -type f -print0 | xargs -0 dos2unix && \
+    echo "**** cleanup ****" && \
+    apk del --purge \
+    build-dependencies && \
+    mv app/entry.sh /entry.sh
 
 # Run the entry script and pass all variables to it
 ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
