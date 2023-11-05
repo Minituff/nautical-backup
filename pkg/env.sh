@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!/command/with-contenv sh
 
 if [ -z "$TEST_MODE" ]; then
     TEST_MODE="false"
@@ -11,6 +12,8 @@ if [ "$TEST_MODE" == "true" ]; then
 
     NAUTICAL_VERSION=Test
     TARGETPLATFORM=TestPlatform
+else
+    source /app/utils.sh # This also loads the logger
 fi
 
 create_new_report_file

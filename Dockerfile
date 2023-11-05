@@ -68,6 +68,9 @@ RUN \
     build-dependencies && \
     mv app/entry.sh /entry.sh
 
+# add local files
+COPY --chmod=755 root/ /
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT ["/init"]
 # ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]
