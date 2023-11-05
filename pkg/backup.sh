@@ -18,10 +18,6 @@ if [ ! -z "$SKIP_STOPPING_STR" ]; then
     IFS=',' read -ra SKIP_STOPPING <<<"$SKIP_STOPPING_STR"
 fi
 
-# Convert the string back to an array
-# if [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
-#     IFS=',' read -ra ADDITIONAL_FOLDERS <<<"$ADDITIONAL_FOLDERS_LIST_STR"
-# fi
 
 # Function to populate override directories
 populate_override_dirs() {

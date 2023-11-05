@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+# Our general exit handler
+cleanup() {
+    err=$?
+    echo "Cleaning stuff up..."
+    trap '' EXIT INT TERM
+    exit $err 
+}
+sig_cleanup() {
+    echo "SIG cleanup..."
+    trap '' EXIT # some shells will call EXIT after the INT handler
+    false # sets $?
+    cleanup
+}
+trap cleanup EXIT
+trap sig_cleanup INT QUIT TERM
+
+
 if [ "$TEST_MODE" == "true" ]; then
     source pkg/utils.sh
     source pkg/logger.sh # Use the logger script
@@ -58,6 +75,7 @@ fi
 logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO" "init"
 
 if [ "$TEST_MODE" != "true" ]; then
+    exec ./app/httpd.sh start &
     /usr/sbin/crond -f -l 8 # Start cron and keep container running
 fi
 # :nocov:
