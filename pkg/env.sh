@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#!/command/with-contenv sh
 
 if [ -z "$TEST_MODE" ]; then
     TEST_MODE="false"
@@ -17,7 +16,6 @@ else
 fi
 
 create_new_report_file
-
 logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
 logThis "Built for the platform: $TARGETPLATFORM" "DEBUG" "init"
 
