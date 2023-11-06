@@ -25,10 +25,16 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
 
+# add s6 optional symlinks
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
+
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
 
-# Packages are sourced from https://pkgs.alpinelinux.org/packages tracked from https://repology.org/projects/?inrepo=alpine_3_18
+# Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.18&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
 
 # renovate: datasource=repology depName=alpine_3_18/bash versioning=loose
@@ -45,6 +51,11 @@ ENV JQ_VERSION="1.6-r3"
 ENV CURL_VERSION="8.4.0-r0"
 # renovate: datasource=repology depName=alpine_3_18/socat versioning=loose
 ENV SOCAT_VERSION="1.7.4.4-r1"
+# renovate: datasource=repology depName=alpine_3_18/python3 versioning=loose
+ENV PYTHON_VERSION="3.11.6-r0"
+# renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
+ENV PIP_VERSION="23.1.2-r0"
+
 
 # Install dependencies
 RUN \
@@ -58,11 +69,15 @@ RUN \
     tzdata="${TZ_DATA_VERSION}" \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
+    python3="${PYTHON_VERSION}" \
+    py3-pip="${PIP_VERSION}" \
     socat="${SOCAT_VERSION}" && \
     echo "**** Makeing the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
+    echo "**** install Python packages ****" && \
+    python3 -m pip install -r /app/api/requirements.txt && \
     echo "**** cleanup ****" && \
     apk del --purge \
     build-dependencies && \

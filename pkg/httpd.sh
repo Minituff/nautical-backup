@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
+
 set -o errexit
 set -o nounset
+
+# function start() {
+#   SOCAT_PORT=8069
+#   echo "Listening at http://localhost:$SOCAT_PORT..."
+#   socat TCP-LISTEN:$SOCAT_PORT,pktinfo,reuseaddr,fork SYSTEM:"'${SHELL}' '${BASH_SOURCE[0]}' request" 2>&1 &
+#   SOCAT_PID=$!
+#   echo $SOCAT_PID >/tmp/socat.pid
+#   echo "Listening on port $SOCAT_PORT (PID $SOCAT_PID)..."
+#   wait "$SOCAT_PID"
+# }
 
 function start() {
   SOCAT_PORT=8069
   echo "Starting TCP server at http://localhost:$SOCAT_PORT..."
-  socat TCP-LISTEN:$SOCAT_PORT,pktinfo,reuseaddr,fork SYSTEM:"'${SHELL}' '${BASH_SOURCE[0]}' request" 2>&1 &
-  SOCAT_PID=$!
-  echo $SOCAT_PID >/tmp/socat.pid
-  echo "Listening on port $SOCAT_PORT (PID $SOCAT_PID)..."
+  /usr/bin/socat TCP-LISTEN:$SOCAT_PORT,pktinfo,reuseaddr,fork SYSTEM:"'${SHELL}' '${BASH_SOURCE[0]}' request"
 }
 
 function stop() {
@@ -23,16 +31,30 @@ function stop() {
 }
 
 function request() {
-  read -r first_line
-  export HTTP_METHOD="$(cut -d' ' -f 1 - <<<"${first_line}")"
-  export HTTP_PATH="$(cut -d' ' -f 2 - <<<"${first_line}")"
+  echo "Received a request"
 
-  log "Received HTTP request"
+  read -r first_line
+
+  HTTP_METHOD="$(echo "${first_line}" | cut -d' ' -f 1)"
+  HTTP_PATH="$(echo "${first_line}" | cut -d' ' -f 2)"
+
+  log "Received HTTP request: $HTTP_METHOD $HTTP_PATH"
   write_http "HTTP/1.1 200 OK"
   write_http "Content-Type: text/plain"
   write_http "Server: Shell Script"
   write_http
   write_http 'Hello, World!'
+  write_http
+  log "Sent HTTP response"
+}
+
+function send_response() {
+  write_http "$1"
+  write_http "$2"
+  write_http "Connection: close"
+  write_http "Server: Shell Script"
+  write_http
+  write_http "$3"
   write_http
   log "Sent HTTP response"
 }
