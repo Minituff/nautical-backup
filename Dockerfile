@@ -48,8 +48,6 @@ ENV DOS2UNIX_VERSION="7.4.4-r1"
 ENV JQ_VERSION="1.6-r3"
 # renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
 ENV CURL_VERSION="8.4.0-r0"
-# renovate: datasource=repology depName=alpine_3_18/socat versioning=loose
-ENV SOCAT_VERSION="1.7.4.4-r1"
 # renovate: datasource=repology depName=alpine_3_18/python3 versioning=loose
 ENV PYTHON_VERSION="3.11.6-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
@@ -57,6 +55,8 @@ ENV PIP_VERSION="23.1.2-r0"
 # renovate: datasource=repology depName=alpine_3_18/s6-overlay versioning=loose
 ENV S6_OVERLAY_VERSION="3.1.5.0-r0"
 
+# Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
+ENV S6_VERBOSITY=1
 
 # Install dependencies
 RUN \
@@ -72,8 +72,7 @@ RUN \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
     python3="${PYTHON_VERSION}" \
-    s6-overlay="${S6_OVERLAY_VERSION}" \
-    socat="${SOCAT_VERSION}" && \
+    s6-overlay="${S6_OVERLAY_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \

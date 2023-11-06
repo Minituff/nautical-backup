@@ -11,7 +11,7 @@
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "ruby-full,nano,curl,jq,socat,python3,python3-pip"
+			"packages": "ruby-full,nano,curl,jq,python3,python3-pip"
 		}
 	},
 
