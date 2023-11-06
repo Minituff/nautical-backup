@@ -23,13 +23,13 @@ process_csv() {
 
 verify_source_location() {
     local src_dir=$1
-    logThis "Verifying source directory $src_dir..." "DEBUG" "init"
+    logThis "Verifying source directory '$src_dir'..." "DEBUG" "init"
     # :nocov:
     if [ ! -d "$src_dir" ]; then
-        logThis "Error: Source directory $src_dir does not exist." "ERROR" "init"
+        logThis "Source directory '$src_dir' does not exist." "ERROR" "init"
         exit 1
     elif [ ! -r "$src_dir" ]; then
-        logThis "Error: No read access to source directory $src_dir." "ERROR" "init"
+        logThis "No read access to source directory '$src_dir'." "ERROR" "init"
         exit 1
     fi
     # :nocov:
@@ -37,16 +37,16 @@ verify_source_location() {
 
 verify_destination_location() {
     local dest_dir=$1
-    logThis "Verifying destination directory $dest_dir..." "DEBUG" "init"
+    logThis "Verifying destination directory '$dest_dir'..." "DEBUG" "init"
     # :nocov:
     if [ ! -d "$dest_dir" ]; then
-        logThis "Error: Destination directory $dest_dir does not exist." "ERROR" "init"
+        logThis "Destination directory '$dest_dir' does not exist." "ERROR" "init"
         exit 1
     elif [ ! -r "$dest_dir" ]; then
-        logThis "Error: No read access to destination directory $dest_dir." "ERROR" "init"
+        logThis "No read access to destination directory '$dest_dir'." "ERROR" "init"
         exit 1
     elif [ ! -w "$dest_dir" ]; then
-        logThis "Error: No write access to destination directory $dest_dir." "ERROR" "init"
+        logThis "No write access to destination directory '$dest_dir'." "ERROR" "init"
         exit 1
     fi
     # :nocov:

@@ -1,5 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+source /app/logger.sh # Use the logger script
+
+logThis "Listening on port 8069..." "INFO" "init"
 
 cd /app/api
- 
-uvicorn main:app --host 0.0.0.0 --port 8069
+
+uvicorn main:app --host 0.0.0.0 --port 8069 --use-colors --log-level 'warning'
+#-log-level Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'. Default: 'info'.

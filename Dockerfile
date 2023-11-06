@@ -13,23 +13,22 @@ ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
 LABEL maintainer="minituff"
 
-
 # Set version for s6 overlay 
-ARG S6_OVERLAY_VERSION="3.1.5.0"
+ARG S6_OVERLAY_VERSION="3.1.6.0"
 # amd64 = "x86_64". arm = "aarch64"
 ARG S6_OVERLAY_ARCH="x86_64" 
 
-# Install S6 Overlay
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
-RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
-RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
+# # Install S6 Overlay
+# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+# RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
+# RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
 
-# add s6 optional symlinks
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
-RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
-RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
+# # add s6 optional symlinks
+# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
+# RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
+# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
+# RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
@@ -55,6 +54,8 @@ ENV SOCAT_VERSION="1.7.4.4-r1"
 ENV PYTHON_VERSION="3.11.6-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
 ENV PIP_VERSION="23.1.2-r0"
+# renovate: datasource=repology depName=alpine_3_18/s6-overlay versioning=loose
+ENV S6_OVERLAY_VERSION="3.1.5.0-r0"
 
 
 # Install dependencies
@@ -71,19 +72,20 @@ RUN \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
     python3="${PYTHON_VERSION}" \
+    s6-overlay="${S6_OVERLAY_VERSION}" \
     socat="${SOCAT_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
     echo "**** install Python packages ****" && \
-    python3 -m pip install -r /app/api/requirements.txt && \
+    python3 -m pip install --no-cache-dir --upgrade -r /app/api/requirements.txt && \
     echo "**** cleanup ****" && \
     apk del --purge \
     build-dependencies && \
     mv app/entry.sh /entry.sh
 
-# add local files
+# Add S6 files
 COPY --chmod=755 root/ /
 
 VOLUME [ "/app/source" ]

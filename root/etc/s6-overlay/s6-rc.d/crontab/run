@@ -1,0 +1,8 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+source /app/logger.sh # Use the logger script
+
+logThis "Initialization complete. Awaiting CRON schedule: $CRON_SCHEDULE" "INFO" "init"
+
+/usr/sbin/crond -f -l 8 # Start cron and keep container running

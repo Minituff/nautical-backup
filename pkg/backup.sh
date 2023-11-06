@@ -6,6 +6,7 @@ else
     source /app/logger.sh # Use the logger script
 fi
 
+echo "BACKUP"
 logThis "Starting backup..."
 
 # Convert the string back to an array
