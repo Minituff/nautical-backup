@@ -26,7 +26,7 @@
 				"meronz.manpages",
 				"jeff-hykin.better-dockerfile-syntax",
 				"streetsidesoftware.code-spell-checker",
-				"rangav.vscode-thunder-client"
+				"ms-python.python"
 			   ],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",

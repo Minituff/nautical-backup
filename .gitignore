@@ -1,3 +1,4 @@
 /dev
 coverage
 .vscode
+__pycache__
