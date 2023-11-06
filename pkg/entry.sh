@@ -40,7 +40,7 @@ if [ "$BACKUP_ON_START" = "true" ]; then
     if [ "$TEST_MODE" == "true" ]; then
         source pkg/backup.sh
     else
-        bash ./app/backup.sh
+        bash /app/backup.sh
     fi
 fi
 
