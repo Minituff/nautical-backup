@@ -59,10 +59,11 @@ ENV PIP_VERSION="23.1.2-r0"
 
 # Install dependencies
 RUN \
-    echo "**** install build packages ****" && \
+    echo "**** install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
-    dos2unix="${DOS2UNIX_VERSION}" && \
-    echo "**** install runtime packages ****" && \
+    dos2unix="${DOS2UNIX_VERSION}" \
+    py3-pip="${PIP_VERSION}" && \
+    echo "**** install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
     bash="${BASH_VERSION}" \
     rsync="${RSYNC_VERSION}" \
@@ -70,9 +71,8 @@ RUN \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
     python3="${PYTHON_VERSION}" \
-    py3-pip="${PIP_VERSION}" \
     socat="${SOCAT_VERSION}" && \
-    echo "**** Makeing the entire /app folder executable ****" && \
+    echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
