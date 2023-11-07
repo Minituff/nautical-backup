@@ -35,6 +35,8 @@ fi
 verify_source_location $SOURCE_LOCATION
 verify_destination_location $DEST_LOCATION
 
+initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
+
 if [ "$BACKUP_ON_START" = "true" ]; then
     logThis "Starting backup since BACKUP_ON_START is true" "INFO" "init"
     if [ "$TEST_MODE" == "true" ]; then

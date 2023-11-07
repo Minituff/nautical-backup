@@ -3,7 +3,7 @@
 
 source /app/logger.sh # Use the logger script
 
-logThis "Listening on port 8069..." "INFO" "init"
+logThis "API listening on port 8069..." "INFO" "init"
 
 cd /app/api
 

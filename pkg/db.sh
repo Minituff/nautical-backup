@@ -1,130 +1,103 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 
 # Credit to: https://github.com/reddec/bash-db
 
-# Get value by key
-get () {
-   if [[ "$1" == "--help" ]];
-   then
-      echo "Usage: db get <database> <key>"
-      exit 0
-   elif [[ -z "$2" ]];
-   then
-      echo "No key provided"
-      exit 3
-   fi
-
-   db=$1;
-   key=$(echo -n "$2" | base64 -w 0);
-   sed -nr "s/^$key\ (.*$)/\1/p" $db | base64 -d
+# Helper function to decode base64
+decode_base64() {
+  base64 -d <<< "$1"
 }
 
-# List all keys
-list () {
-   if [[ "$1" == "--help" ]];
-   then
-      echo "Usage: db list <database>"
-      exit 0
-   fi
-
-   db=$1;
-   sed -nr "s/(^[^\ ]+)\ (.*$)/\1/p" $db | xargs -n 1 sh -c 'echo `echo -n $0 | base64 -d`'
+# Helper function to encode base64
+encode_base64() {
+  base64 -w 0 <<< "$1"
 }
 
-# Get last added value 
-last () {
-   if [[ "$1" == "--help" ]];
-   then
-      echo "Usage: db last <database>"
-      exit 0
-   fi
-
-   db=$1;
-   sed -nr "\$s/(.*)\ (.*$)/\2/p;d" $db | base64 -d
+# Helper function to get the database path from parameters
+get_db_path() {
+  local db_path="$NAUTICAL_DB_PATH/$NAUTICAL_DB_NAME"
+  if [[ "$1" == "--db" ]] && [[ -n "$2" ]]; then
+    db_path="$2"
+    # Remove the first two parameters (--db and path)
+    shift 2
+  fi
+  echo "$db_path"
 }
 
-# Put or updated record
-put () {
-   if [[ "$1" == "--help" ]];
-   then
-      echo "Usage: db put <database> <key> ?<value>"
-      exit 0
-   elif [[ -z "$2" ]];
-   then
-      echo "No key provided"
-      exit 3
-   fi;
-
-   db=$1;
-   key=$(echo -n "$2" | base64 -w 0);
-   value=$3;
-   if [ -z "$3" ]
-   then
-      value=$(base64 -w 0 <&0);
-   else
-      value=$(echo -n "$value" | base64 -w 0);
-   fi
-
-   if [ ! -f "$1" ]; then touch "$db"; fi;
-   if [[ $(grep "^"$key"\ " $db) == "" ]]; then
-      #Insert
-      echo "$key $value" >> $db
-   else
-      #Replace
-      sed -ir "s/^$key\ .*/$key $value/g" $db
-   fi;
+# Function to get value by key
+get() {
+  local db_path=$(get_db_path "$@")
+  local key=$(encode_base64 "$1")
+  sed -nr "s/^$key\ (.*$)/\1/p" "$db_path" | decode_base64
 }
 
-# Remove record by key
-delete () {
-   if [[ "$1" == "--help" ]];
-   then
-      echo "Usage: db delete <database> <key>"
-      exit 0
-   elif [[ -z "$2" ]];
-   then
-      echo "No key provided"
-      exit 3
-   fi
-
-   db=$1;
-   key=$(echo -n "$2" | base64 -w 0);
-   sed -ri "/^"$key"\ .*/d" "$db"
+# Function to list all keys
+list() {
+  local db_path=$(get_db_path "$@")
+  sed -nr "s/(^[^\ ]+)\ (.*$)/\1/p" "$db_path" | while read -r line; do decode_base64 "$line"; done
 }
 
-help () {
-   echo '
-      Usage: db <get|list|last|put|delete> <database> [arguments...]
+# Function to get the last added value
+last() {
+  local db_path=$(get_db_path "$@")
+  tail -1 "$db_path" | cut -d ' ' -f2- | decode_base64
+}
 
-      db --help                        - Show this help message
-      db <method> --help               - Show help message for a method
-      db get <database> [key]          - Get value of record by key
-      db list <database>               - Get all keys in database
-      db last <database>               - Get the value of the last added record
-      db put <database> [key] [?value] - Insert or update record.
-      db delete <database> <key>       - Delete record by key'
-   exit 0
+# Function to insert or update a record
+put() {
+  local db_path=$(get_db_path "$@")
+  local key=$(encode_base64 "$1")
+  local value=$(encode_base64 "$2")
+  if [[ -z "$(grep "^$key " "$db_path")" ]]; then
+    # Insert
+    echo "$key $value" >> "$db_path"
+  else
+    # Update
+    sed -i "s/^$key .*/$key $value/" "$db_path"
+  fi
+}
+
+# Function to delete a record by key
+delete() {
+  local db_path=$(get_db_path "$@")
+  local key=$(encode_base64 "$1")
+  sed -i "/^$key /d" "$db_path"
+}
+
+# Function to show help
+help() {
+  echo '
+Usage: db <get|list|last|put|delete> [--db <path>] <key> [value]
+
+Commands:
+get    - Get value of record by key
+list   - List all keys in database
+last   - Get the value of the last added record
+put    - Insert or update record
+delete - Delete record by key
+
+Options:
+--db   - Specify the database path (default is '"$NAUTICAL_DB_PATH/$NAUTICAL_DB_NAME"')
+
+Example:
+db put --db /path/to/db "key" "value"
+'
 }
 
 # Start
-
-if [[ -z "$1" || "$1" == "--help" ]];
-then
-   help
-   exit 0
-fi
-
-if [[ "$1" =~ (get|list|last|put|delete) ]];
-then
-   if [[ -z "$2" ]];
-   then
-      echo "No database provided"
-      exit 2
-   else
-      "$@"
-   fi
-else
-   echo method "'$1'" not found
-   help
-   exit 1
-fi
+case "$1" in
+  get|list|last|put|delete)
+    if [[ "$2" == "--help" ]]; then
+      help
+      exit 0
+    fi
+    "$@"
+    ;;
+  --help)
+    help
+    ;;
+  *)
+    echo "Unknown method '$1'"
+    help
+    exit 1
+    ;;
+esac

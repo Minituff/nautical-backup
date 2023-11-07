@@ -95,7 +95,28 @@ DEFAULT_ADDITIONAL_FOLDERS=""
 # When do backup the additional folders? "before", "after", or "both" the container backups
 DEFAULT_ADDITIONAL_FOLDERS_WHEN="before"
 
+# Path to the base64 Nautical database.
+DEFAULT_NAUTICAL_DB_PATH="/config"
+DEFAULT_NAUTICAL_DB_NAME="nautical.db"
+
 logThis "Perparing enviornment variables..." "DEBUG" "init"
+
+
+if [ -z "$NAUTICAL_DB_PATH" ]; then
+    NAUTICAL_DB_PATH=$DEFAULT_NAUTICAL_DB_PATH
+fi
+logThis "NAUTICAL_DB_PATH: $NAUTICAL_DB_PATH" "DEBUG" "init"
+export NAUTICAL_DB_PATH
+printf "${NAUTICAL_DB_PATH}" > /var/run/s6/container_environment/NAUTICAL_DB_PATH
+
+
+if [ -z "$NAUTICAL_DB_NAME" ]; then
+    NAUTICAL_DB_NAME=$DEFAULT_NAUTICAL_DB_NAME
+fi
+logThis "NAUTICAL_DB_NAME: $NAUTICAL_DB_NAME" "DEBUG" "init"
+export NAUTICAL_DB_NAME
+printf "${NAUTICAL_DB_NAME}" > /var/run/s6/container_environment/NAUTICAL_DB_NAME
+
 
 if [ -z "$TEST_MODE" ]; then
     TEST_MODE=$DEFAULT_TEST_MODE
