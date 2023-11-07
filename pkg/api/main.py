@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 import subprocess
 from fastapi.responses import PlainTextResponse
 import docker_router
+import nautical_router
 import os
 
 # Read version from environment variable or default to '0.0.0' if not set
@@ -15,6 +16,7 @@ app = FastAPI(
 )
 
 app.include_router(docker_router.router)
+app.include_router(nautical_router.router)
 
 
 # Existing endpoints
