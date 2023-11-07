@@ -1,10 +1,9 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-# source /app/logger.sh # Use the logger script
+source /app/logger.sh # Use the logger script
 
-# logThis "Listening on port 8069..." "INFO" "init"
-echo "INFO Listening on port 8069..."
+logThis "Listening on port 8069..." "INFO" "init"
 
 cd /app/api
 

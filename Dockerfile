@@ -13,22 +13,31 @@ ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
 LABEL maintainer="minituff"
 
-# Set version for s6 overlay 
+# renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ARG S6_OVERLAY_VERSION="3.1.6.0"
+
 # amd64 = "x86_64". arm = "aarch64"
-ARG S6_OVERLAY_ARCH="x86_64" 
+ARG S6_OVERLAY_ARCH="x86_64"
 
-# # Install S6 Overlay
-# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
-# RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
-# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
-# RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
+# Conditional logic to overwrite S6_OVERLAY_ARCH based on TARGETPLATFORM
+RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
+        S6_OVERLAY_ARCH="aarch64"; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+        S6_OVERLAY_ARCH="x86_64"; \
+    fi && \
+    echo "S6_OVERLAY_ARCH set to $S6_OVERLAY_ARCH"
 
-# # add s6 optional symlinks
-# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
-# RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
-# ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
-# RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
+# Install S6 Overlay
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
+
+# Add s6 optional symlinks (helps fix paths)
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
@@ -53,33 +62,32 @@ ENV PYTHON_VERSION="3.11.6-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
 ENV PIP_VERSION="23.1.2-r0"
 # renovate: datasource=repology depName=alpine_3_18/s6-overlay versioning=loose
-ENV S6_OVERLAY_VERSION="3.1.5.0-r0"
+# ENV S6_OVERLAY_VERSION="3.1.5.0-r0"
 
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
 ENV S6_VERBOSITY=1
 
 # Install dependencies
 RUN \
-    echo "**** install build packages (will be uninstalled later) ****" && \
+    echo "**** Install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
     dos2unix="${DOS2UNIX_VERSION}" \
     py3-pip="${PIP_VERSION}" && \
-    echo "**** install runtime packages (required at runtime) ****" && \
+    echo "**** Install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
     bash="${BASH_VERSION}" \
     rsync="${RSYNC_VERSION}" \
     tzdata="${TZ_DATA_VERSION}" \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
-    python3="${PYTHON_VERSION}" \
-    s6-overlay="${S6_OVERLAY_VERSION}" && \
+    python3="${PYTHON_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
-    echo "**** install Python packages ****" && \
+    echo "**** Install Python packages ****" && \
     python3 -m pip install --no-cache-dir --upgrade -r /app/api/requirements.txt && \
-    echo "**** cleanup ****" && \
+    echo "**** Cleanup ****" && \
     apk del --purge \
     build-dependencies && \
     mv app/entry.sh /entry.sh
