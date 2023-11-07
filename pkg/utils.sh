@@ -25,18 +25,20 @@ process_csv() {
 initialize_db() {
     local db_path=$1
     local db_name=$2
-    
-    echo "db_path = $db_path"
-    echo "db_name = $db_name"
-    logThis "Initializing databse at '$db_path/$db_name'..." "DEBUG" "init"
-    # Check if directory exists, if not create it
-    if [ ! -d "$db_path" ]; then
-        mkdir -p "$db_path"
-    fi
 
-    # Check if database file exists, if not create it
-    if [ ! -f "$db_path/$db_name" ]; then
-        touch "$db_path/$db_name"
+    if [ -f "$db_path/$db_name" ]; then
+        logThis "Connected to database at '$db_path/$db_name'..." "DEBUG" "init"
+    else
+        logThis "Initializing databse at '$db_path/$db_name'..." "DEBUG" "init"
+        # Check if directory exists, if not create it
+        if [ ! -d "$db_path" ]; then
+            mkdir -p "$db_path"
+        fi
+
+        # Check if database file exists, if not create it
+        if [ ! -f "$db_path/$db_name" ]; then
+            touch "$db_path/$db_name"
+        fi
     fi
 }
 

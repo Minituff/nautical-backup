@@ -2,8 +2,12 @@ import base64
 import os
 
 class DB:
-    def __init__(self, db_path):
+    def __init__(self, db_path="/config/nautical.db"):
         self.db_path = db_path
+        if self.db_path == None:
+            NAUTICAL_DB_PATH = os.getenv('NAUTICAL_DB_PATH', '/config')
+            NAUTICAL_DB_NAME = os.getenv('NAUTICAL_DB_NAME', 'nautical.db')
+            self.db_path = f"{NAUTICAL_DB_PATH}/{NAUTICAL_DB_NAME}"
 
     def base64_encode(self, data):
         return base64.b64encode(data.encode()).decode()
@@ -61,3 +65,11 @@ class DB:
                 for line in lines:
                     if not line.startswith(encoded_key + " "):
                         f.write(line)
+
+if __name__ == "__main__":
+    db = DB()
+    db.put("python", "python-value")
+    print(db.get("python"))
+    db.put("test2", "test")
+    db.put("test3", "test")
+    db.put("test41", "testing1234testing1234")

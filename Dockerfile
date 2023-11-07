@@ -61,8 +61,6 @@ ENV CURL_VERSION="8.4.0-r0"
 ENV PYTHON_VERSION="3.11.6-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
 ENV PIP_VERSION="23.1.2-r0"
-# renovate: datasource=repology depName=alpine_3_18/s6-overlay versioning=loose
-# ENV S6_OVERLAY_VERSION="3.1.5.0-r0"
 
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
 ENV S6_VERBOSITY=1

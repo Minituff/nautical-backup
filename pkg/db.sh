@@ -5,12 +5,14 @@
 # Helper function to decode base64
 decode_base64() {
   base64 -d <<< "$1"
+  echo # This ensures a newline is output after the decoded value
 }
 
-# Helper function to encode base64
+# Helper function to encode base64 without newlines
 encode_base64() {
-  base64 -w 0 <<< "$1"
+  echo -n "$1" | base64 -w 0
 }
+
 
 # Helper function to get the database path from parameters
 get_db_path() {
@@ -27,8 +29,10 @@ get_db_path() {
 get() {
   local db_path=$(get_db_path "$@")
   local key=$(encode_base64 "$1")
-  sed -nr "s/^$key\ (.*$)/\1/p" "$db_path" | decode_base64
+  local result=$(sed -nr "s/^$key\ (.*$)/\1/p" "$db_path")
+  decode_base64 "$result"
 }
+
 
 # Function to list all keys
 list() {

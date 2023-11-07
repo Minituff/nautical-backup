@@ -14,7 +14,10 @@
 			"packages": "ruby-full,nano,curl,jq,python3,python3-pip"
 		}
 	},
-
+	"containerEnv": {
+		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
+		"NAUTICAL_DB_NAME": "nautical.db"
+	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
