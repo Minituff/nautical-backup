@@ -8,6 +8,8 @@ fi
 
 logThis "Starting backup..."
 
+db put "backup-running" "true"
+
 # Convert the string back to an array
 if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
     IFS=',' read -ra SKIP_CONTAINERS <<<"$CONTAINER_SKIP_LIST_STR"
@@ -350,6 +352,8 @@ if [ ! -z "$POST_BACKUP_CURL" ]; then
     logThis "Running POST-backup curl command..." "INFO"
     CurlCommand "$POST_BACKUP_CURL"
 fi
+
+db put "backup-running" "false"
 
 if [ "$RUN_ONCE" = "true" ]; then
     logThis "Exiting since RUN_ONCE is true" "INFO" "init"

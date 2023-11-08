@@ -39,7 +39,16 @@ initialize_db() {
         if [ ! -f "$db_path/$db_name" ]; then
             touch "$db_path/$db_name"
         fi
+
     fi
+
+    if [ ! -f "/usr/local/bin/db" ]; then
+        logThis "Installing database script..." "DEBUG" "init"
+        # Allows the database script to be run using `bash db --help`
+        cp /app/db.sh /usr/local/bin/db
+    fi
+
+    db put "backup-running" "false"
 }
 
 verify_source_location() {
