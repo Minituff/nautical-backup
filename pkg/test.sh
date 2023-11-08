@@ -266,6 +266,9 @@ declare -A expected_env_vars=(
     ["ADDITIONAL_FOLDERS_WHEN"]="before"
     ["PRE_BACKUP_CURL"]=""
     ["POST_BACKUP_CURL"]=""
+    ["HTTP_REST_API_ENABLED"]="true"
+    ["HTTP_REST_API_PASSWORD"]=""
+    
 )
 
 if [ "$1" == "test1" ]; then
