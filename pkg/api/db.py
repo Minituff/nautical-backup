@@ -68,15 +68,15 @@ class DB:
                         f.write(line)
                         
     def dump_json(self):
-        data = {}
-        if os.path.exists(self.db_path):
+            data = {}
             with open(self.db_path, 'r') as f:
                 for line in f:
-                    encoded_key, encoded_value = line.strip().split(" ", 1)
-                    key = self.base64_decode(encoded_key)
-                    value = self.base64_decode(encoded_value)
-                    data[key] = value
-        return json.dumps(data, indent=4)
+                    if line.strip():  # Ensure we don't process empty lines
+                        encoded_key, encoded_value = line.strip().split(" ", 1)
+                        key = self.base64_decode(encoded_key)
+                        value = self.base64_decode(encoded_value)
+                        data[key] = value
+            return data
     
 if __name__ == "__main__":
     db = DB()
