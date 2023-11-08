@@ -9,6 +9,8 @@ echo "Aliases complete!"
 
 echo "Installing python packages (for api)..."
 python3 -m pip install -r /workspaces/nautical-backup/pkg/api/requirements.txt
+echo "Installing python packages (for docs)..."
+python3 -m pip install -r /workspaces/nautical-backup/docs/requirements.txt
 
 echo "Init complete. Nautical development enviornment ready to go!!"
 

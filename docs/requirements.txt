@@ -1,0 +1,4 @@
+mkdocs-material
+pymdown-extensions
+pytz
+mkdocs-swagger-ui-tag
