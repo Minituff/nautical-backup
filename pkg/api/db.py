@@ -1,10 +1,11 @@
 import base64
 import os
+import json
 
 class DB:
-    def __init__(self, db_path="/config/nautical.db"):
-        self.db_path = db_path
-        if self.db_path == None:
+    def __init__(self, db_path:str=""):
+        self.db_path: str = db_path
+        if self.db_path == "":
             NAUTICAL_DB_PATH = os.getenv('NAUTICAL_DB_PATH', '/config')
             NAUTICAL_DB_NAME = os.getenv('NAUTICAL_DB_NAME', 'nautical.db')
             self.db_path = f"{NAUTICAL_DB_PATH}/{NAUTICAL_DB_NAME}"
@@ -65,7 +66,18 @@ class DB:
                 for line in lines:
                     if not line.startswith(encoded_key + " "):
                         f.write(line)
-
+                        
+    def dump_json(self):
+        data = {}
+        if os.path.exists(self.db_path):
+            with open(self.db_path, 'r') as f:
+                for line in f:
+                    encoded_key, encoded_value = line.strip().split(" ", 1)
+                    key = self.base64_decode(encoded_key)
+                    value = self.base64_decode(encoded_value)
+                    data[key] = value
+        return json.dumps(data, indent=4)
+    
 if __name__ == "__main__":
     db = DB()
     db.put("python", "python-value")
