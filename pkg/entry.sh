@@ -21,10 +21,10 @@ if [ "$TEST_MODE" != "true" ]; then
     crontab -l >tempcron
 
     # Remove the existing cron job for your backup script from the file
-    sed -i '/\/app\/backup.sh/d' tempcron
+    sed -i '/nautical/d' tempcron
 
     # Add the new cron job to the file
-    echo "$CRON_SCHEDULE bash /app/backup.sh" >>tempcron
+    echo "$CRON_SCHEDULE bash nautical" >>tempcron
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
@@ -36,13 +36,14 @@ verify_source_location $SOURCE_LOCATION
 verify_destination_location $DEST_LOCATION
 
 initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
+initialize_nautical
 
 if [ "$BACKUP_ON_START" = "true" ]; then
     logThis "Starting backup since BACKUP_ON_START is true" "INFO" "init"
     if [ "$TEST_MODE" == "true" ]; then
         source pkg/backup.sh
     else
-        bash /app/backup.sh
+        bash nautical
     fi
 fi
 

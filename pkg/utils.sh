@@ -22,6 +22,24 @@ process_csv() {
 }
 
 
+initialize_logThis() {
+    if [ ! -f "/usr/local/bin/logThis" ]; then
+        logThis "Installing logThis script..." "DEBUG" "init"
+        # Allows the logThis backup script to be run using `bash logThis`
+        mv /app/logger.sh /usr/local/bin/logThis
+        chmod +x /usr/local/bin/logThis
+    fi
+}
+
+initialize_nautical() {
+    if [ ! -f "/usr/local/bin/nautical" ]; then
+        logThis "Installing nautical backup script..." "DEBUG" "init"
+        # Allows the nautical backup script to be run using `bash nautical`
+        mv /app/backup.sh /usr/local/bin/nautical
+        chmod +x /usr/local/bin/nautical
+    fi
+}
+
 # Function to initialize the database if it doesn't exist
 initialize_db() {
     local db_path=$1
@@ -47,7 +65,8 @@ initialize_db() {
     if [ ! -f "/usr/local/bin/db" ]; then
         logThis "Installing database script..." "DEBUG" "init"
         # Allows the database script to be run using `bash db --help`
-        cp /app/db.sh /usr/local/bin/db
+        mv /app/db.sh /usr/local/bin/db
+        chmod +x /usr/local/bin/db
     fi
 
     db put "backup-running" "false"

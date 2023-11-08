@@ -29,7 +29,8 @@
 				"meronz.manpages",
 				"jeff-hykin.better-dockerfile-syntax",
 				"streetsidesoftware.code-spell-checker",
-				"ms-python.python"
+				"ms-python.python",
+				"njpwerner.autodocstring"
 			   ],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",

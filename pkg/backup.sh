@@ -361,6 +361,6 @@ fi
 db put "backup-running" "false"
 
 if [ "$RUN_ONCE" = "true" ]; then
-    logThis "Exiting since RUN_ONCE is true" "INFO" "init"
+    logThis "Exiting since RUN_ONCE is true" "INFO"
     exit 0
 fi

@@ -1,7 +1,5 @@
-from typing import Union
-from fastapi import FastAPI, HTTPException
-import subprocess
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 import docker_router
 import nautical_router
 import os
@@ -19,8 +17,16 @@ app.include_router(docker_router.router)
 app.include_router(nautical_router.router)
 
 
-# Existing endpoints
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <html>
+        <head>
+            <title>Nautical Backup</title>
+        </head>
+        <body>
+            <h1>Looking for the API?</h1>
+            <a href="/docs">Go here!</a>
+        </body>
+    </html>
+    """
