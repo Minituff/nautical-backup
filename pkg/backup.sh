@@ -49,6 +49,7 @@ number_of_containers=$(echo "$containers" | wc -l)
 number_of_containers=$((number_of_containers - 1)) # Subtract 1 to exclude the container running the script
 
 logThis "Processing $number_of_containers containers..."
+db put "number_of_containers" "$number_of_containers"
 
 # Define the name for the report file
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
@@ -341,6 +342,10 @@ for entry in $containers; do
 done
 
 containers_skipped=$((number_of_containers - containers_completed))
+
+
+db put "containers_completed" "$containers_completed"
+db put "containers_skipped" "$containers_skipped"
 
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
 

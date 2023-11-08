@@ -77,11 +77,3 @@ class DB:
                         value = self.base64_decode(encoded_value)
                         data[key] = value
             return data
-    
-if __name__ == "__main__":
-    db = DB()
-    db.put("python", "python-value")
-    print(db.get("python"))
-    db.put("test2", "test")
-    db.put("test3", "test")
-    db.put("test41", "testing1234testing1234")

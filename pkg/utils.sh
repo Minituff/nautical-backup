@@ -21,23 +21,25 @@ process_csv() {
     fi
 }
 
+
 # Function to initialize the database if it doesn't exist
 initialize_db() {
     local db_path=$1
     local db_name=$2
+    local db_full_path="$db_path/$db_name"
 
-    if [ -f "$db_path/$db_name" ]; then
-        logThis "Connected to database at '$db_path/$db_name'..." "DEBUG" "init"
+    if [ -f "$db_full_path" ]; then
+        logThis "Connected to database at '$db_full_path'..." "DEBUG" "init"
     else
-        logThis "Initializing databse at '$db_path/$db_name'..." "DEBUG" "init"
+        logThis "Initializing databse at '$db_full_path'..." "DEBUG" "init"
         # Check if directory exists, if not create it
         if [ ! -d "$db_path" ]; then
             mkdir -p "$db_path"
         fi
 
         # Check if database file exists, if not create it
-        if [ ! -f "$db_path/$db_name" ]; then
-            touch "$db_path/$db_name"
+        if [ ! -f "$db_full_path" ]; then
+            touch "$db_full_path"
         fi
 
     fi
