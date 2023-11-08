@@ -35,7 +35,6 @@ fi
 verify_source_location $SOURCE_LOCATION
 verify_destination_location $DEST_LOCATION
 
-check_file_size "$NAUTICAL_DB_PATH/$NAUTICAL_DB_NAME"
 initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
 
 if [ "$BACKUP_ON_START" = "true" ]; then
