@@ -13,11 +13,10 @@ security = HTTPBasic()
 
 # New /docker_ps endpoint
 @router.get("/ps", response_class=PlainTextResponse)
-def docker_ps(credentials: HTTPBasicCredentials = Depends(security)):
+def docker_ps():
     """
     Run 'docker ps' command
     """
-    username = authorize(credentials)
     
     process = subprocess.Popen(
         ["docker", "ps"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -34,11 +33,10 @@ def docker_ps(credentials: HTTPBasicCredentials = Depends(security)):
 
 
 @router.get("/inspect/{container_name}", response_class=PlainTextResponse)
-def docker_inspect(container_name: str, credentials: HTTPBasicCredentials = Depends(security)):
+def docker_inspect(container_name: str, ):
     """
     Run 'docker inspect' with the provided container name
     """
-    username = authorize(credentials)
     
     process = subprocess.Popen(
         ["docker", "inspect", container_name],
@@ -57,11 +55,10 @@ def docker_inspect(container_name: str, credentials: HTTPBasicCredentials = Depe
 
 
 @router.post("/start/{container_name}")
-def docker_start(container_name: str, credentials: HTTPBasicCredentials = Depends(security)):
+def docker_start(container_name: str, ):
     """
     Run 'docker start {container_name}'
     """
-    username = authorize(credentials)
     
     try:
         subprocess.run(
@@ -76,11 +73,10 @@ def docker_start(container_name: str, credentials: HTTPBasicCredentials = Depend
 
 
 @router.post("/stop/{container_name}")
-def docker_stop(container_name: str, credentials: HTTPBasicCredentials = Depends(security)):
+def docker_stop(container_name: str, ):
     """
     Run 'docker stop {container_name}'
     """
-    username = authorize(credentials)
     
     try:
         subprocess.run(

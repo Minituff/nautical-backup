@@ -17,16 +17,10 @@ app = FastAPI(
     version=NAUTICAL_VERSION,
 )
 
-security = HTTPBasic()
-
 # Import other endpoints
 app.include_router(docker_router.router)
 app.include_router(nautical_router.router)
 
-@app.get("/api/access/auth")
-def auth(credentials: HTTPBasicCredentials = Depends(security)):
-    username = authorize(credentials)
-    return {"Granted": True}
 
 @app.get("/", response_class=HTMLResponse)
 async def root():

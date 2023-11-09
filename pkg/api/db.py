@@ -17,14 +17,14 @@ class DB:
     def base64_decode(self, data):
         return base64.b64decode(data.encode()).decode()
 
-    def get(self, key):
+    def get(self, key, default=None):
         with open(self.db_path, "r") as f:
             encoded_key = self.base64_encode(key)
             for line in f:
                 if line.startswith(encoded_key + " "):
                     _, encoded_value = line.strip().split(" ", 1)
                     return self.base64_decode(encoded_value)
-        return None
+        return default
 
     def list(self):
         with open(self.db_path, "r") as f:
