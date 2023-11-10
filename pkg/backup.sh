@@ -1,10 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 
-if [ "$TEST_MODE" == "true" ]; then
-    source pkg/logger.sh # Use the logger script
-else
-    source /app/logger.sh # Use the logger script
-fi
+source /app/logger.sh # Use the logger script
 
 logThis "Starting backup..."
 

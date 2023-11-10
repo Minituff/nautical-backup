@@ -1,1 +1,1 @@
-with-contenv bash /entry.sh
+with-contenv bash /app/entry.sh

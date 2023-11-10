@@ -1,16 +1,7 @@
 #!/usr/bin/with-contenv bash
 
-if [ "$TEST_MODE" == "true" ]; then
-    source pkg/utils.sh
-    source pkg/logger.sh # Use the logger script
-    # source pkg/env.sh
-else
-    # :nocov:
-    source /app/logger.sh # Use the logger script
-    source /app/utils.sh
-    # source app/env.sh
-    # :nocov:
-fi
+source /app/logger.sh # Use the logger script
+source /app/utils.sh
 
 if [ "$TEST_MODE" != "true" ]; then
     # :nocov:
@@ -40,11 +31,7 @@ initialize_nautical
 
 if [ "$BACKUP_ON_START" = "true" ]; then
     logThis "Starting backup since BACKUP_ON_START is true" "INFO" "init"
-    if [ "$TEST_MODE" == "true" ]; then
-        source pkg/backup.sh
-    else
-        bash nautical
-    fi
+    bash nautical
 fi
 
 # :nocov:

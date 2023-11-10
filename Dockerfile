@@ -87,8 +87,7 @@ RUN \
     python3 -m pip install --no-cache-dir --upgrade -r /app/api/requirements.txt && \
     echo "**** Cleanup ****" && \
     apk del --purge \
-    build-dependencies && \
-    mv app/entry.sh /entry.sh
+    build-dependencies
 
 # Add S6 files
 COPY --chmod=755 root/ /

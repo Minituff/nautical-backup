@@ -2,7 +2,15 @@
 FROM minituff/nautical-backup:test
 
 # Delete the app folder
-RUN rm -rf /app
+RUN \
+    echo "**** Removing the /app folder (to be mounted at runtime) ****" && \
+    rm -rf /app && \
+    rm -rf /tests && \
+    mkdir /app && \
+    ls -la /app && \
+    mkdir /tests && \
+    ls -la /tests && \
+    echo hello > /tests/hello
 
 VOLUME [ "/app" ]
 VOLUME [ "/tests" ]

@@ -1,8 +1,4 @@
-if [ "$TEST_MODE" == "true" ]; then
-    source pkg/logger.sh # Use the logger script
-else
-    source /app/logger.sh # Use the logger script
-fi
+source /app/logger.sh # Use the logger script
 
 # Function to populate a list array
 process_csv() {
@@ -26,7 +22,7 @@ initialize_logThis() {
     if [ ! -f "/usr/local/bin/logThis" ]; then
         logThis "Installing logThis script..." "DEBUG" "init"
         # Allows the logThis backup script to be run using `bash logThis`
-        mv /app/logger.sh /usr/local/bin/logThis
+        ln -s /app/logger.sh /usr/local/bin/logThis
         chmod +x /usr/local/bin/logThis
     fi
 }
@@ -35,7 +31,7 @@ initialize_nautical() {
     if [ ! -f "/usr/local/bin/nautical" ]; then
         logThis "Installing nautical backup script..." "DEBUG" "init"
         # Allows the nautical backup script to be run using `bash nautical`
-        mv /app/backup.sh /usr/local/bin/nautical
+        ln -s /app/backup.sh /usr/local/bin/nautical
         chmod +x /usr/local/bin/nautical
     fi
 }
@@ -57,6 +53,7 @@ initialize_db() {
 
         # Check if database file exists, if not create it
         if [ ! -f "$db_full_path" ]; then
+            echo "PATH: $db_full_path"
             echo "{}" > "$db_full_path"
         fi
 
@@ -65,7 +62,8 @@ initialize_db() {
     if [ ! -f "/usr/local/bin/db" ]; then
         logThis "Installing database script..." "DEBUG" "init"
         # Allows the database script to be run using `bash db --help`
-        mv /app/db.sh /usr/local/bin/db
+        # cp /app/db.sh /usr/local/bin/db
+        ln -s /app/db.sh /usr/local/bin/db
         chmod +x /usr/local/bin/db
     fi
 

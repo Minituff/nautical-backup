@@ -207,7 +207,7 @@ test_docker() {
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
-  source pkg/entry.sh
+  source /app/entry.sh
 
   # If test_name is blank, return
   if [ -z "$test_name" ]; then
@@ -329,7 +329,7 @@ test_rsync() {
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
-  source pkg/entry.sh
+  source /app/entry.sh
 
   # If test_name is blank, return
   if [ -z "$test_name" ]; then
