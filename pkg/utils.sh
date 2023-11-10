@@ -1,3 +1,5 @@
+#!/usr/bin/with-contenv bash
+
 source /app/logger.sh # Use the logger script
 
 # Function to populate a list array

@@ -11,6 +11,7 @@ db add_current_datetime "last_cron"
 if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
     IFS=',' read -ra SKIP_CONTAINERS <<<"$CONTAINER_SKIP_LIST_STR"
 fi
+echo "SKIP ME: $SKIP_CONTAINERS"
 
 # Convert the string back to an array
 if [ ! -z "$SKIP_STOPPING_STR" ]; then

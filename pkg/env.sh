@@ -6,14 +6,12 @@ fi
 export TEST_MODE
 
 if [ "$TEST_MODE" == "true" ]; then
-    source pkg/logger.sh # Use the logger script
-    source pkg/utils.sh
 
     NAUTICAL_VERSION=Test
     TARGETPLATFORM=TestPlatform
-else
-    source /app/utils.sh # This also loads the logger
 fi
+
+source /app/utils.sh # This also loads the logger
 
 create_new_report_file
 logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
@@ -356,7 +354,6 @@ CONTAINER_SKIP_LIST_STR=$(
 )
 export CONTAINER_SKIP_LIST_STR # Export the string
 printf "${CONTAINER_SKIP_LIST_STR}" > /var/run/s6/container_environment/CONTAINER_SKIP_LIST_STR
-
 
 # Convert the array to a string
 SKIP_STOPPING_STR=$(
