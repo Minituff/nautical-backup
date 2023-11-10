@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Optional
 import croniter
 import pytz
 import os
@@ -17,7 +17,9 @@ def next_cron_occurrences(occurrences: Optional[int] = 5):
         "tz": f"{tz}",
     }
     
-    
+    if occurrences == None or occurrences <= 0: 
+        occurrences = 1
+        
     for i in range(occurrences):
         next_occurrence = cron.get_next(datetime)
         response[i+1] = [next_occurrence.strftime('%A, %B %d, %Y at %I:%M %p'), next_occurrence.strftime('%m/%d/%y %H:%M')]

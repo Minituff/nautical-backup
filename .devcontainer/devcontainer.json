@@ -47,6 +47,6 @@
 		}
 	},
 	"remoteUser": "root",
-	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+	"postCreateCommand": "./.devcontainer/scripts/postCreateCommand.sh",
 	"forwardPorts": [8069]  // Use 'forwardPorts' to make a list of ports inside the container available locally.
 }
