@@ -102,7 +102,7 @@ DEFAULT_ADDITIONAL_FOLDERS_WHEN="before"
 
 # Path to the base64 Nautical database.
 DEFAULT_NAUTICAL_DB_PATH="/config"
-DEFAULT_NAUTICAL_DB_NAME="nautical.db"
+DEFAULT_NAUTICAL_DB_NAME="nautical-db.json"
 
 logThis "Perparing enviornment variables..." "DEBUG" "init"
 

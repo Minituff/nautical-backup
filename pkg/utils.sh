@@ -57,7 +57,7 @@ initialize_db() {
 
         # Check if database file exists, if not create it
         if [ ! -f "$db_full_path" ]; then
-            touch "$db_full_path"
+            echo "{}" > "$db_full_path"
         fi
 
     fi

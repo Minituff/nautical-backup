@@ -1,18 +1,5 @@
+#!/usr/bin/env bash
 #!/usr/bin/with-contenv bash
-
-# Credit to: https://github.com/reddec/bash-db
-
-# Helper function to decode base64
-decode_base64() {
-  base64 -d <<< "$1"
-  echo # This ensures a newline is output after the decoded value
-}
-
-# Helper function to encode base64 without newlines
-encode_base64() {
-  echo -n "$1" | base64 -w 0
-}
-
 
 # Helper function to get the database path from parameters
 get_db_path() {
@@ -28,55 +15,55 @@ get_db_path() {
 # Function to get value by key
 get() {
   local db_path=$(get_db_path "$@")
-  local key=$(encode_base64 "$1")
-  local result=$(sed -nr "s/^$key\ (.*$)/\1/p" "$db_path")
-  decode_base64 "$result"
-}
+  local key="$1"
 
-
-# Function to list all keys
-list() {
-  local db_path=$(get_db_path "$@")
-  sed -nr "s/(^[^\ ]+)\ (.*$)/\1/p" "$db_path" | while read -r line; do decode_base64 "$line"; done
-}
-
-# Function to get the last added value
-last() {
-  local db_path=$(get_db_path "$@")
-  tail -1 "$db_path" | cut -d ' ' -f2- | decode_base64
+  jq --raw-output ".$key" "$db_path"
 }
 
 # Function to insert or update a record
+# Only works at the root path
 put() {
   local db_path=$(get_db_path "$@")
-  local key=$(encode_base64 "$1")
-  local value=$(encode_base64 "$2")
-  if [[ -z "$(grep "^$key " "$db_path")" ]]; then
-    # Insert
-    echo "$key $value" >> "$db_path"
-  else
-    # Update
-    sed -i "s/^$key .*/$key $value/" "$db_path"
-  fi
+  local key="$1"
+  local value="$2"
+
+  jq --arg key "$key" --arg value "$value" '.[$key] = $value' "$db_path" > tmp && mv tmp "$db_path"
 }
 
 # Function to delete a record by key
 delete() {
   local db_path=$(get_db_path "$@")
-  local key=$(encode_base64 "$1")
-  sed -i "/^$key /d" "$db_path"
+  local key="$1"
+
+  jq "del(.$key)" "$db_path" > tmp && mv tmp "$db_path"
 }
+
+add_current_datetime() {
+    local db_path=$(get_db_path "$@")
+    local key="$1"  # The JSON key where the date and time will be added
+
+    # Format the current date and time
+    local datetime_format1=$(date +"%A, %B %d, %Y at %I:%M %p")
+    local datetime_format2=$(date +"%m/%d/%y %I:%M")
+
+    # Update or create the key with the formatted date and time
+    jq --arg key "$key" --arg datetime1 "$datetime_format1" --arg datetime2 "$datetime_format2" \
+       'if .[$key] then .[$key] |= if type == "array" then . + [$datetime1, $datetime2] else [$datetime1, $datetime2] end else .[$key] = [$datetime1, $datetime2] end' \
+       "$db_path" > tmp && mv tmp "$db_path"
+}
+
+
+
 
 # Function to show help
 help() {
   echo '
-Usage: db <get|list|last|put|delete> [--db <path>] <key> [value]
+Usage: db <get|put|add_current_datetime|delete> [--db <path>] <key> [value]
 
 Commands:
 get    - Get value of record by key
-list   - List all keys in database
-last   - Get the value of the last added record
 put    - Insert or update record
+add_current_datetime - Insert a date at a key
 delete - Delete record by key
 
 Options:
@@ -89,7 +76,7 @@ db put --db /path/to/db "key" "value"
 
 # Start
 case "$1" in
-  get|list|last|put|delete)
+  get|put|add_current_datetime|delete)
     if [[ "$2" == "--help" ]]; then
       help
       exit 0

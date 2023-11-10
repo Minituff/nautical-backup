@@ -9,6 +9,7 @@ fi
 logThis "Starting backup..."
 
 db put "backup-running" "true"
+db add_current_datetime "last_cron"
 
 # Convert the string back to an array
 if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then

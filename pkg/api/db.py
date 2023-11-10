@@ -1,80 +1,39 @@
-import base64
 import os
 import json
-
 
 class DB:
     def __init__(self, db_path: str = ""):
         self.db_path: str = db_path
         if self.db_path == "":
             NAUTICAL_DB_PATH = os.getenv("NAUTICAL_DB_PATH", "/config")
-            NAUTICAL_DB_NAME = os.getenv("NAUTICAL_DB_NAME", "nautical.db")
+            NAUTICAL_DB_NAME = os.getenv("NAUTICAL_DB_NAME", "nautical-db.json")
             self.db_path = f"{NAUTICAL_DB_PATH}/{NAUTICAL_DB_NAME}"
 
-    def base64_encode(self, data):
-        return base64.b64encode(data.encode()).decode()
+    def _read_db(self):
+        if os.path.exists(self.db_path):
+            with open(self.db_path, "r") as f:
+                return json.load(f)
+        else:
+            return {}
 
-    def base64_decode(self, data):
-        return base64.b64decode(data.encode()).decode()
+    def _write_db(self, data):
+        with open(self.db_path, "w") as f:
+            json.dump(data, f, indent=4)
 
     def get(self, key, default=None):
-        with open(self.db_path, "r") as f:
-            encoded_key = self.base64_encode(key)
-            for line in f:
-                if line.startswith(encoded_key + " "):
-                    _, encoded_value = line.strip().split(" ", 1)
-                    return self.base64_decode(encoded_value)
-        return default
-
-    def list(self):
-        with open(self.db_path, "r") as f:
-            return [self.base64_decode(line.split(" ", 1)[0]) for line in f]
-
-    def last(self):
-        with open(self.db_path, "r") as f:
-            lines = f.readlines()
-            if lines:
-                _, encoded_value = lines[-1].strip().split(" ", 1)
-                return self.base64_decode(encoded_value)
-        return None
+        data = self._read_db()
+        return data.get(key, default)
 
     def put(self, key, value):
-        encoded_key = self.base64_encode(key)
-        encoded_value = self.base64_encode(value)
-
-        found = False
-        lines = []
-        if os.path.exists(self.db_path):
-            with open(self.db_path, "r") as f:
-                lines = f.readlines()
-
-        with open(self.db_path, "w") as f:
-            for line in lines:
-                if line.startswith(encoded_key + " "):
-                    f.write(f"{encoded_key} {encoded_value}\n")
-                    found = True
-                else:
-                    f.write(line)
-            if not found:
-                f.write(f"{encoded_key} {encoded_value}\n")
+        data = self._read_db()
+        data[key] = value
+        self._write_db(data)
 
     def delete(self, key):
-        encoded_key = self.base64_encode(key)
-        if os.path.exists(self.db_path):
-            with open(self.db_path, "r") as f:
-                lines = f.readlines()
-            with open(self.db_path, "w") as f:
-                for line in lines:
-                    if not line.startswith(encoded_key + " "):
-                        f.write(line)
+        data = self._read_db()
+        if key in data:
+            del data[key]
+            self._write_db(data)
 
     def dump_json(self):
-        data = {}
-        with open(self.db_path, "r") as f:
-            for line in f:
-                if line.strip():  # Ensure we don't process empty lines
-                    encoded_key, encoded_value = line.strip().split(" ", 1)
-                    key = self.base64_decode(encoded_key)
-                    value = self.base64_decode(encoded_value)
-                    data[key] = value
-        return data
+        return self._read_db()

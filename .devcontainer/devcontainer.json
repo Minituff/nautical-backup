@@ -16,7 +16,7 @@
 	},
 	"containerEnv": {
 		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
-		"NAUTICAL_DB_NAME": "nautical.db"
+		"NAUTICAL_DB_NAME": "nautical-db.json"
 	},
 	"customizations": {
 		"vscode": {

@@ -1,0 +1,8 @@
+# Use local image
+FROM minituff/nautical-backup:test
+
+# Delete the app folder
+RUN rm -rf /app
+
+VOLUME [ "/app" ]
+VOLUME [ "/tests" ]

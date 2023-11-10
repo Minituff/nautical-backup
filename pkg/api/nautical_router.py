@@ -28,6 +28,7 @@ def dashboard():
     """
     return {
         "next_cron": next_cron_occurrences(5),
+        "last_cron": db.get("last_cron", "None"),
         "number_of_containers": db.get("number_of_containers", 0),
         "completed": db.get("containers_completed", 0),
         "skipped": db.get("containers_skipped", 0),
