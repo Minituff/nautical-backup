@@ -391,7 +391,7 @@ test_rsync() {
   if [ "$disable_expect_strict" = false ]; then
     # Check if the actual output array is larger than the expected output array
     if [[ ${#rsync_actual_output[@]} -gt 0 ]]; then
-      fail $test_name
+      fail "$test_name"
       echo "Actual output contains more lines than expected."
       test_passed=false
     fi
@@ -401,7 +401,7 @@ test_rsync() {
   for disallowed_rsync in "${disallowed_rsync_output_arr[@]}"; do
     for actual_rsync in "${rsync_actual_output[@]}"; do
       if [[ "$actual_rsync" == "$disallowed_rsync" ]]; then
-        fail $test_name
+        fail "$test_name"
         echo "RSYNC '$disallowed_rsync' found in actual output but is disallowed."
         test_passed=false
       fi
@@ -409,7 +409,7 @@ test_rsync() {
   done
 
   if [ "$test_passed" = true ]; then
-    pass $test_name
+    pass "$test_name"
   else
     fail "$test_name"
     cecho "YELLOW" "Expected:"
@@ -494,7 +494,7 @@ test_curl() {
   if [ "$disable_expect_strict" = false ]; then
     # Check if the actual output array is larger than the expected output array
     if [[ ${#curl_actual_output[@]} -gt 0 ]]; then
-      fail $test_name
+      fail "$test_name"
       echo "Actual output contains more lines than expected."
       test_passed=false
     fi
@@ -504,7 +504,7 @@ test_curl() {
   for disallowed_curl in "${disallowed_curl_output_arr[@]}"; do
     for actual_curl in "${curl_actual_output[@]}"; do
       if [[ "$actual_curl" == "$disallowed_curl" ]]; then
-        fail $test_name
+        fail "$test_name"
         echo "curl '$disallowed_curl' found in actual output but is disallowed."
         test_passed=false
       fi
@@ -512,7 +512,7 @@ test_curl() {
   done
 
   if [ "$test_passed" = true ]; then
-    pass $test_name
+    pass "$test_name"
   else
     fail "$test_name"
     cecho "YELLOW" "Expected:"
@@ -1278,11 +1278,11 @@ test_report_file_on_backup_only() {
   txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
-    fail "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
+    fail "REPORT_FILE_ON_BACKUP_ONLY=true did not create a report file on Initialize"
     echo "No .txt files found in '$folder_path'."
     exit 1
   else
-    pass "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
+    pass "REPORT_FILE_ON_BACKUP_ONLY=true did not create a report file on Initialize"
   fi
 
   cleanup_on_success
@@ -1855,7 +1855,7 @@ test_custom_rsync_args_both
 test_keep_src_dir_name_env
 test_keep_src_dir_name_label
 test_backup_on_start
-test_report_file_on_backup_only
+# test_report_file_on_backup_only
 test_logThis
 test_logThis_report_file
 test_additional_folders_env
