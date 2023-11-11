@@ -2,6 +2,13 @@
 
 source /app/logger.sh # Use the logger script
 
+export_env() {
+  local var_name="$1"
+  local var_value="$2"
+  local env_file="/var/run/s6/container_environment/$var_name"
+  printf "%s" "$var_value" > "$env_file"
+}
+
 # Function to populate a list array
 process_csv() {
     local -n skip_list_ref=$1 # Use nameref to update the array passed as argument

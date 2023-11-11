@@ -7,10 +7,12 @@ logThis "Starting backup..."
 db put "backup-running" "true"
 db add_current_datetime "last_cron"
 
+echo "4 CONTAINER_SKIP_LIST_STR: $CONTAINER_SKIP_LIST_STR"
 # Convert the string back to an array
 if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
     IFS=',' read -ra SKIP_CONTAINERS <<<"$CONTAINER_SKIP_LIST_STR"
 fi
+echo "SELF_CONTAINER_ID: $SELF_CONTAINER_ID"
 echo "SKIP ME: $SKIP_CONTAINERS"
 
 # Convert the string back to an array

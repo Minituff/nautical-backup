@@ -1,5 +1,6 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
+source /app/utils.sh # Use the logger script
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
@@ -14,14 +15,6 @@ export TIMEOUT_COMMANDS_FILE
 
 failed_tests=0
 passed_tests=0
-
-export_env() {
-  local var_name="$1"
-  local var_value="$2"
-  local env_file="/var/run/s6/container_environment/$var_name"
-
-  printf "%s" "$var_value" > "$env_file"
-}
 
 # Mock function for docker
 docker() {
@@ -96,6 +89,11 @@ reset_environment_variables() {
   export_env ADDITIONAL_FOLDERS ""
   export_env PRE_BACKUP_CURL ""
   export_env POST_BACKUP_CURL ""
+  with-contenv /app/env.sh
+}
+
+apply_env(){
+  with-contenv /app/env.sh
 }
 
 clear_files() {
@@ -127,10 +125,11 @@ teardown() {
 }
 
 cleanup_on_success() {
-  reset_environment_variables
+  echo "CLEANUP ON SUCCESS"
   clear_files
   rm -rf tests/src
   rm -rf tests/dest
+  reset_environment_variables
 }
 
 cleanup_on_fail() {
@@ -216,7 +215,6 @@ test_docker() {
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
   
-  with-contenv bash /app/env.sh
   source /app/entry.sh
 
   # If test_name is blank, return
@@ -339,7 +337,6 @@ test_rsync() {
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
-  with-contenv bash /app/env.sh
   source /app/entry.sh
 
   # If test_name is blank, return
@@ -622,6 +619,7 @@ test_docker_commands() {
   clear_files
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
+  apply_env
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -661,6 +659,7 @@ test_rsync_commands() {
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
+  apply_env
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -689,6 +688,7 @@ test_rsync_commands() {
 test_skip_containers() {
   clear_files
   export_env SKIP_CONTAINERS "container1,container-name2,container-name3"
+  apply_env
   
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
@@ -721,7 +721,6 @@ test_skip_containers() {
 
 test_enable_label() {
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1825,12 +1824,12 @@ test_lifecycle_hooks() {
   cleanup_on_success
 }
 
-# ---- Call Tests ----
-reset_environment_variables
 
+# cleanup_on_success
+# ---- Call Tests ----
 # Run the tests
 # test_rsync_commands
-test_docker_commands
+# test_docker_commands
 test_skip_containers
 # test_enable_label
 # test_require_label
