@@ -62,37 +62,63 @@ print_array() {
 }
 
 reset_environment_variables() {
-  export_env TEST_MODE "true"
-  export_env LOG_LEVEL "ERROR"
-  export_env BACKUP_ON_START "true"
-  export_env REPORT_FILE "false"
-  export_env RUN_ONCE "false"
+  # Set each variable
+  SKIP_CONTAINERS=""
+  TEST_MODE="true"
+  LOG_LEVEL="ERROR"
+  BACKUP_ON_START="true"
+  REPORT_FILE="false"
+  RUN_ONCE="false"
+  TZ=""
+  CRON_SCHEDULE=""
+  USE_DEFAULT_RSYNC_ARGS=""
+  REQUIRE_LABEL=""
+  REPORT_FILE_LOG_LEVEL=""
+  REPORT_FILE_ON_BACKUP_ONLY=""
+  KEEP_SRC_DIR_NAME=""
+  EXIT_AFTER_INIT=""
+  LOG_RSYNC_COMMANDS=""
+  SOURCE_LOCATION=""
+  DEST_LOCATION=""
+  TEST_SOURCE_LOCATION=""
+  TEST_DEST_LOCATION=""
+  SKIP_STOPPING=""
+  RSYNC_CUSTOM_ARGS=""
+  OVERRIDE_SOURCE_DIR=""
+  OVERRIDE_DEST_DIR=""
+  ADDITIONAL_FOLDERS=""
+  PRE_BACKUP_CURL=""
+  POST_BACKUP_CURL=""
 
-  export_env TZ ""
-  export_env CRON_SCHEDULE ""
-  export_env USE_DEFAULT_RSYNC_ARGS ""
-  export_env REQUIRE_LABEL ""
-  export_env REPORT_FILE_LOG_LEVEL ""
-  export_env REPORT_FILE_ON_BACKUP_ONLY ""
-  export_env KEEP_SRC_DIR_NAME ""
-  export_env EXIT_AFTER_INIT ""
-  export_env LOG_RSYNC_COMMANDS ""
-  export_env SOURCE_LOCATION ""
-  export_env DEST_LOCATION ""
-  export_env TEST_SOURCE_LOCATION ""
-  export_env TEST_DEST_LOCATION ""
-  export_env SKIP_CONTAINERS ""
-  export_env SKIP_STOPPING ""
-  export_env RSYNC_CUSTOM_ARGS ""
-  export_env OVERRIDE_SOURCE_DIR ""
-  export_env OVERRIDE_DEST_DIR ""
-  export_env ADDITIONAL_FOLDERS ""
-  export_env PRE_BACKUP_CURL ""
-  export_env POST_BACKUP_CURL ""
-  with-contenv /app/env.sh
-}
+  # Export each variable
+  export_env SKIP_CONTAINERS "$SKIP_CONTAINERS"
+  export_env TEST_MODE "$TEST_MODE"
+  export_env LOG_LEVEL "$LOG_LEVEL"
+  export_env BACKUP_ON_START "$BACKUP_ON_START"
+  export_env REPORT_FILE "$REPORT_FILE"
+  export_env RUN_ONCE "$RUN_ONCE"
+  export_env TZ "$TZ"
+  export_env CRON_SCHEDULE "$CRON_SCHEDULE"
+  export_env USE_DEFAULT_RSYNC_ARGS "$USE_DEFAULT_RSYNC_ARGS"
+  export_env REQUIRE_LABEL "$REQUIRE_LABEL"
+  export_env REPORT_FILE_LOG_LEVEL "$REPORT_FILE_LOG_LEVEL"
+  export_env REPORT_FILE_ON_BACKUP_ONLY "$REPORT_FILE_ON_BACKUP_ONLY"
+  export_env KEEP_SRC_DIR_NAME "$KEEP_SRC_DIR_NAME"
+  export_env EXIT_AFTER_INIT "$EXIT_AFTER_INIT"
+  export_env LOG_RSYNC_COMMANDS "$LOG_RSYNC_COMMANDS"
+  export_env SOURCE_LOCATION "$SOURCE_LOCATION"
+  export_env DEST_LOCATION "$DEST_LOCATION"
+  export_env TEST_SOURCE_LOCATION "$TEST_SOURCE_LOCATION"
+  export_env TEST_DEST_LOCATION "$TEST_DEST_LOCATION"
+  export_env SKIP_STOPPING "$SKIP_STOPPING"
+  export_env RSYNC_CUSTOM_ARGS "$RSYNC_CUSTOM_ARGS"
+  export_env OVERRIDE_SOURCE_DIR "$OVERRIDE_SOURCE_DIR"
+  export_env OVERRIDE_DEST_DIR "$OVERRIDE_DEST_DIR"
+  export_env ADDITIONAL_FOLDERS "$ADDITIONAL_FOLDERS"
+  export_env PRE_BACKUP_CURL "$PRE_BACKUP_CURL"
+  export_env POST_BACKUP_CURL "$POST_BACKUP_CURL"
 
-apply_env(){
+  # Source the environment script
   with-contenv /app/env.sh
 }
 
@@ -672,7 +698,7 @@ test_rsync_commands() {
 test_skip_containers() {
   clear_files
   SKIP_CONTAINERS="container1,container-name2,container-name3"
-  export_env SKIP_CONTAINERS $SKIP_CONTAINERS
+  # export_env SKIP_CONTAINERS $SKIP_CONTAINERS
   
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
@@ -750,8 +776,8 @@ test_enable_label() {
 
 test_require_label() {
   clear_files
-  export BACKUP_ON_START="true"
-  export REQUIRE_LABEL=true
+  REQUIRE_LABEL="true"
+
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1818,26 +1844,26 @@ test_skip_containers
 test_enable_label
 test_require_label
 test_override_src
-# test_override_dest
-# test_skip_stopping_env
-# test_skip_stopping_label_true
-# test_skip_stopping_label_false
-# test_report_file
-# test_custom_rsync_args_env
-# test_custom_rsync_args_label
-# test_custom_rsync_args_both
-# test_keep_src_dir_name_env
-# test_keep_src_dir_name_label
-# test_backup_on_start
-# test_report_file_on_backup_only
-# test_logThis
-# test_logThis_report_file
-# test_additional_folders_env
-# test_additional_folders_label
-# test_additional_folders_label_during
-# test_pre_and_post_backup_curl_env
-# test_pre_and_post_backup_curl_label
-# test_lifecycle_hooks
+test_override_dest
+test_skip_stopping_env
+test_skip_stopping_label_true
+test_skip_stopping_label_false
+test_report_file
+test_custom_rsync_args_env
+test_custom_rsync_args_label
+test_custom_rsync_args_both
+test_keep_src_dir_name_env
+test_keep_src_dir_name_label
+test_backup_on_start
+test_report_file_on_backup_only
+test_logThis
+test_logThis_report_file
+test_additional_folders_env
+test_additional_folders_label
+test_additional_folders_label_during
+test_pre_and_post_backup_curl_env
+test_pre_and_post_backup_curl_label
+test_lifecycle_hooks
 
 # Cleanup
 teardown

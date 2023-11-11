@@ -65,7 +65,7 @@ containers_completed=0
 
 BackupAdditionalFolders() {
     IFS=',' read -ra new_additional_folders <<<"$1"
-    
+
     local new_default_rsync_args=$2
     local new_custom_args=$3
 
