@@ -831,7 +831,6 @@ test_require_label() {
 
 test_override_src() {
   clear_files
-  export BACKUP_ON_START="true"
   export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
   mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
   mkdir -p tests/src/container3-new && touch tests/src/container3-new/test.txt
@@ -889,7 +888,6 @@ test_override_src() {
 
 test_override_dest() {
   clear_files
-  export BACKUP_ON_START="true"
   export OVERRIDE_DEST_DIR=container1:container1-override,container2:container2-override,container3:container3-new
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container3 && touch tests/src/container3/test.txt
@@ -947,7 +945,6 @@ test_override_dest() {
 
 test_skip_stopping_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export SKIP_STOPPING=container1,example2
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
@@ -988,7 +985,6 @@ test_skip_stopping_env() {
 
 test_skip_stopping_label_false() {
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1034,7 +1030,6 @@ test_skip_stopping_label_false() {
 
 test_skip_stopping_label_true() {
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1076,7 +1071,6 @@ test_skip_stopping_label_true() {
 
 test_report_file() {
   clear_files
-  export BACKUP_ON_START="true"
   export REPORT_FILE="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
@@ -1089,8 +1083,9 @@ test_report_file() {
     --name "Test Docker commands on default settings" \
     --mock_ps "$mock_docker_ps_lines"
 
+  folder_path="tests/dest"
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
     fail "Test Report File not found when REPORT_FILE=true"
@@ -1103,7 +1098,6 @@ test_report_file() {
   cleanup_on_success
 
   export REPORT_FILE="false"
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1111,8 +1105,9 @@ test_report_file() {
     --name "Test Docker commands on default settings" \
     --mock_ps "$mock_docker_ps_lines"
 
+  folder_path="tests/dest"
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
     pass "Test Report File (disabled)"
@@ -1127,7 +1122,6 @@ test_report_file() {
 
 test_custom_rsync_args_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS=-aq
 
@@ -1161,7 +1155,6 @@ test_custom_rsync_args_env() {
 
 test_custom_rsync_args_label() {
   clear_files
-  export BACKUP_ON_START="true"
 
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
@@ -1197,7 +1190,6 @@ test_custom_rsync_args_label() {
 
 test_custom_rsync_args_both() {
   clear_files
-  export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS=-something
 
@@ -1235,7 +1227,6 @@ test_custom_rsync_args_both() {
 
 test_report_file_on_backup_only() {
   clear_files
-  export BACKUP_ON_START="true"
   export REPORT_FILE="true"
   export REPORT_FILE_ON_BACKUP_ONLY="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -1248,8 +1239,9 @@ test_report_file_on_backup_only() {
   test_docker \
     --mock_ps "$mock_docker_ps_lines"
 
+  folder_path="tests/dest"
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
     fail "REPORT_FILE_ON_BACKUP_ONLY=true did not creat a report file on backup"
@@ -1267,12 +1259,14 @@ test_report_file_on_backup_only() {
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
+
   mock_docker_ps_lines=$(
     echo "abc123:container1"
   )
 
-  test_docker \
-    --mock_ps "$mock_docker_ps_lines"
+  source /app/env.sh
+  # test_docker \
+  #   --mock_ps "$mock_docker_ps_lines"
 
   # Look for .txt files in the folder
   txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
@@ -1290,12 +1284,10 @@ test_report_file_on_backup_only() {
 
 test_keep_src_dir_name_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export KEEP_SRC_DIR_NAME="true"
   test_override_dest
   cleanup_on_success
 
-  export BACKUP_ON_START="true"
   export KEEP_SRC_DIR_NAME="false"
   export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
   mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
@@ -1330,7 +1322,6 @@ test_keep_src_dir_name_env() {
 test_keep_src_dir_name_label() {
   clear_files
 
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1-new && touch tests/src/container1-new/test.txt
   mkdir -p tests/dest
 
@@ -1409,7 +1400,6 @@ test_backup_on_start() {
   cleanup_on_success
 
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1531,7 +1521,6 @@ test_logThis_report_file() {
 
 test_additional_folders_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export ADDITIONAL_FOLDERS="add1,add2"
 
   mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
@@ -1557,7 +1546,6 @@ test_additional_folders_env() {
 
   cleanup_on_success
   clear_files
-  export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS="-aq"
   export ADDITIONAL_FOLDERS="add1"
@@ -1586,7 +1574,6 @@ test_additional_folders_env() {
 
 test_additional_folders_label() {
   clear_files
-  export BACKUP_ON_START="true"
 
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
@@ -1614,7 +1601,6 @@ test_additional_folders_label() {
 
   cleanup_on_success
   clear_files
-  export BACKUP_ON_START="true"
 
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
@@ -1643,7 +1629,6 @@ test_additional_folders_label() {
 
 test_additional_folders_label_during() {
   clear_files
-  export BACKUP_ON_START="true"
 
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
@@ -1689,7 +1674,6 @@ test_additional_folders_label_during() {
 
 test_pre_and_post_backup_curl_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export PRE_BACKUP_CURL="curl -X GET 'google.com'"
   export POST_BACKUP_CURL="curl -X GET 'bing.com'"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
@@ -1714,13 +1698,12 @@ test_pre_and_post_backup_curl_env() {
   cleanup_on_success
 
   test_curl \
-    --name "Test curl - none (env)" \
+    --name "Test Curl - none (env)" \
     --disallow "$expected_curl_output"
 }
 
 test_pre_and_post_backup_curl_label() {
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1750,7 +1733,6 @@ test_pre_and_post_backup_curl_label() {
 
 test_pre_and_post_backup_curl_label() {
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1783,7 +1765,6 @@ test_pre_and_post_backup_curl_label() {
 
 test_lifecycle_hooks() {
   clear_files
-  export BACKUP_ON_START="true"
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
 
@@ -1835,9 +1816,9 @@ test_lifecycle_hooks() {
 }
 
 
-# cleanup_on_success
+cleanup_on_success
+
 # ---- Call Tests ----
-# Run the tests
 test_rsync_commands
 test_docker_commands
 test_skip_containers
@@ -1855,7 +1836,7 @@ test_custom_rsync_args_both
 test_keep_src_dir_name_env
 test_keep_src_dir_name_label
 test_backup_on_start
-# test_report_file_on_backup_only
+test_report_file_on_backup_only
 test_logThis
 test_logThis_report_file
 test_additional_folders_env

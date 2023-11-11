@@ -7,12 +7,6 @@ fi
 
 source /app/utils.sh # This also loads the logger
 
-create_new_report_file
-logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
-logThis "Built for the platform: $TARGETPLATFORM" "DEBUG" "init"
-
-logThis "Perparing enviornment variables..." "DEBUG" "init"
-
 handle_env() {
     # Export and log this env
     local var_name="$1"
@@ -24,6 +18,15 @@ handle_env() {
     fi
     export_env "$var_name" "$var_value"
 }
+
+: "${REPORT_FILE:=true}" && handle_env REPORT_FILE "$REPORT_FILE"
+
+create_new_report_file
+logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
+logThis "Built for the platform: $TARGETPLATFORM" "DEBUG" "init"
+
+logThis "Perparing enviornment variables..." "DEBUG" "init"
+
 
 # Path to the defaults file
 DEFAULTS_FILE="/app/defaults.env"
