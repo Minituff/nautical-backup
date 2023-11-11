@@ -42,6 +42,9 @@
 					"zsh": {
 						"path": "zsh"
 					}
+				},
+				"files.associations": {
+					"*.env": "shellscript"
 				}
 			}
 		}
