@@ -314,7 +314,7 @@ Set the console log level for the container.
 
 > **Default**: INFO
 
-> **Options**: DEBUG, INFO, WARN, ERROR
+> **Options**: TRACE, DEBUG, INFO, WARN, ERROR
 
 ```properties
 LOG_LEVEL=INFO
@@ -326,7 +326,7 @@ Only used if the report file is [enabled](#report-file).
 
 > **Default**: INFO
 
-> **Options**: DEBUG, INFO, WARN, ERROR
+> **Options**: TRACE, DEBUG, INFO, WARN, ERROR
 
 ```properties
 REPORT_FILE_LOG_LEVEL=INFO

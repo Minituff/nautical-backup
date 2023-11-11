@@ -14,14 +14,16 @@ logThis "Built for the platform: $TARGETPLATFORM" "DEBUG" "init"
 logThis "Perparing enviornment variables..." "DEBUG" "init"
 
 handle_env() {
-  # Export and log this env
-  local var_name="$1"
-  local var_value="$2"
-
-  logThis "$var_name: $var_value" "DEBUG" "init"
-  export_env "$var_name" "$var_value"
+    # Export and log this env
+    local var_name="$1"
+    local var_value="$2"
+    if [ ! -z "${var_value}" ]; then
+        logThis "$var_name: $var_value" "DEBUG" "init"
+    else
+        logThis "$var_name: $var_value" "TRACE" "init"
+    fi
+    export_env "$var_name" "$var_value"
 }
-
 
 # Path to the defaults file
 DEFAULTS_FILE="/app/defaults.env"
@@ -52,4 +54,4 @@ while IFS= read -r line; do
         declare "$var=$default_value"
         handle_env "$var" "${!var}"
     fi
-done < "$DEFAULTS_FILE"
+done <"$DEFAULTS_FILE"
