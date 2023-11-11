@@ -1,25 +1,16 @@
 #!/usr/bin/with-contenv bash
 
 source /app/logger.sh # Use the logger script
+source /app/utils.sh # Use the logger script
 
 logThis "Starting backup..."
 
 db put "backup-running" "true"
 db add_current_datetime "last_cron"
 
-echo "4 CONTAINER_SKIP_LIST_STR: $CONTAINER_SKIP_LIST_STR"
-# Convert the string back to an array
-if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
-    IFS=',' read -ra SKIP_CONTAINERS <<<"$CONTAINER_SKIP_LIST_STR"
-fi
-echo "SELF_CONTAINER_ID: $SELF_CONTAINER_ID"
-echo "SKIP ME: $SKIP_CONTAINERS"
-
-# Convert the string back to an array
-if [ ! -z "$SKIP_STOPPING_STR" ]; then
-    IFS=',' read -ra SKIP_STOPPING <<<"$SKIP_STOPPING_STR"
-fi
-
+# Convert the string into an array
+IFS=',' read -r -a SKIP_CONTAINERS_ARRAY <<< "$SKIP_CONTAINERS"
+IFS=',' read -r -a SKIP_STOPPING_ARRAY <<< "$SKIP_STOPPING" 
 
 # Function to populate override directories
 populate_override_dirs() {
@@ -69,11 +60,12 @@ if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
 fi
 
 # Merge the default skips with provided skips
-currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
+currs=("${currs[@]}" "${SKIP_CONTAINERS_ARRAY[@]}")
 containers_completed=0
 
 BackupAdditionalFolders() {
     IFS=',' read -ra new_additional_folders <<<"$1"
+    
     local new_default_rsync_args=$2
     local new_custom_args=$3
 
@@ -103,7 +95,7 @@ BackupContainer() {
     local custom_args=$4
 
     local skip_stopping=0
-    for skip in "${SKIP_STOPPING[@]}"; do
+    for skip in "${SKIP_STOPPING_ARRAY[@]}"; do
         if [ "$skip" == "$container" ]; then
             skip_stopping=1
             logThis "Skipping stopping of $container as it's in the SKIP_STOPPING list." "DEBUG"
@@ -233,8 +225,8 @@ if [ ! -z "$PRE_BACKUP_CURL" ]; then
     CurlCommand "$PRE_BACKUP_CURL"
 fi
 
-if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
-    BackupAdditionalFolders "$ADDITIONAL_FOLDERS_LIST_STR" "$default_rsync_args" "$custom_args"
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS" ]; then
+    BackupAdditionalFolders "$ADDITIONAL_FOLDERS" "$default_rsync_args" "$custom_args"
 fi
 
 # Loop through all running containers
@@ -263,7 +255,7 @@ for entry in $containers; do
         fi
     fi
 
-    for cur in "${SKIP_CONTAINERS[@]}"; do
+    for cur in "${SKIP_CONTAINERS_ARRAY[@]}"; do
         if [ "$cur" == "$name" ]; then
             skip=1
             logThis "Skipping $name based on name." "DEBUG"

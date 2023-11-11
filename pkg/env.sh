@@ -55,3 +55,7 @@ while IFS= read -r line; do
         handle_env "$var" "${!var}"
     fi
 done <"$DEFAULTS_FILE"
+
+# Get the container ID of the current container
+SELF_CONTAINER_ID=$(cat /proc/self/cgroup | grep 'docker' | sed 's/^.*\///' | tail -n1)
+handle_env SELF_CONTAINER_ID "$SELF_CONTAINER_ID"

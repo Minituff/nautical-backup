@@ -125,7 +125,6 @@ teardown() {
 }
 
 cleanup_on_success() {
-  echo "CLEANUP ON SUCCESS"
   clear_files
   rm -rf tests/src
   rm -rf tests/dest
@@ -135,19 +134,6 @@ cleanup_on_success() {
 cleanup_on_fail() {
   cleanup_on_success
   exit 1
-}
-
-cecho() {
-  RED="\033[0;31m"
-  GREEN="\033[0;32m"  # <-- [0 means not bold
-  YELLOW="\033[1;33m" # <-- [1 means bold
-  CYAN="\033[1;36m"
-  # ... Add more colors if you like
-
-  NC="\033[0m" # No Color
-
-  # printf "${(P)1}${2} ${NC}\n" # <-- zsh
-  printf "${!1}${2} ${NC}\n" # <-- bash
 }
 
 pass() {
@@ -619,7 +605,6 @@ test_docker_commands() {
   clear_files
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
-  apply_env
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -659,7 +644,6 @@ test_rsync_commands() {
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
   mkdir -p tests/dest
-  apply_env
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -687,8 +671,8 @@ test_rsync_commands() {
 
 test_skip_containers() {
   clear_files
-  export_env SKIP_CONTAINERS "container1,container-name2,container-name3"
-  apply_env
+  SKIP_CONTAINERS="container1,container-name2,container-name3"
+  export_env SKIP_CONTAINERS $SKIP_CONTAINERS
   
   mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
   mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
@@ -1828,12 +1812,12 @@ test_lifecycle_hooks() {
 # cleanup_on_success
 # ---- Call Tests ----
 # Run the tests
-# test_rsync_commands
-# test_docker_commands
+test_rsync_commands
+test_docker_commands
 test_skip_containers
-# test_enable_label
-# test_require_label
-# test_override_src
+test_enable_label
+test_require_label
+test_override_src
 # test_override_dest
 # test_skip_stopping_env
 # test_skip_stopping_label_true
