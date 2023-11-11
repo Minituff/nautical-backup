@@ -7,11 +7,6 @@ script_logging_level="INFO"
 report_file_logging_level="INFO"
 report_file_on_backup_only="true"
 
-if [ "$TEST_MODE" == "true" ]; then
-    SOURCE_LOCATION="tests/src"
-    DEST_LOCATION="tests/dest"
-fi
-
 # Override the defaults
 if [ ! -z "$LOG_LEVEL" ]; then
     script_logging_level=$LOG_LEVEL

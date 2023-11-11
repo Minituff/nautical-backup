@@ -3,8 +3,7 @@
 source /app/logger.sh # Use the logger script
 source /app/utils.sh
 
-if [ "$TEST_MODE" != "true" ]; then
-    # :nocov:
+install_cron(){
     # Echo the CRON schedule for logging/debugging
     logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG" "init"
 
@@ -19,8 +18,8 @@ if [ "$TEST_MODE" != "true" ]; then
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
-    # :nocov:
-fi
+}
+install_cron
 
 # Verify the source and destination locations
 verify_source_location $SOURCE_LOCATION

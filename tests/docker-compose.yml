@@ -4,6 +4,7 @@
 
 version: '3'
 services:  
+  
   nautical-backup-test1:
     image: minituff/nautical-backup:test # Use the local image
     container_name: nautical-backup-test
@@ -18,6 +19,7 @@ services:
       - EXIT_AFTER_INIT=true
       - CRON_SCHEDULE=0 8 * * *
       - REPORT_FILE=false
+  
   nautical-backup-test2:
     image: minituff/nautical-backup:test # Use the local image
     container_name: nautical-backup-test
@@ -28,3 +30,20 @@ services:
     entrypoint: /usr/bin/env bash app/test.sh test2
     environment:
       - RETURN_AFTER_INIT=true
+  
+  nautical-backup-test3:
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-test
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./source:/app/source
+      - ./destination:/app/destination
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
+    ports:
+      - "8069:8069/tcp"
+    environment:
+      - TZ=America/Los_Angeles
+      - LOG_LEVEL=DEBUG
+      - TEST_MODE=TRUE
+      - S6_KILL_GRACETIME=100 # How long until S6 kills

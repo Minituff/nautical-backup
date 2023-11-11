@@ -1815,7 +1815,7 @@ test_lifecycle_hooks() {
   cleanup_on_success
 }
 
-
+cecho "CYAN" "Beginning tests..."
 cleanup_on_success
 
 # ---- Call Tests ----

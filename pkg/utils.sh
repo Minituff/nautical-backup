@@ -77,7 +77,7 @@ initialize_db() {
 
         # Check if database file exists, if not create it
         if [ ! -f "$db_full_path" ]; then
-            logThis "Datbase Path: $db_full_path" "DEBUG" "init"
+            logThis "Database Path: $db_full_path" "DEBUG" "init"
             echo "{}" > "$db_full_path"
         fi
 
