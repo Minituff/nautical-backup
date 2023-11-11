@@ -1,10 +1,5 @@
 #!/usr/bin/with-contenv bash
 
-if [ -z "$TEST_MODE" ]; then
-    TEST_MODE="false"
-fi
-export TEST_MODE
-
 if [ "$TEST_MODE" == "true" ]; then
     NAUTICAL_VERSION=Test
     TARGETPLATFORM=TestPlatform
@@ -33,17 +28,24 @@ DEFAULTS_FILE="/app/defaults.env"
 
 # Check if the defaults file exists
 if [ ! -f "$DEFAULTS_FILE" ]; then
-    logThis "Defaults file not found: $DEFAULTS_FILE" "ERROR" "init"
+    logThis "Enviornment defaults file not found: $DEFAULTS_FILE" "ERROR" "init"
     exit 1
 fi
 
 logThis "Found defaults.env" "DEBUG" "init"
 # Read each line in the defaults file
-while IFS='=' read -r var default_value; do
+while IFS= read -r line; do
+    # Skip empty lines and lines starting with #
+    [[ -z "$line" || "$line" == \#* ]] && continue
 
-    # Skip empty lines and lines starting with "#"
-    [[ -z "$var" || "$var" == \#* ]] && continue
-    echo "VAR: $var"
+    # Extract variable name and value
+    var="${line%%=*}"
+    default_value="${line#*=}"
+
+    # Handle empty string default_value
+    if [ "$default_value" == '""' ]; then
+        default_value=""
+    fi
 
     # Set the variable to default if not already set
     if [ -z "${!var}" ]; then
