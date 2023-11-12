@@ -85,3 +85,16 @@ jobs:
         docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
         docker compose run nautical-backup-test3
 
+    - name: Ensure coverage files
+      run: |
+        ls -la
+        ls -la tests
+        ls -la tests/coverage
+
+    - name: Upload reports to Codecov
+      uses: codecov/codecov-action@v4-beta
+      env: 
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
+      with:
+        fail_ci_if_error: true
+        files: tests/coverage/coverage.xml # The json file will not work he
