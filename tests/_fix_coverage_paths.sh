@@ -1,3 +1,6 @@
+# This file is necessary since the bashcov will not run at the root of the container.
+# The paths in the coverage.xml file must match the git paths otherwise it will be invalid.
+
 echo "Fixing coverage paths..."
 
 # Define the path to your coverage.xml file

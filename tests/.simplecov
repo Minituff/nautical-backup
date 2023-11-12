@@ -23,8 +23,12 @@ SimpleCov.profiles.define 'bashcov' do
   command_name 'Unit Tests'
   enable_coverage :branch
   primary_coverage :branch
-  add_filter %r{^/_.*.sh} # Remove any .sh files that start with "_"
-  add_group "Pkg scripts", "../app"
+
+  # Remove any .sh files that start with "_"
+  add_filter %r{^/_.*.sh}
+
+  # These are not run from the unit test suite
+  add_filter %r{^/.*utils.sh}
 
   # simplecov 0.22.0+
   enable_coverage_for_eval if respond_to? :enable_coverage_for_eval
