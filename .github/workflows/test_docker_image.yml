@@ -89,6 +89,8 @@ jobs:
       run: |
         ls -la tests/coverage
         bash tests/_fix_coverage_paths.sh
+      securityContext:
+          privileged: true # Required to modify files
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta
