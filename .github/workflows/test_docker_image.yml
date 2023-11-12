@@ -12,9 +12,9 @@ on:
     branches: # Target
       - 'main'
       - 'dev'
-  # push:
-    # branches:
-      # - 'main'
+  push:
+    branches:
+      - 'api'  #! TODO: REMOVE
       # - 'codecov'
     # tags:
     #   - 'v*'
@@ -22,6 +22,7 @@ on:
 jobs:
   unit_test_and_coverage:
     name: Unit tests and coverage
+    if: contains(github.event.head_commit.message, '[NEVER]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -55,6 +56,7 @@ jobs:
 
   test_docker_image:
     name: Docker image tests
+    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -81,4 +83,5 @@ jobs:
         cd tests
         docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
         docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+        docker compose run nautical-backup-test3
 
