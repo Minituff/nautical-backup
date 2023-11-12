@@ -7,8 +7,8 @@ version: '3'
 services:  
   
   nautical-backup-test1:
-    image: nautical-test # Use the local image
-    container_name: nautical-backup-test
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
@@ -22,8 +22,8 @@ services:
       - REPORT_FILE=false
   
   nautical-backup-test2:
-    image: nautical-test # Use the local image
-    container_name: nautical-backup-test
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
@@ -33,8 +33,8 @@ services:
       - RETURN_AFTER_INIT=true
 
   nautical-backup-test3:
-    image:  nautical-test # Use the local image
-    container_name: nautical-test3
+    image:  minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # - ./source:/app/source

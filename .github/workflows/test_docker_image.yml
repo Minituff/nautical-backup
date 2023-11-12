@@ -74,7 +74,7 @@ jobs:
       with:
         context: .
         load: true # Do not push this image
-        tags: nautical-backup-test
+        tags: minituff/nautical-test
         build-args: |
             TEST_MODE=true
   
