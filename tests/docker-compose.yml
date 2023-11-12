@@ -33,21 +33,22 @@ services:
       - RETURN_AFTER_INIT=true
 
   nautical-backup-test3:
-    image:  minituff/nautical-test # Use the local image
+    image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      # - ./source:/app/source
-      # - ./destination:/app/destination
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
+      - ./source:/app/source
+      - ./destination:/app/destination
+      - $PWD:/tests
+      # - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
+      # - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
+      # - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
+      # - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
     ports:
       - "8069:8069/tcp"
     environment:
       - TZ=America/Phoenix
-      - LOG_LEVEL=DEBUG
-      # - TEST_MODE=true
+      # - LOG_LEVEL=DEBUG
+      - TEST_MODE=true
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
