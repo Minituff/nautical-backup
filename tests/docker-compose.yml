@@ -45,10 +45,7 @@ services:
       - ./source:/app/source
       - ./destination:/app/destination
       - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
-    ports:
-      - "8069:8069/tcp"
     environment:
-      - TZ=America/Phoenix
       - TEST_MODE=3
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills

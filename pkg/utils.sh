@@ -3,26 +3,25 @@
 source /app/logger.sh # Use the logger script
 
 export_env() {
-  local var_name="$1"
-  local var_value="$2"
-  local env_file="/var/run/s6/container_environment/$var_name"
-  printf "%s" "$var_value" > "$env_file"
-  export "${var_name}"
+    local var_name="$1"
+    local var_value="$2"
+    local env_file="/var/run/s6/container_environment/$var_name"
+    printf "%s" "$var_value" >"$env_file"
+    export "${var_name}"
 }
 
 cecho() {
-  RED="\033[0;31m"
-  GREEN="\033[0;32m"  # <-- [0 means not bold
-  YELLOW="\033[1;33m" # <-- [1 means bold
-  CYAN="\033[1;36m"
-  # ... Add more colors if you like
+    RED="\033[0;31m"
+    GREEN="\033[0;32m"  # <-- [0 means not bold
+    YELLOW="\033[1;33m" # <-- [1 means bold
+    CYAN="\033[1;36m"
+    # ... Add more colors if you like
 
-  NC="\033[0m" # No Color
+    NC="\033[0m" # No Color
 
-  # printf "${(P)1}${2} ${NC}\n" # <-- zsh
-  printf "${!1}${2} ${NC}\n" # <-- bash
+    # printf "${(P)1}${2} ${NC}\n" # <-- zsh
+    printf "${!1}${2} ${NC}\n" # <-- bash
 }
-
 
 # Function to populate a list array
 process_csv() {
@@ -40,7 +39,6 @@ process_csv() {
         skip_list_ref=("${skip_list_ref[@]}" "${ADDITIONAL_SKIPS[@]}")
     fi
 }
-
 
 initialize_logThis() {
     if [ ! -f "/usr/local/bin/logThis" ]; then
@@ -78,7 +76,7 @@ initialize_db() {
         # Check if database file exists, if not create it
         if [ ! -f "$db_full_path" ]; then
             logThis "Database Path: $db_full_path" "DEBUG" "init"
-            echo "{}" > "$db_full_path"
+            echo "{}" >"$db_full_path"
         fi
 
     fi
@@ -91,7 +89,28 @@ initialize_db() {
         chmod +x /usr/local/bin/db
     fi
 
-    db put "backup-running" "false"
+}
+
+seed_db() {
+    if [ "$(db get "backup_running")" == "null" ]; then
+        db put "backup_running" false
+    fi
+
+    if [ "$(db get "containers_skipped")" == "null" ]; then
+        db put "containers_skipped" 0
+    fi
+
+    if [ "$(db get "containers_completed")" == "null" ]; then
+        db put "containers_completed" 0
+    fi
+
+    if [ "$(db get "number_of_containers")" == "null" ]; then
+        db put "number_of_containers" 0
+    fi
+
+    if [ "$(db get "errors")" == "null" ]; then
+        db put "errors" 0
+    fi
 }
 
 verify_source_location() {

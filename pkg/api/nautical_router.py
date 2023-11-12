@@ -32,7 +32,8 @@ def dashboard():
         "number_of_containers": db.get("number_of_containers", 0),
         "completed": db.get("containers_completed", 0),
         "skipped": db.get("containers_skipped", 0),
-        "errors": "0"
+        "errors": db.get("errors", 0),
+        "backup_running": db.get("containers_skipped", "false"),
     }
 
 @router.get("/next_cron/{occurrences}", summary="Get the next N amount of CRON occurrences", response_class=JSONResponse)

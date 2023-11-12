@@ -5,7 +5,7 @@ source /app/utils.sh # Use the logger script
 
 logThis "Starting backup..."
 
-db put "backup-running" "true"
+db put "backup_running" "true"
 db add_current_datetime "last_cron"
 
 # Convert the string into an array
@@ -350,7 +350,7 @@ if [ ! -z "$POST_BACKUP_CURL" ]; then
     CurlCommand "$POST_BACKUP_CURL"
 fi
 
-db put "backup-running" "false"
+db put "backup_running" "false"
 
 if [ "$RUN_ONCE" = "true" ]; then
     logThis "Exiting since RUN_ONCE is true" "INFO"

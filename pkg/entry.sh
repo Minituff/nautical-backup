@@ -26,6 +26,7 @@ verify_source_location $SOURCE_LOCATION
 verify_destination_location $DEST_LOCATION
 
 initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
+seed_db
 initialize_nautical
 
 if [ "$BACKUP_ON_START" = "true" ]; then
