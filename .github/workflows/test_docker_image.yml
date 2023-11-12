@@ -85,7 +85,7 @@ jobs:
         docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
         docker compose run nautical-backup-test3
 
-    - name: Ensure coverage files
+    - name: Ensure coverage files exist
       run: |
         ls -la
         ls -la tests
