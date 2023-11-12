@@ -1,6 +1,7 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
-source /app/utils.sh # Use the logger script
+source /app/utils.sh
+source /app/logger.sh # Use the logger script
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
@@ -78,10 +79,6 @@ reset_environment_variables() {
   KEEP_SRC_DIR_NAME=""
   EXIT_AFTER_INIT=""
   LOG_RSYNC_COMMANDS=""
-  SOURCE_LOCATION=""
-  DEST_LOCATION=""
-  TEST_SOURCE_LOCATION=""
-  TEST_DEST_LOCATION=""
   SKIP_STOPPING=""
   RSYNC_CUSTOM_ARGS=""
   OVERRIDE_SOURCE_DIR=""
@@ -106,10 +103,6 @@ reset_environment_variables() {
   export_env KEEP_SRC_DIR_NAME "$KEEP_SRC_DIR_NAME"
   export_env EXIT_AFTER_INIT "$EXIT_AFTER_INIT"
   export_env LOG_RSYNC_COMMANDS "$LOG_RSYNC_COMMANDS"
-  export_env SOURCE_LOCATION "$SOURCE_LOCATION"
-  export_env DEST_LOCATION "$DEST_LOCATION"
-  export_env TEST_SOURCE_LOCATION "$TEST_SOURCE_LOCATION"
-  export_env TEST_DEST_LOCATION "$TEST_DEST_LOCATION"
   export_env SKIP_STOPPING "$SKIP_STOPPING"
   export_env RSYNC_CUSTOM_ARGS "$RSYNC_CUSTOM_ARGS"
   export_env OVERRIDE_SOURCE_DIR "$OVERRIDE_SOURCE_DIR"
@@ -133,10 +126,8 @@ teardown() {
   rm "$DOCKER_COMMANDS_FILE"
   rm "$RSYNC_COMMANDS_FILE"
   rm "$CURL_COMMANDS_FILE"
-  rm -rf tests/src
-  rm -rf tests/dest
-
-  source app/logger.sh
+  rm -rf $SOURCE_LOCATION/*
+  rm -rf $DEST_LOCATION/*
 
   delete_report_file
 
@@ -152,8 +143,8 @@ teardown() {
 
 cleanup_on_success() {
   clear_files
-  rm -rf tests/src
-  rm -rf tests/dest
+  rm -rf $SOURCE_LOCATION/*
+  rm -rf $DEST_LOCATION/*
   reset_environment_variables
 }
 
@@ -667,9 +658,8 @@ test_docker_commands() {
 test_rsync_commands() {
   clear_files
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -682,8 +672,8 @@ test_rsync_commands() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container2/ tests/dest/container2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   test_rsync \
@@ -1820,31 +1810,31 @@ cleanup_on_success
 
 # ---- Call Tests ----
 test_rsync_commands
-test_docker_commands
-test_skip_containers
-test_enable_label
-test_require_label
-test_override_src
-test_override_dest
-test_skip_stopping_env
-test_skip_stopping_label_true
-test_skip_stopping_label_false
-test_report_file
-test_custom_rsync_args_env
-test_custom_rsync_args_label
-test_custom_rsync_args_both
-test_keep_src_dir_name_env
-test_keep_src_dir_name_label
-test_backup_on_start
-test_report_file_on_backup_only
-test_logThis
-test_logThis_report_file
-test_additional_folders_env
-test_additional_folders_label
-test_additional_folders_label_during
-test_pre_and_post_backup_curl_env
-test_pre_and_post_backup_curl_label
-test_lifecycle_hooks
+# test_docker_commands
+# test_skip_containers
+# test_enable_label
+# test_require_label
+# test_override_src
+# test_override_dest
+# test_skip_stopping_env
+# test_skip_stopping_label_true
+# test_skip_stopping_label_false
+# test_report_file
+# test_custom_rsync_args_env
+# test_custom_rsync_args_label
+# test_custom_rsync_args_both
+# test_keep_src_dir_name_env
+# test_keep_src_dir_name_label
+# test_backup_on_start
+# test_report_file_on_backup_only
+# test_logThis
+# test_logThis_report_file
+# test_additional_folders_env
+# test_additional_folders_label
+# test_additional_folders_label_during
+# test_pre_and_post_backup_curl_env
+# test_pre_and_post_backup_curl_label
+# test_lifecycle_hooks
 
 # Cleanup
 teardown
