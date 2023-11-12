@@ -36,6 +36,6 @@ end
 if ENV.key? 'SKIP_PROFILE'
   puts "Skipping bashcov profile..."
 else
-  puts "Loading bashcov configurations..."
+  puts "--- Loading bashcov configurations ---"
   SimpleCov.load_profile 'bashcov'
 end
