@@ -20,8 +20,9 @@ echo "Adding aliases (for convenience)..."
 echo "alias nbb=\"cd /workspaces/nautical-backup && docker build -t nautical-backup -t nautical-backup:test --progress=plain --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
 echo "alias nbbr=\"nbb && cd dev && docker-compose up\"" >> ~/.zshrc
 echo "alias nbr=\"cd /workspaces/nautical-backup/dev && docker-compose up\"" >> ~/.zshrc
-echo "alias nbt=\"nbb && cd /workspaces/nautical-backup && docker build -f Dockerfile.test -t nautical-test -t minituff/nautical-test --progress=plain --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
-echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3\"" >> ~/.zshrc
+echo "alias nbt=\"cd /workspaces/nautical-backup && docker build -t nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=true' .\"" >> ~/.zshrc
+# echo "alias nbt=\"nbb && cd /workspaces/nautical-backup && docker build -f Dockerfile.test -t nautical-test -t minituff/nautical-test --progress=plain --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
+echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose run nautical-backup-test3\"" >> ~/.zshrc
 
 cecho "CYAN" "Installing python packages (for api)..."
 python3 -m pip install -r /workspaces/nautical-backup/pkg/api/requirements.txt

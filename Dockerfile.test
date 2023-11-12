@@ -1,5 +1,5 @@
 # Use local image
-FROM minituff/nautical-backup:test
+FROM nautical-backup
 
 RUN \
     echo "**** Installing pacakges ****" && \
@@ -12,3 +12,7 @@ RUN \
 
 VOLUME [ "/app" ]
 VOLUME [ "/tests" ]
+
+EXPOSE 8069
+
+ENTRYPOINT ["/init"]

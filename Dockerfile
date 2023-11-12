@@ -13,6 +13,8 @@ ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
 LABEL maintainer="minituff"
 
+ARG TEST_MODE=false
+
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ARG S6_OVERLAY_VERSION="3.1.6.0"
 
@@ -88,6 +90,18 @@ RUN \
     echo "**** Cleanup ****" && \
     apk del --purge \
     build-dependencies
+
+# Conditionally execute commands based on TESTMODE
+RUN if [ "$TEST_MODE" = "true" ]; then \
+      echo "=== TEST MODE ENABLED ===" && \
+      echo "**** Installing TEST packages ****" && \
+      apk add --no-cache \
+      ruby-full \
+      py3-pip="${PIP_VERSION}" \
+      nano && \
+      echo "**** Installing ruby packages (for tests) ****" && \
+      gem install bashcov simplecov-cobertura simplecov-html; \
+    fi
 
 # Add S6 files
 COPY --chmod=755 root/ /

@@ -1,6 +1,7 @@
 # cd tests
 # docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
 # docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+# docker compose run nautical-backup-test3
 
 version: '3'
 services:  
@@ -30,14 +31,16 @@ services:
     entrypoint: /usr/bin/env bash app/test.sh test2
     environment:
       - RETURN_AFTER_INIT=true
-  
+
   nautical-backup-test3:
-    image: minituff/nautical-test # Use the local image
-    container_name: nautical-test
+    image:  nautical-test # Use the local image
+    container_name: nautical-test3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./source:/app/source
-      - ./destination:/app/destination
+      # - ./source:/app/source
+      # - ./destination:/app/destination
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
       - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
       - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
     ports:
@@ -45,5 +48,6 @@ services:
     environment:
       - TZ=America/Los_Angeles
       - LOG_LEVEL=DEBUG
-      - TEST_MODE=TRUE
+      - TEST_MODE=true
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
