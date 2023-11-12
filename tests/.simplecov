@@ -22,11 +22,11 @@ SimpleCov.profiles.define 'bashcov' do
   command_name 'Unit Tests'
   enable_coverage :branch
   primary_coverage :branch
-  add_filter %r{^/snippets/}
-  add_filter %r{^/.git/}
-  add_filter %r{^/tests/}
-  add_filter "pkg/test.sh"
-  add_group "Pkg scripts", "/pkg"
+  # add_filter %r{^/snippets/}
+  # add_filter %r{^/.git/}
+  # add_filter %r{^/tests/}
+  # add_filter "pkg/test.sh"
+  add_group "Pkg scripts", "/app"
 
   # simplecov 0.22.0+
   enable_coverage_for_eval if respond_to? :enable_coverage_for_eval

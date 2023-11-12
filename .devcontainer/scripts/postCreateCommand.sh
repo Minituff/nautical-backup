@@ -17,10 +17,10 @@ cecho "CYAN" "Installing ruby packages (for testing)..."
 gem install bashcov simplecov-cobertura simplecov-html
 
 echo "Adding aliases (for convenience)..."
-echo "alias nbb=\"cd /workspaces/nautical-backup && docker build -t nautical-backup -t nautical-backup:test --progress=plain --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
+echo "alias nbb=\"cd /workspaces/nautical-backup && docker build -t nautical-backup -t nautical-backup:test --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
 echo "alias nbbr=\"nbb && cd dev && docker-compose up\"" >> ~/.zshrc
 echo "alias nbr=\"cd /workspaces/nautical-backup/dev && docker-compose up\"" >> ~/.zshrc
-echo "alias nbt=\"cd /workspaces/nautical-backup && docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=true' .\"" >> ~/.zshrc
+echo "alias nbt=\"cd /workspaces/nautical-backup && docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .\"" >> ~/.zshrc
 echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose run nautical-backup-test3\"" >> ~/.zshrc
 
 cecho "CYAN" "Installing python packages (for api)..."

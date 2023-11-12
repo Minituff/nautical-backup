@@ -7,17 +7,6 @@ script_logging_level="INFO"
 report_file_logging_level="INFO"
 report_file_on_backup_only="true"
 
-# This is needed since the logger is called first. Otherwise it would be in env.sh
-# if [ "$TEST_MODE" == "true" ]; then
-#     SOURCE_LOCATION="tests/src"
-#     printf "${SOURCE_LOCATION}" > /var/run/s6/container_environment/SOURCE_LOCATION
-#     export SOURCE_LOCATION
-    
-#     DEST_LOCATION="tests/dest"
-#     printf "${DEST_LOCATION}" > /var/run/s6/container_environment/DEST_LOCATION
-#     export DEST_LOCATION
-# fi
-
 # Override the defaults
 if [ ! -z "$LOG_LEVEL" ]; then
     script_logging_level=$LOG_LEVEL

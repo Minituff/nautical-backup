@@ -5,10 +5,10 @@ This documentation is intended for developers only.
 ## Test Mode
 For usage of the Nautical scripts outside the container. Useful for running the Unit Tests.
 
-> **Default**: false
+> **Default**: -1
 
 ```properties
-TEST_MODE=true
+TEST_MODE=0
 ```
 
 

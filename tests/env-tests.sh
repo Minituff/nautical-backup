@@ -241,7 +241,7 @@ test_env_vars() {
 # Declare an associative array with environment variable names and expected values
 declare -A expected_env_vars=(
     ["TZ"]="Etc/UTC"
-    ["TEST_MODE"]="false"
+    ["TEST_MODE"]="2" # This not actually the default, but the mode that checks this value is #2
     ["CRON_SCHEDULE"]="0 4 * * *"
     ["REPORT_FILE"]="true"
     ["BACKUP_ON_START"]="false"

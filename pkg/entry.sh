@@ -38,10 +38,4 @@ if [ "$EXIT_AFTER_INIT" = "true" ]; then
     logThis "Exiting since EXIT_AFTER_INIT is true" "INFO" "init"
     exit 0
 fi
-
-if [ "$RETURN_AFTER_INIT" = "true" ]; then
-    logThis "Exiting since RETURN_AFTER_INIT is true" "INFO" "init"
-    return
-fi
-
 # :nocov:

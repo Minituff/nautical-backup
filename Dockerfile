@@ -13,7 +13,7 @@ ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
 LABEL maintainer="minituff"
 
-ARG TEST_MODE=false
+ARG TEST_MODE="-1"
 
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ARG S6_OVERLAY_VERSION="3.1.6.0"
@@ -92,7 +92,7 @@ RUN \
     build-dependencies
 
 # Conditionally execute commands based on TESTMODE
-RUN if [ "$TEST_MODE" = "true" ]; then \
+RUN if [ "$TEST_MODE" != "-1" ]; then \
       echo "=== TEST MODE ENABLED ===" && \
       echo "**** Installing TEST packages ****" && \
       apk add --no-cache \

@@ -76,7 +76,7 @@ jobs:
         load: true # Do not push this image
         tags: minituff/nautical-test
         build-args: |
-            TEST_MODE=true
+            TEST_MODE=0
   
     - name: Run integration tests against Docker image
       run: |
@@ -97,4 +97,4 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
         fail_ci_if_error: true
-        files: tests/coverage/coverage.xml # The json file will not work he
+        files: tests/coverage/coverage.xml # The json file will not work here
