@@ -1,7 +1,7 @@
 echo "Fixing coverage paths..."
 
 # Define the path to your coverage.xml file
-COVERAGE_FILE="tests/coverage/coverage.xml"
+COVERAGE_FILE="$PWD/coverage/coverage.xml"
 
 # Define the original and desired path prefixes
 ORIGINAL_PATH_PREFIX="../app/"

@@ -21,7 +21,7 @@ if [ "$TEST_MODE" != "-1" ]; then
         with-contenv bashcov /tests/_tests.sh
         exit_code=$?
 
-        bash tests/_fix_coverage_paths.sh
+        bash /tests/_fix_coverage_paths.sh
     else
         echo "UNKNOWN TEST MODE: ${TEST_MODE}"
     fi
