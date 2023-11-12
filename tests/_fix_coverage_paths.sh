@@ -5,7 +5,7 @@ COVERAGE_FILE="$PWD/coverage/coverage.xml"
 
 # Define the original and desired path prefixes
 ORIGINAL_PATH_PREFIX="../app/"
-DESIRED_PATH_PREFIX="app/"
+DESIRED_PATH_PREFIX="pkg/"
 
 cat "$COVERAGE_FILE" | grep filename
 
