@@ -9,10 +9,10 @@
 			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions zsh-syntax-highlighting",
 			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
 		},
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "ruby-full,nano,curl,jq,python3,python3-pip"
-		}
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+		// "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+		// 	"packages": "ruby-full,nano,curl,jq,python3,python3-pip"
+		// }
 	},
 	"containerEnv": {
 		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
@@ -45,7 +45,12 @@
 				},
 				"files.associations": {
 					"*.env": "shellscript"
-				}
+				},
+				"python.testing.pytestArgs": [
+					"pytest"
+				],
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestEnabled": true
 			}
 		}
 	},

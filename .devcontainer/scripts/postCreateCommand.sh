@@ -13,8 +13,8 @@ cecho() {
   printf "${!1}${2} ${NC}\n" # <-- bash
 }
 
-cecho "CYAN" "Installing ruby packages (for testing)..."
-gem install bashcov simplecov-cobertura simplecov-html
+# cecho "CYAN" "Installing ruby packages (for testing)..."
+# gem install bashcov simplecov-cobertura simplecov-html
 
 echo "Adding aliases (for convenience)..."
 echo "alias nbb=\"cd /workspaces/nautical-backup && docker build -t nautical-backup -t nautical-backup:test --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc

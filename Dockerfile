@@ -63,6 +63,8 @@ ENV CURL_VERSION="8.4.0-r0"
 ENV PYTHON_VERSION="3.11.6-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
 ENV PIP_VERSION="23.1.2-r0"
+# renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
+ENV RUBY_VERSION="3.2.2-r0"
 
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
 ENV S6_VERBOSITY=1
@@ -96,9 +98,8 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
       echo "=== TEST MODE ENABLED ===" && \
       echo "**** Installing TEST packages ****" && \
       apk add --no-cache \
-      ruby-full \
-      py3-pip="${PIP_VERSION}" \
-      nano && \
+      ruby-full="${RUBY_VERSION}" \
+      py3-pip="${PIP_VERSION}" && \
       echo "**** Installing ruby packages (for tests) ****" && \
       gem install bashcov simplecov-cobertura simplecov-html; \
     fi
@@ -109,8 +110,10 @@ COPY --chmod=755 root/ /
 VOLUME [ "/app/source" ]
 VOLUME [ "/app/destination" ]
 
+# Only should be exposed when running in test mode
+VOLUME [ "/tests" ]
+
 EXPOSE 8069
 
 # Run the entry script and pass all variables to it
 ENTRYPOINT ["/init"]
-# ENTRYPOINT [ "bash", "-c", "exec ./entry.sh \"${@}\"", "--"]

@@ -22,37 +22,38 @@ on:
 jobs:
   unit_test_and_coverage:
     name: Unit tests and coverage
-    if: contains(github.event.head_commit.message, '[NEVER]') #! TODO: REMOVE
+    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ruby/setup-ruby@v1
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
       with:
-        ruby-version: head
-    
-    - name: Install Ruby dependencies
+        python-version: '3.10'
+
+    - name: Install dependencies
       run: |
-        gem install bashcov simplecov-cobertura simplecov-html
-    
-    - name: Run unit tests
-      run: bashcov ./tests/tests.sh && ls -la coverage
+        echo "Installing python requirements"
+        pip install -r pkg/api/requirements.txt
+        pip install -r pytest/requirements.txt
+
+    - name: Run tests and collect coverage
+        run: pytest --cov pytest
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta
-      # uses: codecov/codecov-action@v3
-      env: # Required for v4
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      env: 
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
         fail_ci_if_error: true
-        files: coverage/coverage.xml # The json file will not work here
 
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
-      with:
-        name: code-coverage
-        path: coverage/
-        retention-days: 5
+    # - name: Archive code coverage results
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: code-coverage
+    #     path: coverage/
+    #     retention-days: 5
 
   test_docker_image:
     name: Docker image tests

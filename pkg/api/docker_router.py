@@ -5,6 +5,8 @@ from fastapi import HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import PlainTextResponse, JSONResponse
 from authorize import authorize
+from typing import Annotated
+import docker
 
 # All routes in this file start with /docker
 router = APIRouter(prefix="/api/v1/docker", tags=["docker"])
@@ -12,8 +14,8 @@ router = APIRouter(prefix="/api/v1/docker", tags=["docker"])
 security = HTTPBasic()
 
 # New /docker_ps endpoint
-@router.get("/ps", response_class=PlainTextResponse)
-def docker_ps():
+@router.get("/ps", response_class=PlainTextResponse,)
+def docker_ps(username: Annotated[str, Depends(authorize)]):
     """
     Run 'docker ps' command
     """
@@ -33,7 +35,7 @@ def docker_ps():
 
 
 @router.get("/inspect/{container_name}", response_class=PlainTextResponse)
-def docker_inspect(container_name: str, ):
+def docker_inspect(container_name: str, username: Annotated[str, Depends(authorize)]):
     """
     Run 'docker inspect' with the provided container name
     """
@@ -55,7 +57,7 @@ def docker_inspect(container_name: str, ):
 
 
 @router.post("/start/{container_name}")
-def docker_start(container_name: str, ):
+def docker_start(container_name: str, username: Annotated[str, Depends(authorize)]):
     """
     Run 'docker start {container_name}'
     """
@@ -73,7 +75,7 @@ def docker_start(container_name: str, ):
 
 
 @router.post("/stop/{container_name}")
-def docker_stop(container_name: str, ):
+def docker_stop(container_name: str, username: Annotated[str, Depends(authorize)]):
     """
     Run 'docker stop {container_name}'
     """

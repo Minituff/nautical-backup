@@ -7,6 +7,7 @@ import os
 import secrets
 from authorize import authorize
 from utils import next_cron_occurrences
+from typing import Annotated
 from db import DB  # Replace with the actual name of your module containing the DB class
 
 
@@ -17,12 +18,12 @@ db = DB()
 
 
 @router.get("/db_dump", summary="Dump the entire database", response_class=JSONResponse)
-def db_dump():
+def db_dump(username: Annotated[str, Depends(authorize)]):
     return db.dump_json()
 
 
 @router.get("/dashboard", summary="The most useful information", response_class=JSONResponse)
-def dashboard():
+def dashboard(username: Annotated[str, Depends(authorize)]):
     """
     This returns a summary of the Nautical container. Useful for 3rd party applications.
     """
@@ -37,12 +38,12 @@ def dashboard():
     }
 
 @router.get("/next_cron/{occurrences}", summary="Get the next N amount of CRON occurrences", response_class=JSONResponse)
-def next_cron(occurrences: Optional[int] = 5):
-    return next_cron_occurrences(occurrences)
+def next_cron(username: Annotated[str, Depends(authorize)], occurrences: Optional[int] = 5):
+    return next_cron_occurrences(occurrences,)
 
 
 @router.post("/start_backup", summary="Start backup now", response_class=JSONResponse)
-def start_backup():
+def start_backup(username: Annotated[str, Depends(authorize)]):
     """
     Start a backup now. This respects all environment and docker labels.
     """

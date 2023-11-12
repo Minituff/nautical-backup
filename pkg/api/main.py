@@ -7,6 +7,8 @@ import uvicorn
 import os
 import secrets
 from authorize import authorize
+from typing import Annotated
+
 
 # Read version from environment variable or default to '0.0.0' if not set
 NAUTICAL_VERSION = os.getenv("NAUTICAL_VERSION", "0.0.0")
@@ -16,6 +18,8 @@ app = FastAPI(
     summary="A simple Docker volume backup tool 🚀",
     version=NAUTICAL_VERSION,
 )
+
+security = HTTPBasic()
 
 # Import other endpoints
 app.include_router(docker_router.router)
@@ -36,6 +40,9 @@ async def root():
     </html>
     """
 
+@app.get("/auth")
+def auth(username: Annotated[str, Depends(authorize)]):
+    return {"Auth granted for username": username}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8069, reload=True, log_level="debug")
