@@ -1736,9 +1736,8 @@ test_lifecycle_hooks() {
     --mock_ps "$mock_docker_ps_lines" \
     --mock_labels "$mock_docker_label_lines"
 
-  #! TODO: THIS NEEDS TO BE REMOVED
   expected_timeout_output=$(
-    echo "60s docker exec container1 echo aol.com!!" &&
+    echo "60s docker exec container1 echo aol.com" &&
       echo "60s docker exec container1 echo test2"
   )
 
