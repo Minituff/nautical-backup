@@ -10,10 +10,10 @@ if [ "$TEST_MODE" != "-1" ]; then
 
     # Run the tests and capture their exit code
     if [ "$TEST_MODE" == "1" ]; then
-        with-contenv bash /tests/env-tests.sh test1
+        with-contenv bash /tests/_env-tests.sh test1
         exit_code=$?
     elif [ "$TEST_MODE" == "2" ]; then
-        with-contenv bash /tests/env-tests.sh test2
+        with-contenv bash /tests/_env-tests.sh test2
         exit_code=$?
     elif [ "$TEST_MODE" == "3" ]; then
         cd /tests       # The .simplecov must be detected in the directory from where the bashcov command is run from
