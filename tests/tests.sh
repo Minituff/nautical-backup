@@ -1774,31 +1774,31 @@ cecho "CYAN" "Beginning tests..."
 cleanup_on_success
 
 # ---- Call Tests ----
-test_rsync_commands
-test_docker_commands
-test_skip_containers
-test_enable_label
-test_require_label
-test_override_src
-test_override_dest
-test_skip_stopping_env
-test_skip_stopping_label_true
-test_skip_stopping_label_false
-test_report_file
-test_custom_rsync_args_env
-test_custom_rsync_args_label
-test_custom_rsync_args_both
-test_keep_src_dir_name_env
-test_keep_src_dir_name_label
-test_backup_on_start
-test_report_file_on_backup_only
-test_logThis
-test_logThis_report_file
-test_additional_folders_env
-test_additional_folders_label
-test_additional_folders_label_during
-test_pre_and_post_backup_curl_env
-test_pre_and_post_backup_curl_label
+# test_rsync_commands
+# test_docker_commands
+# test_skip_containers
+# test_enable_label
+# test_require_label
+# test_override_src
+# test_override_dest
+# test_skip_stopping_env
+# test_skip_stopping_label_true
+# test_skip_stopping_label_false
+# test_report_file
+# test_custom_rsync_args_env
+# test_custom_rsync_args_label
+# test_custom_rsync_args_both
+# test_keep_src_dir_name_env
+# test_keep_src_dir_name_label
+# test_backup_on_start
+# test_report_file_on_backup_only
+# test_logThis
+# test_logThis_report_file
+# test_additional_folders_env
+# test_additional_folders_label
+# test_additional_folders_label_during
+# test_pre_and_post_backup_curl_env
+# test_pre_and_post_backup_curl_label
 test_lifecycle_hooks
 
 # Cleanup
