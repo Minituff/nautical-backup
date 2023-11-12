@@ -64,7 +64,7 @@ jobs:
     - name: Validate Dockerfile supports multi-arch
       run: |
         echo "Checking if the base docker image supports amd64 and arm64..."
-        bash ./tests/validate_dockerfile.sh
+        bash ./tests/_validate_dockerfile.sh
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -85,11 +85,11 @@ jobs:
         docker compose run nautical-backup-test2
         docker compose run nautical-backup-test3
 
-    - name: Ensure coverage files exist
+    - name: Fix coverage paths
       run: |
-        ls -la
-        ls -la tests
         ls -la tests/coverage
+        cat tests/coverage/coverage.xml | grep filename
+        bash tests/_fix_coverage_paths.sh
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta

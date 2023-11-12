@@ -62,9 +62,10 @@ services:
       - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
       - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
       - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\coverage:/coverage
+      # - C:\Users\James-PC\IdeaProjects\nautical-backup\coverage:/coverage
       - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\.simplecov:/.simplecov
       - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
+      # - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\tests.sh:/tests.sh
     ports:
       - "8069:8069/tcp"
     environment:
