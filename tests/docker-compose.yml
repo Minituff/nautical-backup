@@ -7,7 +7,7 @@ version: '3'
 services:  
   
   nautical-backup-test1:
-    image: minituff/nautical-backup:test # Use the local image
+    image: nautical-test # Use the local image
     container_name: nautical-backup-test
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -15,14 +15,14 @@ services:
       - ./destination:/app/destination
     entrypoint: /usr/bin/env bash app/test.sh test1
     environment:
-      - TZ=America/Los_Angeles
+      - TZ=America/Phoenix # Must not observe DST
       - BACKUP_ON_START=true
       - EXIT_AFTER_INIT=true
       - CRON_SCHEDULE=0 8 * * *
       - REPORT_FILE=false
   
   nautical-backup-test2:
-    image: minituff/nautical-backup:test # Use the local image
+    image: nautical-test # Use the local image
     container_name: nautical-backup-test
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -46,8 +46,8 @@ services:
     ports:
       - "8069:8069/tcp"
     environment:
-      - TZ=America/Los_Angeles
+      - TZ=America/Phoenix
       - LOG_LEVEL=DEBUG
-      - TEST_MODE=true
+      # - TEST_MODE=true
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills

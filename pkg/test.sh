@@ -36,14 +36,13 @@ test_docker() {
 
 test_cron() {
     # Expected output
-    EXPECTED_OUTPUT="$CRON_SCHEDULE bash /app/backup.sh"
-    EXPECTED_OUTPUT2="0 8 * * * bash /app/backup.sh" # Requires setting in the docker compose or CLI
+    EXPECTED_OUTPUT="$CRON_SCHEDULE with-contenv bash nautical"
 
     # Run the command and capture its output
     ACTUAL_OUTPUT=$(crontab -l | grep bash)
 
     if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: CRON output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -51,7 +50,7 @@ test_cron() {
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: CRON output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -68,7 +67,7 @@ test_bash() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which bash' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Bash does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -91,7 +90,7 @@ test_rsync() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which rsync' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Rsync does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -114,7 +113,7 @@ test_jq() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which jq' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Jq does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -129,7 +128,6 @@ test_jq() {
     fi
 }
 
-
 test_curl() {
     EXPECTED_OUTPUT="/usr/bin/curl"
     ACTUAL_OUTPUT=$(which curl)
@@ -138,7 +136,7 @@ test_curl() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which curl' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Curl does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -161,7 +159,7 @@ test_timeout() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which timeout' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Timeout does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -176,26 +174,27 @@ test_timeout() {
     fi
 }
 
-
 test_tz() {
-    EXPECTED_OUTPUT="America/Los_Angeles"
+    EXPECTED_OUTPUT="America/Phoenix"
     ACTUAL_OUTPUT=$(echo $TZ)
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'echo \$TZ' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: TimzeZone does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
     fi
 
-    # Use 'date | grep PDT' to check if it returns something
-    if [[ $(date | grep PDT) ]]; then
-        echo "PASS: 'date | grep PDT' returns a value."
+    ACTUAL_OUTPUT=$(date | grep MST)
+    # Use 'date | grep MST' to check if it returns something
+    if [[ $ACTUAL_OUTPUT ]]; then
+        echo "PASS: 'date | grep MST' returns the correct TZ."
     else
-        echo "FAIL: 'date | grep PDT' did not return a value."
+        echo "FAIL: 'date | grep MST' did notthe correct TZ."
+        echo "Got: $date"
         exit 1
     fi
 }
@@ -267,12 +266,12 @@ declare -A expected_env_vars=(
     ["PRE_BACKUP_CURL"]=""
     ["POST_BACKUP_CURL"]=""
     ["HTTP_REST_API_ENABLED"]="true"
-    ["HTTP_REST_API_PASSWORD"]=""
+    ["HTTP_REST_API_PASSWORD"]="password"
     
 )
 
 if [ "$1" == "test1" ]; then
-    bash /entry.sh
+    bash /app/entry.sh
 
     echo "Running integation tests..."
 
@@ -288,8 +287,8 @@ if [ "$1" == "test1" ]; then
 
     echo "All tests passed!"
 elif [ "$1" == "test2" ]; then
-    # source /app/env.sh
-    source /entry.sh
+    source /app/env.sh
+    source /app/entry.sh
     echo "Testing default enviornment variables..."
     test_env_vars expected_env_vars
 else
