@@ -85,13 +85,6 @@ jobs:
         docker compose run nautical-backup-test2
         docker compose run nautical-backup-test3
 
-    - name: Fix coverage paths
-      run: |
-        ls -la tests/coverage
-        bash tests/_fix_coverage_paths.sh
-      securityContext:
-          privileged: true # Required to modify files
-
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta
       env: 
