@@ -8,9 +8,11 @@ if [ "$HTTP_REST_API_ENABLED" == "false" ]; then
     exec sleep infinity
 fi
 
+
 logThis "API listening on port 8069..." "INFO" "init"
 
-cd /app/api
+logThis "Running: exec python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors --log-level 'warning'" "TRACE" "init"
 
-exec python3 -m uvicorn main:app --host 0.0.0.0 --port 8069 --use-colors --log-level 'warning'
+cd / # Do not leave this out. This next line must be run from the root directory
+exec python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors --log-level 'warning'
 #-log-level Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'. Default: 'info'.

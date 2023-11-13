@@ -1,15 +1,12 @@
 from typing import Union, Optional
 from fastapi import HTTPException, APIRouter, Depends, status
 import subprocess
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.responses import PlainTextResponse, JSONResponse
-import os
-import secrets
-from authorize import authorize
-from utils import next_cron_occurrences
+from fastapi.responses import JSONResponse
 from typing import Annotated
-from db import DB  # Replace with the actual name of your module containing the DB class
 
+from api.authorize import authorize
+from api.utils import next_cron_occurrences
+from api.db import DB  # Replace with the actual name of your module containing the DB class
 
 # All routes in this file start with /nautical
 router = APIRouter(prefix="/api/v1/nautical", tags=["nautical"])

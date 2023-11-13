@@ -22,6 +22,7 @@ echo "alias nbbr=\"nbb && cd dev && docker-compose up\"" >> ~/.zshrc
 echo "alias nbr=\"cd /workspaces/nautical-backup/dev && docker-compose up\"" >> ~/.zshrc
 echo "alias nbt=\"cd /workspaces/nautical-backup && docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .\"" >> ~/.zshrc
 echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose run nautical-backup-test3\"" >> ~/.zshrc
+echo "alias nbapi=\"python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors\"" >> ~/.zshrc
 
 cecho "CYAN" "Installing python packages (for api)..."
 python3 -m pip install -r /workspaces/nautical-backup/pkg/api/requirements.txt

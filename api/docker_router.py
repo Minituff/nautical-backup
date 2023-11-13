@@ -4,9 +4,10 @@ from typing import Union
 from fastapi import HTTPException, APIRouter, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import PlainTextResponse, JSONResponse
-from authorize import authorize
 from typing import Annotated
-import docker
+# import docker
+
+from api.authorize import authorize
 
 # All routes in this file start with /docker
 router = APIRouter(prefix="/api/v1/docker", tags=["docker"])

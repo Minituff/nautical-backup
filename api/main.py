@@ -1,17 +1,24 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Depends, status
 from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import docker_router
-import nautical_router
 import uvicorn
 import os
 import secrets
-from authorize import authorize
 from typing import Annotated
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
+from api.authorize import authorize
+import api.docker_router as docker_router
+import api.nautical_router as nautical_router
 
 # Read version from environment variable or default to '0.0.0' if not set
 NAUTICAL_VERSION = os.getenv("NAUTICAL_VERSION", "0.0.0")
+
+# Mount the directory containing your static files (HTML, CSS, JS) as a static files route.
+script_dir = os.path.dirname(__file__)
+static_abs_file_path = os.path.join(script_dir, "static/")
 
 app = FastAPI(
     title="Nautical Backup",
@@ -25,20 +32,11 @@ security = HTTPBasic()
 app.include_router(docker_router.router)
 app.include_router(nautical_router.router)
 
+app.mount("/static", StaticFiles(directory=static_abs_file_path, html=True), name="static")
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    return """
-    <html>
-        <head>
-            <title>Nautical Backup</title>
-        </head>
-        <body>
-            <h1>Looking for the API?</h1>
-            <a href="/docs">Go here!</a>
-        </body>
-    </html>
-    """
+@app.get("/")
+async def read_index():
+    return FileResponse(f"{static_abs_file_path}/index.html")
 
 @app.get("/auth")
 def auth(username: Annotated[str, Depends(authorize)]):
