@@ -40,7 +40,8 @@ jobs:
 
     - name: Run tests and collect coverage
       run: python3 -m pytest --cov api
-      # python3 -m pytest --cov (COVERS ALL)
+      # python3 -m pytest --cov # Covers all, but this is not ideal since it will report coverage on the pytest folder itself.
+      # python3 -m pytest --cov api --cov pkg # COVERS /api and /pkg FOLDERS
       # pytest --cov pytest
 
     - name: Upload reports to Codecov

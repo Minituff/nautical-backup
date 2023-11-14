@@ -13,16 +13,30 @@ cecho() {
   printf "${!1}${2} ${NC}\n" # <-- bash
 }
 
-# cecho "CYAN" "Installing ruby packages (for testing)..."
-# gem install bashcov simplecov-cobertura simplecov-html
 
 echo "Adding aliases (for convenience)..."
+
+# BUILD container
 echo "alias nbb=\"cd /workspaces/nautical-backup && docker build -t nautical-backup -t nautical-backup:test --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
+
+# BUILD & RUN container
 echo "alias nbbr=\"nbb && cd dev && docker-compose up\"" >> ~/.zshrc
+
+# RUN container that is already build
 echo "alias nbr=\"cd /workspaces/nautical-backup/dev && docker-compose up\"" >> ~/.zshrc
+
+# BUILD TEST container
 echo "alias nbt=\"cd /workspaces/nautical-backup && docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .\"" >> ~/.zshrc
+
+# BUILD & RUN TEST container
 echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose run nautical-backup-test3\"" >> ~/.zshrc
+
+# RUN API locally
 echo "alias nbapi=\"python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors\"" >> ~/.zshrc
+
+# Run pytest and output report as hmtl
+echo "alias nbpt=\"cd /workspaces/nautical-backup && python3 -m pytest --cov api --cov-report html\"" >> ~/.zshrc
+
 
 cecho "CYAN" "Installing python packages (for api)..."
 python3 -m pip install -r /workspaces/nautical-backup/api/requirements.txt
