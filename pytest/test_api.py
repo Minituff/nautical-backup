@@ -14,8 +14,6 @@ class TestAPI:
     def setup_class(cls):
         """
         Runs 1 time before all tests in this class
-
-        This will delete the inventory.json` and add test items.
         """
         pass
 
