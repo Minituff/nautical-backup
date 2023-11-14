@@ -25,7 +25,9 @@ echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose
 echo "alias nbapi=\"python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors\"" >> ~/.zshrc
 
 cecho "CYAN" "Installing python packages (for api)..."
-python3 -m pip install -r /workspaces/nautical-backup/pkg/api/requirements.txt
+python3 -m pip install -r /workspaces/nautical-backup/api/requirements.txt
+cecho "CYAN" "Installing python packages (for api tests)..."
+python3 -m pip install -r /workspaces/nautical-backup/pytest/requirements.txt
 cecho "CYAN" "Installing python packages (for docs)..."
 python3 -m pip install -r /workspaces/nautical-backup/docs/requirements.txt
 python3 -m pip install black

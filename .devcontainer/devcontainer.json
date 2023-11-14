@@ -9,10 +9,10 @@
 			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions zsh-syntax-highlighting",
 			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
 		},
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
-		// "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-		// 	"packages": "ruby-full,nano,curl,jq,python3,python3-pip"
-		// }
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+			"packages": "nano,curl,jq,python3,python3-pip"
+		}
 	},
 	"containerEnv": {
 		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
@@ -31,8 +31,9 @@
 				"jeff-hykin.better-dockerfile-syntax",
 				"streetsidesoftware.code-spell-checker",
 				"ms-python.python",
+				"ms-python.black-formatter",
 				"njpwerner.autodocstring"
-			   ],
+			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
 				"terminal.integrated.profiles.linux": {
@@ -51,11 +52,18 @@
 					"pytest"
 				],
 				"python.testing.unittestEnabled": false,
-				"python.testing.pytestEnabled": true
+				"python.testing.pytestEnabled": true,
+				"python.formatting.provider": "none",
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter"
+				},
+				"python.languageServer": "Pylance"
 			}
 		}
 	},
 	"remoteUser": "root",
 	"postCreateCommand": "./.devcontainer/scripts/postCreateCommand.sh",
-	"forwardPorts": [8069]  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [
+		8069
+	] // Use 'forwardPorts' to make a list of ports inside the container available locally.
 }
