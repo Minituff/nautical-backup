@@ -32,7 +32,8 @@
 				"streetsidesoftware.code-spell-checker",
 				"ms-python.python",
 				"ms-python.black-formatter",
-				"njpwerner.autodocstring"
+				"njpwerner.autodocstring",
+				"alexcvzz.vscode-sqlite" // For pytest .coverage file
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
