@@ -6,8 +6,8 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
-			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions zsh-syntax-highlighting",
-			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
+			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions fast-syntax-highlighting  zsh-autocomplete" ,
+			"omzPlugins": "https://github.com/zdharma-continuum/fast-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions https://github.com/marlonrichert/zsh-autocomplete"
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
@@ -57,6 +57,7 @@
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.black-formatter"
 				},
+				"black-formatter.args": ["--line-length", "120"],
 				"python.languageServer": "Pylance"
 			}
 		}

@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Union
+from typing import Any, Optional, Union
 from pathlib import Path
 
 class DB:
