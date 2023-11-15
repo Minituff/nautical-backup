@@ -29,9 +29,7 @@ def reset_settings_override() -> Settings:
 class TestAPI:
     @classmethod
     def setup_class(cls):
-        """
-        Runs 1 time before all tests in this class
-        """
+        """Runs 1 time before all tests in this class"""
         app.dependency_overrides[get_settings] = reset_settings_override
 
     def test_root(self):
