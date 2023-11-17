@@ -16,17 +16,20 @@ cecho() {
 
 echo "Adding aliases (for convenience)..."
 
+# Go back to the workspace directory
+echo "alias home=\"cd /workspaces/nautical-backup\"" >> ~/.zshrc
+
 # BUILD container
-echo "alias nbb=\"cd /workspaces/nautical-backup && docker build -t nautical-backup -t nautical-backup:test --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
+echo "alias nbb=\"home && docker build -t nautical-backup -t nautical-backup:test --no-cache --build-arg='NAUTICAL_VERSION=testing' .\"" >> ~/.zshrc
 
 # BUILD & RUN container
 echo "alias nbbr=\"nbb && cd dev && docker-compose up\"" >> ~/.zshrc
 
 # RUN container that is already build
-echo "alias nbr=\"cd /workspaces/nautical-backup/dev && docker-compose up\"" >> ~/.zshrc
+echo "alias nbr=\"home/dev && docker-compose up\"" >> ~/.zshrc
 
 # BUILD TEST container
-echo "alias nbt=\"cd /workspaces/nautical-backup && docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .\"" >> ~/.zshrc
+echo "alias nbt=\"home && docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .\"" >> ~/.zshrc
 
 # BUILD & RUN TEST container
 echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose run nautical-backup-test3\"" >> ~/.zshrc
@@ -35,7 +38,7 @@ echo "alias nbtr=\"nbt && cd /workspaces/nautical-backup/tests && docker compose
 echo "alias nbapi=\"python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors\"" >> ~/.zshrc
 
 # Run pytest and output report as hmtl
-echo "alias nbpt=\"cd /workspaces/nautical-backup && python3 -m pytest --cov api --cov-report html\"" >> ~/.zshrc
+echo "alias nbpt=\"home && && clear && python3 -m pytest --cov api --cov-report html --cov-report term\"" >> ~/.zshrc
 
 
 cecho "CYAN" "Installing python packages (for api)..."
