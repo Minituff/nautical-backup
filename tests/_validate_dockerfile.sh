@@ -19,7 +19,8 @@ else
 fi
 
 # Run the docker command to get the SHA from mquery
-mquery_output=$(docker run --rm mplatform/mquery:latest@sha256:938c26673f9b81f1c574e5911b79c4a9accf6aa918af575c94c9d488121db63c $image_name --platforms linux/amd64,linux/arm64)
+# We use $full_image_name since it will fail on just $image_name if an update is pushed but the dockerfile uses an older SHA
+mquery_output=$(docker run --rm mplatform/mquery:latest@sha256:938c26673f9b81f1c574e5911b79c4a9accf6aa918af575c94c9d488121db63c $full_image_name --platforms linux/amd64,linux/arm64)
 sha_from_mquery=$(echo "$mquery_output" | grep -oP '(?<=digest: )[^\)]+')
 
 echo "SHA from mquery: '$sha_from_mquery'"
