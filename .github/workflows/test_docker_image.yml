@@ -59,7 +59,7 @@ jobs:
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
       with:
-        name: code-coverage
+        name: python-code-coverage
         path: htmlcov/
         retention-days: 5
 
@@ -105,6 +105,6 @@ jobs:
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
       with:
-        name: code-coverage
+        name: bash-code-coverage
         path: tests/coverage/
         retention-days: 5
