@@ -39,7 +39,8 @@ jobs:
         pip install -r pytest/requirements.txt
 
     - name: Run Black format
-      run: python3 -m black --verbose --check --line-length 120 api pytest
+      # Run black only on the `api` folder
+      run: python3 -m black --verbose --check --line-length 120 api
 
     - name: Run tests and collect coverage
       run: python3 -m pytest --cov api
@@ -54,12 +55,12 @@ jobs:
       with:
         fail_ci_if_error: true
 
-    # - name: Archive code coverage results
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: code-coverage
-    #     path: coverage/
-    #     retention-days: 5
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage
+        path: htmlcov/
+        retention-days: 5
 
   test_docker_image:
     name: Docker image tests
@@ -99,3 +100,10 @@ jobs:
       with:
         fail_ci_if_error: true
         files: tests/coverage/coverage.xml # The json file will not work here
+    
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: code-coverage
+        path: tests/coverage/
+        retention-days: 5
