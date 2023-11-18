@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Any, Union, Optional
 from fastapi import HTTPException, APIRouter, Depends, status
 import subprocess
 from fastapi.responses import JSONResponse
@@ -6,7 +6,7 @@ from typing import Annotated
 
 from api.authorize import authorize
 from api.utils import next_cron_occurrences
-from api.db import DB  # Replace with the actual name of your module containing the DB class
+from api.db import DB
 
 # All routes in this file start with /nautical
 router = APIRouter(prefix="/api/v1/nautical", tags=["nautical"])
@@ -14,13 +14,8 @@ router = APIRouter(prefix="/api/v1/nautical", tags=["nautical"])
 db = DB()
 
 
-@router.get("/db_dump", summary="Dump the entire database", response_class=JSONResponse)
-def db_dump(username: Annotated[str, Depends(authorize)]):
-    return db.dump_json()
-
-
 @router.get("/dashboard", summary="The most useful information", response_class=JSONResponse)
-def dashboard(username: Annotated[str, Depends(authorize)]):
+def dashboard(username: Annotated[str, Depends(authorize)]) -> dict[str, Any]:
     """
     This returns a summary of the Nautical container. Useful for 3rd party applications.
     """
@@ -34,18 +29,22 @@ def dashboard(username: Annotated[str, Depends(authorize)]):
         "backup_running": db.get("containers_skipped", "false"),
     }
 
-@router.get("/next_cron/{occurrences}", summary="Get the next N amount of CRON occurrences", response_class=JSONResponse)
-def next_cron(username: Annotated[str, Depends(authorize)], occurrences: Optional[int] = 5):
-    return next_cron_occurrences(occurrences,)
+
+@router.get(
+    "/next_cron/{occurrences}",
+    summary="Get the next CRON occurrences",
+    response_class=JSONResponse,
+)
+def next_cron(username: Annotated[str, Depends(authorize)], occurrences: Optional[int] = 5) -> dict[str, str]:
+    return next_cron_occurrences(occurrences)
 
 
 @router.post("/start_backup", summary="Start backup now", response_class=JSONResponse)
-def start_backup(username: Annotated[str, Depends(authorize)]):
+def start_backup(username: Annotated[str, Depends(authorize)]) -> dict[str, str]:
     """
     Start a backup now. This respects all environment and docker labels.
     """
     try:
-        # subprocess.run(['exec', 'nautical'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         subprocess.run(["nautical"], check=True)
         return {"message": f"Nautical Backup started successfully"}
     except subprocess.CalledProcessError as e:

@@ -3,6 +3,7 @@ import json
 from typing import Any, Optional, Union
 from pathlib import Path
 
+
 class DB:
     def __init__(self, db_path: Union[str, Path] = ""):
         self.db_path: str = str(db_path)
@@ -10,7 +11,7 @@ class DB:
             NAUTICAL_DB_PATH = os.getenv("NAUTICAL_DB_PATH", "/config")
             NAUTICAL_DB_NAME = os.getenv("NAUTICAL_DB_NAME", "nautical-db.json")
             self.db_path = f"{NAUTICAL_DB_PATH}/{NAUTICAL_DB_NAME}"
-        
+
         if os.path.exists(self.db_path) and not os.path.isfile(self.db_path):
             # If db_path is a folder (not a file), just make it a file
             self.db_path += "/nautical-db.json"
