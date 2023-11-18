@@ -35,7 +35,9 @@ def dashboard(username: Annotated[str, Depends(authorize)]) -> dict[str, Any]:
     summary="Get the next CRON occurrences",
     response_class=JSONResponse,
 )
-def next_cron(username: Annotated[str, Depends(authorize)], occurrences: Optional[int] = 5) -> dict[str, str]:
+def next_cron(
+    username: Annotated[str, Depends(authorize)], occurrences: Optional[int] = 5
+) -> dict[Union[str, int], Any]:
     return next_cron_occurrences(occurrences)
 
 

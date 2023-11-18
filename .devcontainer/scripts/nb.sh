@@ -13,6 +13,7 @@ show_help() {
     echo ""
     echo "  api            - Run the Python API locally"
     echo "  pytest         - Pytest locally and capture coverage"
+    echo "  format         - Format all python code with black"
 }
 
 APP_HOME="/workspaces/nautical-backup"
@@ -63,6 +64,12 @@ execute_command() {
         clear
         cecho CYAN "Running Pytest..."
         python3 -m pytest --cov api --cov-report html --cov-report term
+        ;;
+    format)
+        cd $APP_HOME
+        clear
+        cecho CYAN "Formatting Python code with Black..."
+       python3 -m black --line-length 120 api tests
         ;;
     *)
         echo "Unknown command: $1"

@@ -12,11 +12,11 @@ def next_cron_occurrences(occurrences: Optional[int] = 5, now: Optional[datetime
 
     if now == None:
         now = datetime.now(tz)
-    
+
     # Create a cron iterator with the timezone
     cron = croniter.croniter(cron_expression, start_time=now)
 
-    response: dict[Union[str,int], Any] = {
+    response: dict[Union[str, int], Any] = {
         "cron": f"{cron_expression}",
         "tz": f"{tz}",
     }
