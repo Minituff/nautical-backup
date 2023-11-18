@@ -23,7 +23,7 @@ class TestUtils:
         assert next_cron_occurrences(1, faked_now) == {
             "cron": "0 4 * * *",
             "tz": "Etc/UTC",
-            1: ["Sunday, January 02, 2022 at 04:00 AM", "01/02/22 04:00"],
+            "1": ["Sunday, January 02, 2022 at 04:00 AM", "01/02/22 04:00"],
         }
         
         monkeypatch.setenv("CRON_SCHEDULE", "0 4 * * *")
@@ -31,7 +31,7 @@ class TestUtils:
         assert next_cron_occurrences(1, faked_now) == {
             "cron": "0 4 * * *",
             "tz": "Etc/UTC",
-            1: ["Sunday, January 02, 2022 at 04:00 AM", "01/02/22 04:00"],
+            "1": ["Sunday, January 02, 2022 at 04:00 AM", "01/02/22 04:00"],
         }
 
         faked_now = datetime.datetime(2023, 11, 1, 14, 0, 0)
@@ -40,12 +40,12 @@ class TestUtils:
         assert next_cron_occurrences(2, faked_now) == {
             "cron": "0 8 * * *",
             "tz": "America/Phoenix",
-            1: ["Thursday, November 02, 2023 at 08:00 AM", "11/02/23 08:00"],
-            2: ["Friday, November 03, 2023 at 08:00 AM", "11/03/23 08:00"],
+            "1": ["Thursday, November 02, 2023 at 08:00 AM", "11/02/23 08:00"],
+            "2": ["Friday, November 03, 2023 at 08:00 AM", "11/03/23 08:00"],
         }
         
         assert next_cron_occurrences(-10, faked_now) == {
             "cron": "0 8 * * *",
             "tz": "America/Phoenix",
-            1: ["Thursday, November 02, 2023 at 08:00 AM", "11/02/23 08:00"],
+            "1": ["Thursday, November 02, 2023 at 08:00 AM", "11/02/23 08:00"],
         }

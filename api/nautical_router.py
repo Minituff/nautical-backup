@@ -2,6 +2,7 @@ from typing import Any, Union, Optional
 from fastapi import HTTPException, APIRouter, Depends, status
 import subprocess
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Annotated
 
 from api.authorize import authorize
@@ -15,11 +16,11 @@ db = DB()
 
 
 @router.get("/dashboard", summary="The most useful information", response_class=JSONResponse)
-def dashboard(username: Annotated[str, Depends(authorize)]) -> dict[str, Any]:
+def dashboard(username: Annotated[str, Depends(authorize)]) -> JSONResponse:
     """
     This returns a summary of the Nautical container. Useful for 3rd party applications.
     """
-    return {
+    d = {
         "next_cron": next_cron_occurrences(5),
         "last_cron": db.get("last_cron", "None"),
         "number_of_containers": db.get("number_of_containers", 0),
@@ -28,6 +29,7 @@ def dashboard(username: Annotated[str, Depends(authorize)]) -> dict[str, Any]:
         "errors": db.get("errors", 0),
         "backup_running": db.get("containers_skipped", "false"),
     }
+    return JSONResponse(content=jsonable_encoder(d))
 
 
 @router.get(

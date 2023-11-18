@@ -28,7 +28,7 @@ def next_cron_occurrences(occurrences: Optional[int] = 5, now: Optional[datetime
 
     for i in range(occurrences):
         next_occurrence: datetime = cron.get_next(datetime)
-        response[i + 1] = [
+        response[str(i + 1)] = [
             next_occurrence.strftime("%A, %B %d, %Y at %I:%M %p"),
             next_occurrence.strftime("%m/%d/%y %H:%M"),
         ]
