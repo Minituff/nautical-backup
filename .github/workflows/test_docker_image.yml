@@ -20,8 +20,8 @@ on:
     #   - 'v*'
 
 jobs:
-  unit_test_and_coverage:
-    name: Unit tests and coverage
+  python_unit_test_and_coverage:
+    name: Python unit tests and coverage
     if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
@@ -63,8 +63,8 @@ jobs:
         path: htmlcov/
         retention-days: 5
 
-  test_docker_image:
-    name: Docker image tests
+  test_docker_architecture:
+    name: Validate Docker Architecture
     if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
@@ -74,6 +74,13 @@ jobs:
       run: |
         echo "Checking if the base docker image supports amd64 and arm64..."
         bash ./tests/_validate_dockerfile.sh
+
+  bash_unit_test_and_coverage:
+    name: Bash tests and coverage 
+    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
