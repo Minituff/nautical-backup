@@ -78,7 +78,7 @@ class TestAPI:
         assert response.json()["skipped"] == db.get("containers_skipped", 0)
         assert response.json()["completed"] == db.get("containers_completed", 0)
         assert response.json()["number_of_containers"] == db.get("number_of_containers", 0)
-        assert response.json()["last_cron"] == db.get("last_cron", 0)
+        assert response.json()["last_cron"] == db.get("last_cron", "None")
         assert len(response.json()["next_cron"]) == 7
         assert set(response.json()["next_cron"]) == set(next_cron_occurrences(5))
         
