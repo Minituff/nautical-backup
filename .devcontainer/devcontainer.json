@@ -48,11 +48,10 @@
 				"files.associations": {
 					"*.env": "shellscript"
 				},
-				"python.testing.pytestArgs": [
-					"pytest"
-				],
-				"python.testing.unittestEnabled": false,
 				"python.testing.pytestEnabled": true,
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestArgs": ["-s"],
+				"python.analysis.inlayHints.pytestParameters": true,
 				"python.formatting.provider": "none",
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.black-formatter"

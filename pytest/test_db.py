@@ -10,6 +10,7 @@ class TestADB:
         """
         Runs 1 time before all tests in this class
         """
+        pass
 
     def test_read_invalid_db(self, tmp_path: Path):
         db = DB(tmp_path)  # This is a folder, so it is invalid
