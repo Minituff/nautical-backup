@@ -21,6 +21,12 @@ def get_settings_override() -> Settings:
     )
 
 
+def get_settings_disable() -> Settings:
+    return Settings(
+        HTTP_REST_API_USERNAME="",
+        HTTP_REST_API_PASSWORD="",
+    )
+    
 def reset_settings_override() -> Settings:
     return Settings(
         HTTP_REST_API_USERNAME="admin",
@@ -49,6 +55,16 @@ class TestAPI:
         response = client.get("/auth")
         assert response.status_code == 401
 
+    def test_login_disable(self, monkeypatch: pytest.MonkeyPatch):
+        # Apply the environment variable override
+        app.dependency_overrides[get_settings] = get_settings_disable
+
+        response = client.get("/auth", auth=("", ""))
+        assert response.status_code == 200
+        
+        app.dependency_overrides[get_settings] = reset_settings_override
+
+        
     def test_login_on_with_env(self, monkeypatch: pytest.MonkeyPatch):
         # Apply the environment variable override
         app.dependency_overrides[get_settings] = get_settings_override
