@@ -10,8 +10,6 @@ repo_url: 'https://github.com/minituff/nautical-backup'
 
 # copyright: 'Copyright &copy; 2023 James Tufarelli'
 
-hide:
-  - footer
 
 # Plugins
 plugins:

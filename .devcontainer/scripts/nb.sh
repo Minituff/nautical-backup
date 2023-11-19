@@ -14,6 +14,8 @@ show_help() {
     echo "  api            - Run the Python API locally"
     echo "  pytest         - Pytest locally and capture coverage"
     echo "  format         - Format all python code with black"
+    echo ""
+    echo "  docs           - Run the Nautical documentation locally"
 }
 
 APP_HOME="/workspaces/nautical-backup"
@@ -66,6 +68,12 @@ execute_command() {
         cecho CYAN "Running Pytest..."
         python3 -m pytest --cov api --cov-report html --cov-report term
         ;;
+    docs)
+        cd $APP_HOME
+        clear
+        cecho CYAN "Running Nautical documentation locally..."
+        python3 -m mkdocs serve
+        ;;
     format)
         cd $APP_HOME
         clear
@@ -73,8 +81,9 @@ execute_command() {
        python3 -m black --line-length 120 api tests
         ;;
     *)
-        echo "Unknown command: $1"
-        echo "Use 'nb --help' for a list of available commands."
+        cecho RED "Unknown command: $1"
+        show_help
+        # echo "Use 'nb --help' for a list of available commands."
         ;;
     esac
 }
