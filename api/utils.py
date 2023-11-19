@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 
-def next_cron_occurrences(occurrences: Optional[int] = 5, now: Optional[datetime] = None):
+def next_cron_occurrences(occurrences: Optional[int] = 5, now: Optional[datetime] = None) -> dict[str | int, Any]:
     cron_expression = os.getenv("CRON_SCHEDULE", "0 4 * * *")
     timezone = os.getenv("TZ", "Etc/UTC")
     tz = pytz.timezone(timezone)

@@ -1,5 +1,5 @@
 from typing import Any, Union, Optional
-from fastapi import HTTPException, APIRouter, Depends, status
+from fastapi import HTTPException, APIRouter, Depends, Path, status
 import subprocess
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -38,13 +38,16 @@ def dashboard(username: Annotated[str, Depends(authorize)]) -> JSONResponse:
     response_class=JSONResponse,
 )
 def next_cron(
-    username: Annotated[str, Depends(authorize)], occurrences: Optional[int] = 5
-) -> dict[Union[str, int], Any]:
-    return next_cron_occurrences(occurrences)
+    username: Annotated[str, Depends(authorize)],
+    occurrences: Annotated[int, Path(title="The ID of the item to get", ge=1, le=100)],
+) -> JSONResponse:
+    d = next_cron_occurrences(occurrences)
+    res = JSONResponse(content=jsonable_encoder(d))
+    return res
 
 
 @router.post("/start_backup", summary="Start backup now", response_class=JSONResponse)
-def start_backup(username: Annotated[str, Depends(authorize)]) -> dict[str, str]:
+def start_backup(username: Annotated[str, Depends(authorize)]):
     """
     Start a backup now. This respects all environment and docker labels.
     """

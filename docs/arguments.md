@@ -312,7 +312,7 @@ KEEP_SRC_DIR_NAME=false
 ## HTTP REST API
 Enable or disable the [Nautical API](./rest-api.md).
 
-> **Default**: true
+> **Default**: false
 
 ```properties
 HTTP_REST_API_ENABLED=true
