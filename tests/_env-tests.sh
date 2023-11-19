@@ -265,7 +265,8 @@ declare -A expected_env_vars=(
     ["ADDITIONAL_FOLDERS_WHEN"]="before"
     ["PRE_BACKUP_CURL"]=""
     ["POST_BACKUP_CURL"]=""
-    ["HTTP_REST_API_ENABLED"]="true"
+    ["HTTP_REST_API_ENABLED"]="false"
+    ["HTTP_REST_API_USERNAME"]="admin"
     ["HTTP_REST_API_PASSWORD"]="password"
     
 )
