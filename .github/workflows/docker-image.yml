@@ -22,7 +22,7 @@ jobs:
     permissions: # Sets the permissions granted to the GITHUB_TOKEN for the actions in this job.
       packages: write
       contents: read
-    needs: [call_tests] # Will not run until tests have completed sucessfully
+    needs: [call_tests] # Will not run until tests have completed successfully
     steps:
     - uses: actions/checkout@v4
 

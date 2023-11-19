@@ -15,8 +15,14 @@ python3 -m pip install -r /workspaces/nautical-backup/api/requirements.txt
 cecho CYAN "Installing python packages (for api tests)..."
 python3 -m pip install -r /workspaces/nautical-backup/pytest/requirements.txt
 
-cecho CYAN "Installing python packages (for docs)..."
-python3 -m pip install -r /workspaces/nautical-backup/docs/requirements.txt
+
+cecho CYAN "Adding aliases (for convenience)..."
+for file in ~/.zshrc ~/.bashrc; do
+    echo "alias home=\"cd /workspaces/nautical-backup\"" >> "$file"
+done
+
+# cecho CYAN "Installing python packages (for docs)..."
+# python3 -m pip install -r /workspaces/nautical-backup/docs/requirements.txt
 
 cecho CYAN "Handling locales..."
 echo "export LANG=en_US.UTF-8" >> ~/.zshrc; 

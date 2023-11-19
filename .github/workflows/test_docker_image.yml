@@ -21,7 +21,7 @@ on:
 
 jobs:
   python_unit_test_and_coverage:
-    name: Python unit tests and coverage
+    name: Python tests and coverage
     if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:

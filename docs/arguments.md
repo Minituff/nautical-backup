@@ -42,7 +42,7 @@ The additional folders must either exist or be mounted into the `app/source` fol
 ADDITIONAL_FOLDERS=folder1,folder_name2
 ```
 
-⌛ **When to backup additional folders?**
+### When to backup additional folders?
 
 Use this setting to decide if the additional folders are backed up *before* or *after* the containers.
 
@@ -308,6 +308,29 @@ KEEP_SRC_DIR_NAME=false
         | -------------- | ---------------- | ---------------------------- |
         | Pi.Alert       | `src/Pi.Alert`   | `destination/pialert-backup` |
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./labels.md#mirror-source-directory-name-to-destination) label, but applied globally.</small>
+
+## HTTP REST API
+Enable or disable the [Nautical API](./rest-api.md).
+
+> **Default**: true
+
+```properties
+HTTP_REST_API_ENABLED=true
+```
+
+### API Username and Password
+See [API Section](./rest-api.md#authentication) for examples how authenticating to the API.
+
+> **Default Username**: admin
+
+> **Default Password**: admin
+
+> **Format**: string
+
+```properties
+HTTP_REST_API_USERNAME=admin
+HTTP_REST_API_PASSWORD=password
+```
 
 ## Console Log Level
 Set the console log level for the container.

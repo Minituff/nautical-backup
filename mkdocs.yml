@@ -18,13 +18,6 @@ plugins:
   # git-revision-date-localized:
   #   enable_creation_date: true
   # offline:
-  - swagger-ui-tag:
-      tryItOutEnabled: false
-      background: ""
-      docExpansion: "list"
-      supportedSubmitMethods: []
-      filter: ""
-      syntaxHighlightTheme: "nord"
   - search
   # minify:
   #   minify_html: true
