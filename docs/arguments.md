@@ -319,7 +319,7 @@ HTTP_REST_API_ENABLED=true
 ```
 
 ### API Username and Password
-See [API Section](./rest-api.md#authentication) for examples how authenticating to the API.
+See [API Section](./rest-api.md) for examples how authenticating to the API.
 
 > **Default Username**: admin
 
@@ -331,6 +331,8 @@ See [API Section](./rest-api.md#authentication) for examples how authenticating 
 HTTP_REST_API_USERNAME=admin
 HTTP_REST_API_PASSWORD=password
 ```
+
+!!! tip "Setting the username and password to `""` will not disable authentication. A login is always required."
 
 ## Console Log Level
 Set the console log level for the container.

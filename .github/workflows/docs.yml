@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-    paths: # Only redeploy docs when necsssary
+    paths: # Only redeploy docs when necessary
       - 'docs/**'
       - 'snippets/**'
       - 'mkdocs.yml'

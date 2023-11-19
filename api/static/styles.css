@@ -4,25 +4,7 @@ body, html {
 }
 
 body {
-    display: flex;
-    flex-direction: column;
     font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    background: linear-gradient(to right, #011b3c, #5365c9);
     color: white;
-}
-
-header {
-    width: 100%;
-    /* background: #33333351; */
-    z-index: 1000;
-    /* box-shadow: 0 2px 4px rgba(0, 0, 0, .5); */
-}
-
-.container {
-    padding-top: 60px; /* This should be at least the height of your header to prevent overlap */
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
 }

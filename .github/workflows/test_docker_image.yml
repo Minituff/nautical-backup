@@ -1,4 +1,5 @@
 name: Tests
+# This file contains 3 jobs that run in parallel
 
 on:
   workflow_dispatch: # Allow manually running
@@ -20,9 +21,10 @@ on:
     #   - 'v*'
 
 jobs:
+
   python_unit_test_and_coverage:
     name: Python tests and coverage
-    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -39,14 +41,10 @@ jobs:
         pip install -r pytest/requirements.txt
 
     - name: Run Black format
-      # Run black only on the `api` folder
       run: python3 -m black --verbose --check --line-length 120 api
 
     - name: Run tests and collect coverage
       run: python3 -m pytest --cov api --cov-report html --cov-report term --cov-report xml
-      # python3 -m pytest --cov # Covers all, but this is not ideal since it will report coverage on the pytest folder itself.
-      # python3 -m pytest --cov api --cov pkg # COVERS /api and /pkg FOLDERS
-      # pytest --cov pytest
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta
@@ -63,9 +61,10 @@ jobs:
         path: htmlcov/
         retention-days: 5
 
+
   test_docker_architecture:
     name: Validate Docker Architecture
-    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -75,9 +74,10 @@ jobs:
         echo "Checking if the base docker image supports amd64 and arm64..."
         bash ./tests/_validate_dockerfile.sh
 
+
   bash_unit_test_and_coverage:
     name: Bash tests and coverage 
-    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
