@@ -18,10 +18,8 @@ ARG TEST_MODE="-1"
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ARG S6_OVERLAY_VERSION="3.1.6.0"
 
-# amd64 = "x86_64". arm = "aarch64"
-ARG S6_OVERLAY_ARCH="x86_64"
-
 # Conditional logic to overwrite S6_OVERLAY_ARCH based on TARGETPLATFORM
+# amd64 = "x86_64". arm = "aarch64"
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
         S6_OVERLAY_ARCH="aarch64"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
