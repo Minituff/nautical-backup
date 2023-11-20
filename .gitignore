@@ -6,3 +6,4 @@ pytest_cache
 .coverage
 htmlcov
 coverage.xml
+/tests/destination

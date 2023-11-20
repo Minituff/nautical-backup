@@ -29,10 +29,6 @@ initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
 seed_db
 initialize_nautical
 
-if [ "$BACKUP_ON_START" = "true" ]; then
-    logThis "Starting backup since BACKUP_ON_START is true" "INFO" "init"
-    bash nautical
-fi
 
 # :nocov:
 if [ "$EXIT_AFTER_INIT" = "true" ]; then

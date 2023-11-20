@@ -30,11 +30,10 @@ RUN apk add --no-cache curl --virtual=s6build-dependencies && \
             "linux/arm64")   echo "aarch64";; \
 	        *)	echo "x86_64";; \
           esac) && \
-    echo "Installing S6 Overlay v${S6_OVERLAY_VERSION} for platform ${S6_OVERLAY_ARCH}" && \
+    echo "Installing S6 Overlay v${S6_OVERLAY_VERSION} -${S6_OVERLAY_ARCH} for ${TARGETPLATFORM}" && \
     curl -sSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz" -o "/tmp/s6-arch.tar.xz" && \
     tar -C / -Jxpf /tmp/s6-arch.tar.xz && \
-    apk del --purge \
-    s6build-dependencies
+    apk del --purge s6build-dependencies
 
 # Add s6 optional symlinks (helps fix paths)
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
@@ -94,8 +93,7 @@ RUN \
     echo "**** Install Python packages ****" && \
     python3 -m pip install --no-cache-dir --upgrade -r /api/requirements.txt && \
     echo "**** Cleanup ****" && \
-    apk del --purge \
-    build-dependencies
+    apk del --purge build-dependencies
 
 # Conditionally execute commands based on TESTMODE
 RUN if [ "$TEST_MODE" != "-1" ]; then \
