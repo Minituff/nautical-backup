@@ -44,6 +44,7 @@ nav:
  - Q & A: q-and-a.md
  - Developer Documentation:
    - Dev Container: developers/dev-container.md
+   - Tests: developers/tests.md
    - Contributing to the Docs: developers/docs.md
    - Developer Env Variables: developers/env.md
 

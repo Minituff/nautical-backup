@@ -2,6 +2,7 @@
 # docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
 # docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
 # docker compose run nautical-backup-test3
+# docker compose run nautical-backup-test4
 
 version: '3'
 services:  
