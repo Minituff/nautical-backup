@@ -10,6 +10,7 @@ services:
   nautical-backup-test1:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test1
+    hostname: nautical-backup-test1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
@@ -28,6 +29,7 @@ services:
   nautical-backup-test2:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test2
+    hostname: nautical-backup-test2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
@@ -41,6 +43,7 @@ services:
   nautical-backup-test3:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test3
+    hostname: nautical-backup-test3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
