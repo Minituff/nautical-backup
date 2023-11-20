@@ -191,7 +191,7 @@ BackupContainer() {
         logThis "$container completed."
         ((containers_completed++))
     else
-        logThis "Directory $src_dir does not exist. Skipping" "WARN"
+        logThis "$container - Source directory $src_dir does not exist. Skipping" "DEBUG"
     fi
 }
 
