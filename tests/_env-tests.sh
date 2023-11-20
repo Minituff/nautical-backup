@@ -1,5 +1,7 @@
 #!/usr/bin/with-contenv bash
 
+# These are run if TEST_MODE=1 and TEST_MODE=2
+
 # Change this as alpine updates
 ALPINE_VERSION="3.18"
 
