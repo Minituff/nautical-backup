@@ -25,9 +25,10 @@ export APP_HOME
 execute_command() {
     case $1 in
     build)
+        clear
         cecho CYAN "Building Nautical..."
         cd $APP_HOME
-        docker build -t nautical-backup -t nautical-backup:test --no-cache --build-arg='NAUTICAL_VERSION=testing' .
+        docker build -t nautical-backup -t nautical-backup:test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' .
         ;;
     build-run)
         cd $APP_HOME
@@ -42,9 +43,10 @@ execute_command() {
         docker-compose up
         ;;
     build-test)
+        clear
         cecho CYAN "Building Test Nautical container..."
         cd $APP_HOME
-        docker build -t minituff/nautical-test --no-cache --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .
+        docker build -t minituff/nautical-test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .
         ;;
     test)
         cecho CYAN "Running Test Nautical container..."

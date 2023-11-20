@@ -16,26 +16,25 @@ LABEL maintainer="minituff"
 ARG TEST_MODE="-1"
 
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
-ARG S6_OVERLAY_VERSION="3.1.6.0"
+ENV S6_OVERLAY_VERSION="3.1.6.0"
 
-# amd64 = "x86_64". arm = "aarch64"
-ENV S6_OVERLAY_ARCH="x86_64"
-
-# Conditional logic to overwrite S6_OVERLAY_ARCH based on TARGETPLATFORM
-RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-        S6_OVERLAY_ARCH="aarch64"; \
-    elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-        S6_OVERLAY_ARCH="x86_64"; \
-    fi && \
-    echo "S6_OVERLAY_ARCH set to $S6_OVERLAY_ARCH"
-
-RUN echo "S6_OVERLAY_ARCH: ${S6_OVERLAY_ARCH}"
 
 # Install S6 Overlay
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz /tmp
-RUN tar -C / -Jxpf /tmp/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz
+
+# This is needed because each arch needs a different S6 build. All other S6 files are the same
+RUN apk add --no-cache curl --virtual=s6build-dependencies && \
+    S6_OVERLAY_ARCH=$(case "${TARGETPLATFORM}" in \
+            "linux/amd64")   echo "x86_64";; \
+            "linux/arm64")   echo "aarch64";; \
+	        *)	echo "x86_64";; \
+          esac) && \
+    echo "Installing S6 Overlay v${S6_OVERLAY_VERSION} for platform ${S6_OVERLAY_ARCH}" && \
+    curl -sSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_OVERLAY_ARCH}.tar.xz" -o "/tmp/s6-arch.tar.xz" && \
+    tar -C / -Jxpf /tmp/s6-arch.tar.xz && \
+    apk del --purge \
+    s6build-dependencies
 
 # Add s6 optional symlinks (helps fix paths)
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-noarch.tar.xz /tmp
