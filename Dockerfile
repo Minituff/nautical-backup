@@ -18,14 +18,18 @@ ARG TEST_MODE="-1"
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ARG S6_OVERLAY_VERSION="3.1.6.0"
 
-# Conditional logic to overwrite S6_OVERLAY_ARCH based on TARGETPLATFORM
 # amd64 = "x86_64". arm = "aarch64"
+ENV S6_OVERLAY_ARCH="x86_64"
+
+# Conditional logic to overwrite S6_OVERLAY_ARCH based on TARGETPLATFORM
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
         S6_OVERLAY_ARCH="aarch64"; \
     elif [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
         S6_OVERLAY_ARCH="x86_64"; \
     fi && \
     echo "S6_OVERLAY_ARCH set to $S6_OVERLAY_ARCH"
+
+RUN echo "S6_OVERLAY_ARCH: ${S6_OVERLAY_ARCH}"
 
 # Install S6 Overlay
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
@@ -114,6 +118,7 @@ VOLUME [ "/app/destination" ]
 # Only should be exposed when running in test mode
 VOLUME [ "/tests" ]
 
+# Only used with the HTTP API is enabled
 EXPOSE 8069
 
 # Run the entry script and pass all variables to it
