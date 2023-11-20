@@ -237,7 +237,7 @@ for entry in $containers; do
     name=${entry##*:}
     skip=0
 
-    logThis "Checking container $name." "DEBUG"
+    logThis "Checking  $name." "DEBUG"
 
     if [ "$REQUIRE_LABEL" = "true" ]; then
         skip=1 # Skip by default unless lable is found

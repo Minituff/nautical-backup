@@ -239,6 +239,16 @@ test_python() {
     fi
 }
 
+
+test_self_container_id() {
+    if [[ $(echo $SELF_CONTAINER_ID) ]]; then
+        echo "PASS: 'SELF_CONTAINER_ID' returns a value."
+    else
+        echo "FAIL: 'SELF_CONTAINER_ID' did not return a value."
+        exit 1
+    fi
+}
+
 # Function to test if environment variables have expected values
 test_env_vars() {
     local -n env_vars_to_test=$1 # Use nameref to pass associative array by reference
@@ -309,6 +319,7 @@ if [ "$1" == "test1" ]; then
     test_timeout
     test_alpine_release
     test_python
+    test_self_container_id
 
     echo "All tests passed!"
 elif [ "$1" == "test2" ]; then
