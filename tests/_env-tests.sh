@@ -216,6 +216,29 @@ test_alpine_release() {
     fi
 }
 
+test_python() {
+    EXPECTED_OUTPUT="/usr/bin/python3"
+    ACTUAL_OUTPUT=$(which python3)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which python' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: Python does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    # Use 'python --version' to check if it returns something
+    if [[ $(python3 --version) ]]; then
+        echo "PASS: 'python3 --version' returns a value."
+    else
+        echo "FAIL: 'python3 --version' did not return a value."
+        exit 1
+    fi
+}
+
 # Function to test if environment variables have expected values
 test_env_vars() {
     local -n env_vars_to_test=$1 # Use nameref to pass associative array by reference
@@ -285,6 +308,7 @@ if [ "$1" == "test1" ]; then
     test_curl
     test_timeout
     test_alpine_release
+    test_python
 
     echo "All tests passed!"
 elif [ "$1" == "test2" ]; then

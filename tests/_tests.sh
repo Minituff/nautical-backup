@@ -1804,6 +1804,7 @@ test_additional_folders_label_during
 test_pre_and_post_backup_curl_env
 test_pre_and_post_backup_curl_label
 test_lifecycle_hooks
+# tet_skip_self # TODO
 # test_backup_on_start # <--- Cannot test this using S6
 
 # Cleanup

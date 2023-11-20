@@ -12,6 +12,8 @@ db add_current_datetime "last_cron"
 IFS=',' read -r -a SKIP_CONTAINERS_ARRAY <<< "$SKIP_CONTAINERS"
 IFS=',' read -r -a SKIP_STOPPING_ARRAY <<< "$SKIP_STOPPING" 
 
+SKIP_CONTAINERS_ARRAY+=("$SELF_CONTAINER_ID")
+
 # Function to populate override directories
 populate_override_dirs() {
     local -n override_dirs_ref=$1 # Use nameref to update the associative array passed as argument
@@ -59,8 +61,7 @@ if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
     custom_args="$RSYNC_CUSTOM_ARGS"
 fi
 
-# Merge the default skips with provided skips
-currs=("${currs[@]}" "${SKIP_CONTAINERS_ARRAY[@]}")
+
 containers_completed=0
 
 BackupAdditionalFolders() {
@@ -235,6 +236,8 @@ for entry in $containers; do
     id=${entry%%:*}
     name=${entry##*:}
     skip=0
+
+    logThis "Checking container $name." "DEBUG"
 
     if [ "$REQUIRE_LABEL" = "true" ]; then
         skip=1 # Skip by default unless lable is found
