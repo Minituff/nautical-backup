@@ -49,16 +49,25 @@ execute_command() {
         docker build -t minituff/nautical-test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .
         ;;
     test)
-        cecho CYAN "Running Test Nautical container..."
+        cecho CYAN "Running Nautical container tests..."
+        cd $APP_HOME
+        
+        ./tests/_validate_dockerfile.sh
+        
         cd $APP_HOME/tests
-        docker compose run nautical-backup-test3 
-        # docker compose stop nautical-backup-test4 
-        # docker compose run nautical-backup-test4
+
+        docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
+        docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+
+        NAME=$(docker-compose run -d nautical-backup-test3)
+        echo Started container: $NAME
+        docker logs $NAME -f 
+        docker stop $NAME
         ;;
     build-test-run)
-        nb build-test && cd $APP_HOME/tests
-        cecho CYAN "Running Test Nautical container..."
-        docker compose run nautical-backup-test3
+        nb build-test
+        clear
+        nb test
         ;;
     api)
         cd $APP_HOME
