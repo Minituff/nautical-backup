@@ -51,7 +51,9 @@ execute_command() {
     test)
         cecho CYAN "Running Test Nautical container..."
         cd $APP_HOME/tests
-        docker compose run nautical-backup-test3
+        docker compose run nautical-backup-test3 
+        # docker compose stop nautical-backup-test4 
+        # docker compose run nautical-backup-test4
         ;;
     build-test-run)
         nb build-test && cd $APP_HOME/tests
