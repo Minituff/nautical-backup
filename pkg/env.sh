@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 
-if [ "$TEST_MODE" != "-1" ]; then
+if [ ! -z "$TEST_MODE" ] && [ "$TEST_MODE" != "-1" ]; then
     NAUTICAL_VERSION=Test
     TARGETPLATFORM=TestPlatform
 fi
