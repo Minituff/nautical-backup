@@ -193,7 +193,7 @@ Send a `CURL` request *before* or *after* backing up the containers. This can be
 
 ```properties
 PRE_BACKUP_CURL=curl -X GET 'google.com'
-POST_BACKUP_CURL=curl -X POST 'http://192.168.1.21.com/do-something'
+POST_BACKUP_CURL=curl -d "Backup successful 😀" ntfy.sh/mytopic
 ```
 
 !!! example "Test your `curl` request"
