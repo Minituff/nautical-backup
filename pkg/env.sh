@@ -65,11 +65,10 @@ done <"$DEFAULTS_FILE"
 # Get the container ID of the current container (Does not work on arm64)
 SELF_CONTAINER_ID=$(cat /proc/self/cgroup | grep 'docker' | sed 's/^.*\///' | tail -n1)
 if [ -z "${SELF_CONTAINER_ID}" ]; then
-    SELF_CONTAINER_ID=$(cat etc/hostname) # Workaround for arm64
+    SELF_CONTAINER_ID=$(hostname) # Workaround for arm64
     if [ -z "${SELF_CONTAINER_ID}" ]; then
         SELF_CONTAINER_ID="nautical-backup"
         echo "$SELF_CONTAINER_ID" > /etc/hostname
-        hostname -F /etc/hostname
     fi
 fi
 handle_env SELF_CONTAINER_ID "$SELF_CONTAINER_ID"
