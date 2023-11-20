@@ -1,8 +1,12 @@
 #!/usr/bin/with-contenv bash
 
 if [ ! -z "$TEST_MODE" ] && [ "$TEST_MODE" != "-1" ]; then
-    NAUTICAL_VERSION=Test
-    TARGETPLATFORM=TestPlatform
+    if [ ! -z "$TEST_MODE" ]; then
+        NAUTICAL_VERSION="Test-${TEST_MODE}"
+    fi
+    if [ ! -z "$TARGETPLATFORM" ]; then
+        TARGETPLATFORM=TestPlatform
+    fi
 fi
 
 source /app/utils.sh # This also loads the logger
@@ -26,7 +30,6 @@ logThis "Nautical Backup Version: $NAUTICAL_VERSION" "INFO" "init"
 logThis "Built for the platform: $TARGETPLATFORM" "DEBUG" "init"
 
 logThis "Perparing enviornment variables..." "DEBUG" "init"
-
 
 # Path to the defaults file
 DEFAULTS_FILE="/app/defaults.env"
