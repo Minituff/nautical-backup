@@ -1,0 +1,26 @@
+name: Add header
+
+on:
+  workflow_dispatch: # Allow manually running
+  push:
+    branches:
+      - api
+
+jobs:
+  build:
+    name: Add headers
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Add header action step
+      # uses: ./ # Uses an action in the root directory
+      uses: minituff/add-header-action@v0 # Change this to be the latest version, SHA, or branch name
+      with:
+        dry-run: true
+        verbose: true
+      env:
+        FORCE_COLOR: "1" # Optional: Shows color output in GitHub console.
+
+    - name: Commit changes back to repo
+      uses: stefanzweifel/git-auto-commit-action@v5
