@@ -76,7 +76,7 @@ jobs:
 
 
   bash_unit_test_and_coverage:
-    name: Bash tests and coverage 
+    name: Integration tests 
     # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
@@ -91,8 +91,7 @@ jobs:
         context: .
         load: true # Do not push this image
         tags: minituff/nautical-test
-        build-args: |
-            TEST_MODE=0
+        build-args: TEST_MODE=0
   
     - name: Run integration tests against Docker image
       run: |
