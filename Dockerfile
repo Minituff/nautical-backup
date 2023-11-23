@@ -107,7 +107,7 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
     fi
 
 # Add S6 files
-COPY --chmod=755 root/ /
+COPY --chmod=755 s6-overlay/ /
 
 VOLUME [ "/app/source" ]
 VOLUME [ "/app/destination" ]
