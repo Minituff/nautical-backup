@@ -1,0 +1,10 @@
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #011b3c, #5365c9);
+    color: white;
+}

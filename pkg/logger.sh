@@ -1,16 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 
-declare -A levels=([DEBUG]=0 [INFO]=1 [WARN]=2 [ERROR]=3)
+declare -A levels=([TRACE]=0 [DEBUG]=1 [INFO]=2 [WARN]=3 [ERROR]=4)
 
 # Defaults
 script_logging_level="INFO"
 report_file_logging_level="INFO"
 report_file_on_backup_only="true"
-
-if [ "$TEST_MODE" == "true" ]; then
-    SOURCE_LOCATION="tests/src"
-    DEST_LOCATION="tests/dest"
-fi
 
 # Override the defaults
 if [ ! -z "$LOG_LEVEL" ]; then
@@ -59,3 +54,6 @@ logThis() {
         fi
     fi
 }
+
+# logThis "SOURCE_LOCATION: ${SOURCE_LOCATION}" "DEBUG" "INIT"
+# logThis "DEST_LOCATION: ${DEST_LOCATION}" "DEBUG" "INIT"

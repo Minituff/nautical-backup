@@ -1,30 +1,72 @@
 # cd tests
 # docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
 # docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+# docker compose run nautical-backup-test3
+# docker compose run nautical-backup-test4
 
 version: '3'
 services:  
+  
   nautical-backup-test1:
-    container_name: nautical-backup-test
-    image: minituff/nautical-backup:test # Use the local image
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test1
+    hostname: nautical-backup-test1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
       - ./destination:/app/destination
-    entrypoint: /usr/bin/env bash app/test.sh test1
+      - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
     environment:
-      - TZ=America/Los_Angeles
+      - TZ=America/Phoenix # Must not observe DST
       - BACKUP_ON_START=true
       - EXIT_AFTER_INIT=true
       - CRON_SCHEDULE=0 8 * * *
       - REPORT_FILE=false
+      - TEST_MODE=1
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_KILL_GRACETIME=100 # How long until S6 kills
+  
   nautical-backup-test2:
-    container_name: nautical-backup-test
-    image: minituff/nautical-backup:test # Use the local image
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test2
+    hostname: nautical-backup-test2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./source:/app/source
       - ./destination:/app/destination
-    entrypoint: /usr/bin/env bash app/test.sh test2
+      - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
     environment:
-      - RETURN_AFTER_INIT=true
+      - TEST_MODE=2
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_KILL_GRACETIME=100 # How long until S6 kills
+
+  nautical-backup-test3:
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test3
+    hostname: nautical-backup-test3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./source:/app/source
+      - ./destination:/app/destination
+      - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
+    environment:
+      - TEST_MODE=3
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_KILL_GRACETIME=100 # How long until S6 kills
+
+  # NOT RUN IN CI
+  nautical-backup-test4:
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test4
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
+      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
+    ports:
+      - "8069:8069/tcp"
+    environment:
+      - TEST_MODE=3
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_KILL_GRACETIME=100 # How long until S6 kills

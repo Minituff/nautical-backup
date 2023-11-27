@@ -1,26 +1,21 @@
-If you would like to add features to Nautical, it is important that all our tests pass.
-Here is a brief overview of how to run our unit tests.
-
-## Pre-requisites
-```bash
-apt install jq rsync curl tzdata
-```
-This was done on an Ubuntu machine.
-
-## Installing Ruby
+1. Run the test container
 
 ```bash
-sudo apt-get install ruby-full
+cd tests
+docker compose run nautical-backup-test4
 ```
-We need `Ruby 3` or greater
+!!! tip "You may need to update the paths here to be absolute paths"
+    This is a problem with DevContainers
 
-## Install requirements
-```bash
-gem install bashcov simplecov-cobertura simplecov-html
-```
-We use this instead of adding a `Gemfile` to the repo.
+1. Shell into the container
 
-## Run the tests
 ```bash
-bashcov ./tests/tests.sh
+docker exec -it nautical-backup-test
 ```
+
+1. Run the tests
+
+```bash
+with-contenv bash _tests.sh 
+```
+!!! tip "`with-contenv` preserves environment variables"

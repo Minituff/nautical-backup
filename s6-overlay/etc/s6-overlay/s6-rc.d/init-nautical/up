@@ -1,0 +1,1 @@
+with-contenv bash /app/entry.sh

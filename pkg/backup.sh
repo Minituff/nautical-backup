@@ -1,27 +1,18 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
 
-if [ "$TEST_MODE" == "true" ]; then
-    source pkg/logger.sh # Use the logger script
-else
-    source /app/logger.sh # Use the logger script
-fi
+source /app/logger.sh # Use the logger script
+source /app/utils.sh # Use the logger script
 
 logThis "Starting backup..."
 
-# Convert the string back to an array
-if [ ! -z "$CONTAINER_SKIP_LIST_STR" ]; then
-    IFS=',' read -ra SKIP_CONTAINERS <<<"$CONTAINER_SKIP_LIST_STR"
-fi
+db put "backup_running" "true"
+db add_current_datetime "last_cron"
 
-# Convert the string back to an array
-if [ ! -z "$SKIP_STOPPING_STR" ]; then
-    IFS=',' read -ra SKIP_STOPPING <<<"$SKIP_STOPPING_STR"
-fi
+# Convert the string into an array
+IFS=',' read -r -a SKIP_CONTAINERS_ARRAY <<< "$SKIP_CONTAINERS"
+IFS=',' read -r -a SKIP_STOPPING_ARRAY <<< "$SKIP_STOPPING" 
 
-# Convert the string back to an array
-# if [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
-#     IFS=',' read -ra ADDITIONAL_FOLDERS <<<"$ADDITIONAL_FOLDERS_LIST_STR"
-# fi
+SKIP_CONTAINERS_ARRAY+=("$SELF_CONTAINER_ID")
 
 # Function to populate override directories
 populate_override_dirs() {
@@ -51,6 +42,7 @@ number_of_containers=$(echo "$containers" | wc -l)
 number_of_containers=$((number_of_containers - 1)) # Subtract 1 to exclude the container running the script
 
 logThis "Processing $number_of_containers containers..."
+db put "number_of_containers" "$number_of_containers"
 
 # Define the name for the report file
 report_file="Backup Report - $(date +'%Y-%m-%d').txt"
@@ -69,12 +61,12 @@ if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
     custom_args="$RSYNC_CUSTOM_ARGS"
 fi
 
-# Merge the default skips with provided skips
-currs=("${currs[@]}" "${SKIP_CONTAINERS[@]}")
+
 containers_completed=0
 
 BackupAdditionalFolders() {
     IFS=',' read -ra new_additional_folders <<<"$1"
+
     local new_default_rsync_args=$2
     local new_custom_args=$3
 
@@ -104,7 +96,7 @@ BackupContainer() {
     local custom_args=$4
 
     local skip_stopping=0
-    for skip in "${SKIP_STOPPING[@]}"; do
+    for skip in "${SKIP_STOPPING_ARRAY[@]}"; do
         if [ "$skip" == "$container" ]; then
             skip_stopping=1
             logThis "Skipping stopping of $container as it's in the SKIP_STOPPING list." "DEBUG"
@@ -199,7 +191,7 @@ BackupContainer() {
         logThis "$container completed."
         ((containers_completed++))
     else
-        logThis "Directory $src_dir does not exist. Skipping" "WARN"
+        logThis "$container - Source directory $src_dir does not exist. Skipping" "DEBUG"
     fi
 }
 
@@ -234,8 +226,8 @@ if [ ! -z "$PRE_BACKUP_CURL" ]; then
     CurlCommand "$PRE_BACKUP_CURL"
 fi
 
-if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS_LIST_STR" ]; then
-    BackupAdditionalFolders "$ADDITIONAL_FOLDERS_LIST_STR" "$default_rsync_args" "$custom_args"
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS" ]; then
+    BackupAdditionalFolders "$ADDITIONAL_FOLDERS" "$default_rsync_args" "$custom_args"
 fi
 
 # Loop through all running containers
@@ -244,6 +236,8 @@ for entry in $containers; do
     id=${entry%%:*}
     name=${entry##*:}
     skip=0
+
+    logThis "Checking  $name." "DEBUG"
 
     if [ "$REQUIRE_LABEL" = "true" ]; then
         skip=1 # Skip by default unless lable is found
@@ -264,7 +258,7 @@ for entry in $containers; do
         fi
     fi
 
-    for cur in "${SKIP_CONTAINERS[@]}"; do
+    for cur in "${SKIP_CONTAINERS_ARRAY[@]}"; do
         if [ "$cur" == "$name" ]; then
             skip=1
             logThis "Skipping $name based on name." "DEBUG"
@@ -344,6 +338,10 @@ done
 
 containers_skipped=$((number_of_containers - containers_completed))
 
+
+db put "containers_completed" "$containers_completed"
+db put "containers_skipped" "$containers_skipped"
+
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
 
 if [ "$ADDITIONAL_FOLDERS_WHEN" = "after" ]; then
@@ -355,7 +353,9 @@ if [ ! -z "$POST_BACKUP_CURL" ]; then
     CurlCommand "$POST_BACKUP_CURL"
 fi
 
+db put "backup_running" "false"
+
 if [ "$RUN_ONCE" = "true" ]; then
-    logThis "Exiting since RUN_ONCE is true" "INFO" "init"
+    logThis "Exiting since RUN_ONCE is true" "INFO"
     exit 0
 fi

@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
+
+# These are run if TEST_MODE=1 and TEST_MODE=2
 
 # Change this as alpine updates
 ALPINE_VERSION="3.18"
@@ -36,14 +38,13 @@ test_docker() {
 
 test_cron() {
     # Expected output
-    EXPECTED_OUTPUT="$CRON_SCHEDULE bash /app/backup.sh"
-    EXPECTED_OUTPUT2="0 8 * * * bash /app/backup.sh" # Requires setting in the docker compose or CLI
+    EXPECTED_OUTPUT="$CRON_SCHEDULE with-contenv bash nautical"
 
     # Run the command and capture its output
     ACTUAL_OUTPUT=$(crontab -l | grep bash)
 
     if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: CRON output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -51,7 +52,7 @@ test_cron() {
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: CRON output does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -68,7 +69,7 @@ test_bash() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which bash' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Bash does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -91,7 +92,7 @@ test_rsync() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which rsync' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Rsync does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -114,7 +115,7 @@ test_jq() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which jq' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Jq does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -129,7 +130,6 @@ test_jq() {
     fi
 }
 
-
 test_curl() {
     EXPECTED_OUTPUT="/usr/bin/curl"
     ACTUAL_OUTPUT=$(which curl)
@@ -138,7 +138,7 @@ test_curl() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which curl' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Curl does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -161,7 +161,7 @@ test_timeout() {
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'which timeout' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: Timeout does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
@@ -176,26 +176,27 @@ test_timeout() {
     fi
 }
 
-
 test_tz() {
-    EXPECTED_OUTPUT="America/Los_Angeles"
+    EXPECTED_OUTPUT="America/Phoenix"
     ACTUAL_OUTPUT=$(echo $TZ)
 
     # Compare the actual output to the expected output
     if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
         echo "PASS: 'echo \$TZ' returns $EXPECTED_OUTPUT"
     else
-        echo "FAIL: Output does not match expected output."
+        echo "FAIL: TimzeZone does not match expected output."
         echo "Expected: $EXPECTED_OUTPUT"
         echo "Got: $ACTUAL_OUTPUT"
         exit 1
     fi
 
-    # Use 'date | grep PDT' to check if it returns something
-    if [[ $(date | grep PDT) ]]; then
-        echo "PASS: 'date | grep PDT' returns a value."
+    ACTUAL_OUTPUT=$(date | grep MST)
+    # Use 'date | grep MST' to check if it returns something
+    if [[ $ACTUAL_OUTPUT ]]; then
+        echo "PASS: 'date | grep MST' returns the correct TZ."
     else
-        echo "FAIL: 'date | grep PDT' did not return a value."
+        echo "FAIL: 'date | grep MST' did notthe correct TZ."
+        echo "Got: $date"
         exit 1
     fi
 }
@@ -213,6 +214,39 @@ test_alpine_release() {
         echo "$ALPINE_VERSION*"
         echo "Actual"
         echo "$output"
+        exit 1
+    fi
+}
+
+test_python() {
+    EXPECTED_OUTPUT="/usr/bin/python3"
+    ACTUAL_OUTPUT=$(which python3)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which python' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: Python does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
+
+    # Use 'python --version' to check if it returns something
+    if [[ $(python3 --version) ]]; then
+        echo "PASS: 'python3 --version' returns a value."
+    else
+        echo "FAIL: 'python3 --version' did not return a value."
+        exit 1
+    fi
+}
+
+
+test_self_container_id() {
+    if [[ $(echo $SELF_CONTAINER_ID) ]]; then
+        echo "PASS: 'SELF_CONTAINER_ID' returns a value."
+    else
+        echo "FAIL: 'SELF_CONTAINER_ID' did not return a value."
         exit 1
     fi
 }
@@ -242,7 +276,7 @@ test_env_vars() {
 # Declare an associative array with environment variable names and expected values
 declare -A expected_env_vars=(
     ["TZ"]="Etc/UTC"
-    ["TEST_MODE"]="false"
+    ["TEST_MODE"]="2" # This not actually the default, but the mode that checks this value is #2
     ["CRON_SCHEDULE"]="0 4 * * *"
     ["REPORT_FILE"]="true"
     ["BACKUP_ON_START"]="false"
@@ -266,10 +300,14 @@ declare -A expected_env_vars=(
     ["ADDITIONAL_FOLDERS_WHEN"]="before"
     ["PRE_BACKUP_CURL"]=""
     ["POST_BACKUP_CURL"]=""
+    ["HTTP_REST_API_ENABLED"]="false"
+    ["HTTP_REST_API_USERNAME"]="admin"
+    ["HTTP_REST_API_PASSWORD"]="password"
+    
 )
 
 if [ "$1" == "test1" ]; then
-    bash /entry.sh
+    bash /app/entry.sh
 
     echo "Running integation tests..."
 
@@ -282,11 +320,13 @@ if [ "$1" == "test1" ]; then
     test_curl
     test_timeout
     test_alpine_release
+    test_python
+    test_self_container_id
 
     echo "All tests passed!"
 elif [ "$1" == "test2" ]; then
-    # source /app/env.sh
-    source /entry.sh
+    source /app/env.sh
+    source /app/entry.sh
     echo "Testing default enviornment variables..."
     test_env_vars expected_env_vars
 else

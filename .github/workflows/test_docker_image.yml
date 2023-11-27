@@ -1,4 +1,5 @@
 name: Tests
+# This file contains 3 jobs that run in parallel
 
 on:
   workflow_dispatch: # Allow manually running
@@ -12,49 +13,58 @@ on:
     branches: # Target
       - 'main'
       - 'dev'
-  # push:
-    # branches:
-      # - 'main'
+  push:
+    branches:
+      - 'api'  #! TODO: REMOVE
       # - 'codecov'
     # tags:
     #   - 'v*'
 
 jobs:
-  unit_test_and_coverage:
-    name: Unit tests and coverage
+
+  python_unit_test_and_coverage:
+    name: Python tests and coverage
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ruby/setup-ruby@v1
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
       with:
-        ruby-version: head
-    
-    - name: Install Ruby dependencies
+        python-version: '3.10'
+
+    - name: Install dependencies
       run: |
-        gem install bashcov simplecov-cobertura simplecov-html
-    
-    - name: Run unit tests
-      run: bashcov ./tests/tests.sh && ls -la coverage
+        echo "Installing python requirements"
+        pip install -r api/requirements.txt
+        pip install -r pytest/requirements.txt
+
+    - name: Run Black format
+      run: python3 -m black --verbose --check --line-length 120 api
+
+    - name: Run tests and collect coverage
+      run: python3 -m pytest --cov api --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta
-      # uses: codecov/codecov-action@v3
-      env: # Required for v4
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      env: 
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
         fail_ci_if_error: true
-        files: coverage/coverage.xml # The json file will not work here
+        files: coverage.xml
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@v3
       with:
-        name: code-coverage
-        path: coverage/
+        name: python-code-coverage
+        path: htmlcov/
         retention-days: 5
 
-  test_docker_image:
-    name: Docker image tests
+
+  test_docker_architecture:
+    name: Validate Docker Architecture
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -62,21 +72,45 @@ jobs:
     - name: Validate Dockerfile supports multi-arch
       run: |
         echo "Checking if the base docker image supports amd64 and arm64..."
-        bash ./tests/validate_dockerfile.sh
+        bash ./tests/_validate_dockerfile.sh
+
+
+  bash_unit_test_and_coverage:
+    name: Integration tests 
+    # if: contains(github.event.head_commit.message, '[ci]')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
     - name: Build and export Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v5.1.0
       with:
         context: .
         load: true # Do not push this image
-        tags: minituff/nautical-backup:test
+        tags: minituff/nautical-test
+        build-args: TEST_MODE=0
   
-    - name: Run integation tests against Docker image
+    - name: Run integration tests against Docker image
       run: |
         cd tests
-        docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
-        docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+        docker compose run nautical-backup-test1
+        docker compose run nautical-backup-test2
+        docker compose run nautical-backup-test3
 
+    - name: Upload reports to Codecov
+      uses: codecov/codecov-action@v4-beta
+      env: 
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
+      with:
+        fail_ci_if_error: true
+        files: tests/coverage/coverage.xml # The json file will not work here
+    
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: bash-code-coverage
+        path: tests/coverage/
+        retention-days: 5

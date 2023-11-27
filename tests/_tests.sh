@@ -1,4 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+source /app/utils.sh
+source /app/logger.sh # Use the logger script
 
 export MOCK_DOCKER_PS_OUTPUT=""
 DOCKER_COMMANDS_FILE=$(mktemp /tmp/docker_commands.XXXXXX)
@@ -60,12 +63,13 @@ print_array() {
 }
 
 reset_environment_variables() {
-  TEST_MODE="true"
+  # Set each variable
+  SKIP_CONTAINERS=""
+  TEST_MODE="1"
   LOG_LEVEL="ERROR"
   BACKUP_ON_START="true"
   REPORT_FILE="false"
   RUN_ONCE="false"
-
   TZ=""
   CRON_SCHEDULE=""
   USE_DEFAULT_RSYNC_ARGS=""
@@ -75,11 +79,6 @@ reset_environment_variables() {
   KEEP_SRC_DIR_NAME=""
   EXIT_AFTER_INIT=""
   LOG_RSYNC_COMMANDS=""
-  SOURCE_LOCATION=""
-  DEST_LOCATION=""
-  TEST_SOURCE_LOCATION=""
-  TEST_DEST_LOCATION=""
-  SKIP_CONTAINERS=""
   SKIP_STOPPING=""
   RSYNC_CUSTOM_ARGS=""
   OVERRIDE_SOURCE_DIR=""
@@ -87,6 +86,38 @@ reset_environment_variables() {
   ADDITIONAL_FOLDERS=""
   PRE_BACKUP_CURL=""
   POST_BACKUP_CURL=""
+
+  # Export each variable
+  export_env SKIP_CONTAINERS "$SKIP_CONTAINERS"
+  export_env TEST_MODE "$TEST_MODE"
+  export_env LOG_LEVEL "$LOG_LEVEL"
+  export_env BACKUP_ON_START "$BACKUP_ON_START"
+  export_env REPORT_FILE "$REPORT_FILE"
+  export_env RUN_ONCE "$RUN_ONCE"
+  export_env TZ "$TZ"
+  export_env CRON_SCHEDULE "$CRON_SCHEDULE"
+  export_env USE_DEFAULT_RSYNC_ARGS "$USE_DEFAULT_RSYNC_ARGS"
+  export_env REQUIRE_LABEL "$REQUIRE_LABEL"
+  export_env REPORT_FILE_LOG_LEVEL "$REPORT_FILE_LOG_LEVEL"
+  export_env REPORT_FILE_ON_BACKUP_ONLY "$REPORT_FILE_ON_BACKUP_ONLY"
+  export_env KEEP_SRC_DIR_NAME "$KEEP_SRC_DIR_NAME"
+  export_env EXIT_AFTER_INIT "$EXIT_AFTER_INIT"
+  export_env LOG_RSYNC_COMMANDS "$LOG_RSYNC_COMMANDS"
+  export_env SKIP_STOPPING "$SKIP_STOPPING"
+  export_env RSYNC_CUSTOM_ARGS "$RSYNC_CUSTOM_ARGS"
+  export_env OVERRIDE_SOURCE_DIR "$OVERRIDE_SOURCE_DIR"
+  export_env OVERRIDE_DEST_DIR "$OVERRIDE_DEST_DIR"
+  export_env ADDITIONAL_FOLDERS "$ADDITIONAL_FOLDERS"
+  export_env PRE_BACKUP_CURL "$PRE_BACKUP_CURL"
+  export_env POST_BACKUP_CURL "$POST_BACKUP_CURL"
+
+  # Source the environment script
+  with-contenv /app/env.sh
+}
+
+run_nautical(){
+  source /app/entry.sh
+  bash nautical
 }
 
 clear_files() {
@@ -100,10 +131,8 @@ teardown() {
   rm "$DOCKER_COMMANDS_FILE"
   rm "$RSYNC_COMMANDS_FILE"
   rm "$CURL_COMMANDS_FILE"
-  rm -rf tests/src
-  rm -rf tests/dest
-
-  source pkg/logger.sh
+  rm -rf $SOURCE_LOCATION/*
+  rm -rf $DEST_LOCATION/*
 
   delete_report_file
 
@@ -111,35 +140,22 @@ teardown() {
     cecho "RED" "X Failed $failed_tests tests. ($passed_tests passed)"
     exit 1
   else
-    cecho "GREEN" "✔ Success! All $passed_tests tests passed."
+    cecho "CYAN" "✔ Success! All $passed_tests tests passed."
     exit 0
   fi
 
 }
 
 cleanup_on_success() {
-  reset_environment_variables
   clear_files
-  rm -rf tests/src
-  rm -rf tests/dest
+  rm -rf $SOURCE_LOCATION/*
+  rm -rf $DEST_LOCATION/*
+  reset_environment_variables
 }
 
 cleanup_on_fail() {
   cleanup_on_success
   exit 1
-}
-
-cecho() {
-  RED="\033[0;31m"
-  GREEN="\033[0;32m"  # <-- [0 means not bold
-  YELLOW="\033[1;33m" # <-- [1 means bold
-  CYAN="\033[1;36m"
-  # ... Add more colors if you like
-
-  NC="\033[0m" # No Color
-
-  # printf "${(P)1}${2} ${NC}\n" # <-- zsh
-  printf "${!1}${2} ${NC}\n" # <-- bash
 }
 
 pass() {
@@ -206,8 +222,8 @@ test_docker() {
   # Set what the next docker ps command should return
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
-
-  source pkg/entry.sh
+  
+  run_nautical
 
   # If test_name is blank, return
   if [ -z "$test_name" ]; then
@@ -329,7 +345,7 @@ test_rsync() {
   MOCK_DOCKER_PS_OUTPUT=$(printf "%s\n" "${mock_docker_ps_lines_arr[@]}")
   MOCK_DOCKER_INSPECT_OUTPUT=$(printf "%s\n" "${mock_docker_labels_arr[@]}")
 
-  source pkg/entry.sh
+  run_nautical
 
   # If test_name is blank, return
   if [ -z "$test_name" ]; then
@@ -371,7 +387,7 @@ test_rsync() {
   if [ "$disable_expect_strict" = false ]; then
     # Check if the actual output array is larger than the expected output array
     if [[ ${#rsync_actual_output[@]} -gt 0 ]]; then
-      fail $test_name
+      fail "$test_name"
       echo "Actual output contains more lines than expected."
       test_passed=false
     fi
@@ -381,7 +397,7 @@ test_rsync() {
   for disallowed_rsync in "${disallowed_rsync_output_arr[@]}"; do
     for actual_rsync in "${rsync_actual_output[@]}"; do
       if [[ "$actual_rsync" == "$disallowed_rsync" ]]; then
-        fail $test_name
+        fail "$test_name"
         echo "RSYNC '$disallowed_rsync' found in actual output but is disallowed."
         test_passed=false
       fi
@@ -389,7 +405,7 @@ test_rsync() {
   done
 
   if [ "$test_passed" = true ]; then
-    pass $test_name
+    pass "$test_name"
   else
     fail "$test_name"
     cecho "YELLOW" "Expected:"
@@ -474,7 +490,7 @@ test_curl() {
   if [ "$disable_expect_strict" = false ]; then
     # Check if the actual output array is larger than the expected output array
     if [[ ${#curl_actual_output[@]} -gt 0 ]]; then
-      fail $test_name
+      fail "$test_name"
       echo "Actual output contains more lines than expected."
       test_passed=false
     fi
@@ -484,7 +500,7 @@ test_curl() {
   for disallowed_curl in "${disallowed_curl_output_arr[@]}"; do
     for actual_curl in "${curl_actual_output[@]}"; do
       if [[ "$actual_curl" == "$disallowed_curl" ]]; then
-        fail $test_name
+        fail "$test_name"
         echo "curl '$disallowed_curl' found in actual output but is disallowed."
         test_passed=false
       fi
@@ -492,7 +508,7 @@ test_curl() {
   done
 
   if [ "$test_passed" = true ]; then
-    pass $test_name
+    pass "$test_name"
   else
     fail "$test_name"
     cecho "YELLOW" "Expected:"
@@ -609,9 +625,7 @@ test_timeout() {
 
 test_docker_commands() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -647,11 +661,9 @@ test_docker_commands() {
 
 test_rsync_commands() {
   clear_files
-  export BACKUP_ON_START="true"
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -664,8 +676,8 @@ test_rsync_commands() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container2/ tests/dest/container2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   test_rsync \
@@ -679,11 +691,11 @@ test_rsync_commands() {
 
 test_skip_containers() {
   clear_files
-  export BACKUP_ON_START="true"
-  SKIP_CONTAINERS=container1,container-name2,container-name3
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
-  mkdir -p tests/dest
+  SKIP_CONTAINERS="container1,container-name2,container-name3"
+  # export_env SKIP_CONTAINERS $SKIP_CONTAINERS
+  
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container2/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -712,9 +724,7 @@ test_skip_containers() {
 
 test_enable_label() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -758,10 +768,9 @@ test_enable_label() {
 
 test_require_label() {
   clear_files
-  export BACKUP_ON_START="true"
-  export REQUIRE_LABEL=true
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  REQUIRE_LABEL="true"
+
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -813,11 +822,9 @@ test_require_label() {
 
 test_override_src() {
   clear_files
-  export BACKUP_ON_START="true"
   export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
-  mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
-  mkdir -p tests/src/container3-new && touch tests/src/container3-new/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1-override && touch $SOURCE_LOCATION/container1-override/test.txt
+  mkdir -p $SOURCE_LOCATION/container3-new && touch $SOURCE_LOCATION/container3-new/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -826,13 +833,13 @@ test_override_src() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1-override/ tests/dest/container1-override/" &&
-      echo "-ahq tests/src/container3-new/ tests/dest/container3-new/"
+    echo "-ahq $SOURCE_LOCATION/container1-override/ $DEST_LOCATION/container1-override/" &&
+      echo "-ahq $SOURCE_LOCATION/container3-new/ $DEST_LOCATION/container3-new/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container3/ tests/dest/container3/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container3/ $DEST_LOCATION/container3/"
   )
 
   test_rsync \
@@ -842,8 +849,7 @@ test_override_src() {
     --expect "$expected_rsync_output"
 
   cleanup_on_success
-  mkdir -p tests/src/container-override && touch tests/src/container-override/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container-override && touch $SOURCE_LOCATION/container-override/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -853,10 +859,10 @@ test_override_src() {
     echo "{\"nautical-backup.override-source-dir\":\"container-override\"}"
   )
   expected_rsync_output=$(
-    echo "-ahq tests/src/container-override/ tests/dest/container-override/"
+    echo "-ahq $SOURCE_LOCATION/container-override/ $DEST_LOCATION/container-override/"
   )
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
   )
 
   test_rsync \
@@ -871,11 +877,9 @@ test_override_src() {
 
 test_override_dest() {
   clear_files
-  export BACKUP_ON_START="true"
   export OVERRIDE_DEST_DIR=container1:container1-override,container2:container2-override,container3:container3-new
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container3 && touch tests/src/container3/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container3 && touch $SOURCE_LOCATION/container3/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -884,13 +888,13 @@ test_override_dest() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1-override/" &&
-      echo "-ahq tests/src/container3/ tests/dest/container3-new/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1-override/" &&
+      echo "-ahq $SOURCE_LOCATION/container3/ $DEST_LOCATION/container3-new/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container3/ tests/dest/container3/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container3/ $DEST_LOCATION/container3/"
   )
 
   test_rsync \
@@ -900,8 +904,7 @@ test_override_dest() {
     --expect "$expected_rsync_output"
 
   cleanup_on_success
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -911,10 +914,10 @@ test_override_dest() {
     echo "{\"nautical-backup.override-destination-dir\":\"container-override\"}"
   )
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container-override/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container-override/"
   )
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
   )
 
   test_rsync \
@@ -929,10 +932,8 @@ test_override_dest() {
 
 test_skip_stopping_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export SKIP_STOPPING=container1,example2
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -955,7 +956,7 @@ test_skip_stopping_env() {
     --disallow "$disallowed_docker_output"
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
   )
 
   clear_files
@@ -970,9 +971,7 @@ test_skip_stopping_env() {
 
 test_skip_stopping_label_false() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1000,7 +999,7 @@ test_skip_stopping_label_false() {
     --disallow "$disallowed_docker_output"
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
   )
 
   clear_files
@@ -1016,9 +1015,7 @@ test_skip_stopping_label_false() {
 
 test_skip_stopping_label_true() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1042,7 +1039,7 @@ test_skip_stopping_label_true() {
     --expect "$expected_docker_output"
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
   )
 
   clear_files
@@ -1058,10 +1055,8 @@ test_skip_stopping_label_true() {
 
 test_report_file() {
   clear_files
-  export BACKUP_ON_START="true"
   export REPORT_FILE="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1071,8 +1066,9 @@ test_report_file() {
     --name "Test Docker commands on default settings" \
     --mock_ps "$mock_docker_ps_lines"
 
+  folder_path="${DEST_LOCATION}"
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
     fail "Test Report File not found when REPORT_FILE=true"
@@ -1085,16 +1081,15 @@ test_report_file() {
   cleanup_on_success
 
   export REPORT_FILE="false"
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   test_docker \
     --name "Test Docker commands on default settings" \
     --mock_ps "$mock_docker_ps_lines"
 
+  folder_path="${DEST_LOCATION}"
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
     pass "Test Report File (disabled)"
@@ -1109,13 +1104,11 @@ test_report_file() {
 
 test_custom_rsync_args_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS=-aq
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -1123,13 +1116,13 @@ test_custom_rsync_args_env() {
   )
 
   expected_rsync_output=$(
-    echo "-aq tests/src/container1/ tests/dest/container1/" &&
-      echo "-aq tests/src/container2/ tests/dest/container2/"
+    echo "-aq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-aq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container2/ tests/dest/container2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   test_rsync \
@@ -1143,11 +1136,9 @@ test_custom_rsync_args_env() {
 
 test_custom_rsync_args_label() {
   clear_files
-  export BACKUP_ON_START="true"
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -1158,13 +1149,13 @@ test_custom_rsync_args_label() {
       echo "\"nautical-backup.rsync-custom-args\":\"-aq\"}"
   )
   expected_rsync_output=$(
-    echo "-aq tests/src/container1/ tests/dest/container1/" &&
-      echo "-aq tests/src/container2/ tests/dest/container2/"
+    echo "-aq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-aq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container2/ tests/dest/container2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   test_rsync \
@@ -1179,13 +1170,11 @@ test_custom_rsync_args_label() {
 
 test_custom_rsync_args_both() {
   clear_files
-  export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS=-something
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -1196,13 +1185,13 @@ test_custom_rsync_args_both() {
       echo "\"nautical-backup.rsync-custom-args\":\"-aq\"}"
   )
   expected_rsync_output=$(
-    echo "-aq tests/src/container1/ tests/dest/container1/" &&
-      echo "-aq tests/src/container2/ tests/dest/container2/"
+    echo "-aq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-aq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container2/ tests/dest/container2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/"
   )
 
   test_rsync \
@@ -1217,11 +1206,9 @@ test_custom_rsync_args_both() {
 
 test_report_file_on_backup_only() {
   clear_files
-  export BACKUP_ON_START="true"
   export REPORT_FILE="true"
   export REPORT_FILE_ON_BACKUP_ONLY="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1230,8 +1217,9 @@ test_report_file_on_backup_only() {
   test_docker \
     --mock_ps "$mock_docker_ps_lines"
 
+  folder_path="${DEST_LOCATION}"
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
     fail "REPORT_FILE_ON_BACKUP_ONLY=true did not creat a report file on backup"
@@ -1246,25 +1234,27 @@ test_report_file_on_backup_only() {
   export BACKUP_ON_START="false"
   export REPORT_FILE="true"
   export REPORT_FILE_ON_BACKUP_ONLY="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
   )
 
-  test_docker \
-    --mock_ps "$mock_docker_ps_lines"
+  source /app/env.sh
+  # test_docker \
+  #   --mock_ps "$mock_docker_ps_lines"
 
   # Look for .txt files in the folder
-  txt_files=$(find "tests/dest" -maxdepth 1 -type f -name "*.txt")
+  folder_path="${DEST_LOCATION}"
+  txt_files=$(find "$folder_path" -maxdepth 1 -type f -name "*.txt")
 
   if [[ -z "$txt_files" ]]; then
-    fail "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
+    fail "REPORT_FILE_ON_BACKUP_ONLY=true did not create a report file on Initialize"
     echo "No .txt files found in '$folder_path'."
     exit 1
   else
-    pass "REPORT_FILE_ON_BACKUP_ONLY=true did not create a repott file on Initialize"
+    pass "REPORT_FILE_ON_BACKUP_ONLY=true did not create a report file on Initialize"
   fi
 
   cleanup_on_success
@@ -1272,17 +1262,14 @@ test_report_file_on_backup_only() {
 
 test_keep_src_dir_name_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export KEEP_SRC_DIR_NAME="true"
   test_override_dest
   cleanup_on_success
 
-  export BACKUP_ON_START="true"
   export KEEP_SRC_DIR_NAME="false"
   export OVERRIDE_SOURCE_DIR=container1:container1-override,container2:container2-override,container3:container3-new
-  mkdir -p tests/src/container1-override && touch tests/src/container1-override/test.txt
-  mkdir -p tests/src/container3-new && touch tests/src/container3-new/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1-override && touch $SOURCE_LOCATION/container1-override/test.txt
+  mkdir -p $SOURCE_LOCATION/container3-new && touch $SOURCE_LOCATION/container3-new/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -1291,13 +1278,13 @@ test_keep_src_dir_name_env() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1-override/ tests/dest/container1/" &&
-      echo "-ahq tests/src/container3-new/ tests/dest/container3/"
+    echo "-ahq $SOURCE_LOCATION/container1-override/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/container3-new/ $DEST_LOCATION/container3/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1-override/" &&
-      echo "-ahq tests/src/container3/ tests/dest/container3-new/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1-override/" &&
+      echo "-ahq $SOURCE_LOCATION/container3/ $DEST_LOCATION/container3-new/"
   )
 
   test_rsync \
@@ -1312,9 +1299,7 @@ test_keep_src_dir_name_env() {
 test_keep_src_dir_name_label() {
   clear_files
 
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1-new && touch tests/src/container1-new/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1-new && touch $SOURCE_LOCATION/container1-new/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1326,15 +1311,15 @@ test_keep_src_dir_name_label() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1-new/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/container1-new/ $DEST_LOCATION/container1/"
   )
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1-override-bad/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1-override-bad/"
   )
 
   test_rsync \
-    --name "Test Source override with KEEP_SRC_DIR_NAME=false (env)" \
+    --name "Test Source override with KEEP_SRC_DIR_NAME=false (lable)" \
     --mock_ps "$mock_docker_ps_lines" \
     --mock_labels "$mock_docker_label_lines" \
     --disallow "$disallowed_rsync_output" \
@@ -1348,7 +1333,7 @@ test_keep_src_dir_name_label() {
   clear_files
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1-new/ tests/dest/container1-new/"
+    echo "-ahq $SOURCE_LOCATION/container1-new/ $DEST_LOCATION/container1-new/"
   )
 
   test_rsync \
@@ -1364,8 +1349,7 @@ test_keep_src_dir_name_label() {
 test_backup_on_start() {
   clear_files
   export BACKUP_ON_START="false"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1391,9 +1375,7 @@ test_backup_on_start() {
   cleanup_on_success
 
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1414,7 +1396,7 @@ test_backup_on_start() {
 
 test_logThis() {
   clear_files
-  source pkg/logger.sh
+  source /app/logger.sh
 
   # Temporarily redirect stdout and stderr
   exec 3>&1 4>&2
@@ -1476,12 +1458,9 @@ test_logThis() {
 
 test_logThis_report_file() {
   clear_files
-  source pkg/logger.sh
+  source /app/logger.sh
 
-  # Mock DEST_LOCATION and report_file
-  DEST_LOCATION="./test_dest_report"
-  report_file="test_report.log"
-  mkdir -p "$DEST_LOCATION"
+  report_file="Backup Report - $(date +'%Y-%m-%d').txt"
   touch "$DEST_LOCATION/$report_file"
 
   # Enable report file logging
@@ -1505,20 +1484,16 @@ test_logThis_report_file() {
   fi
 
   # Cleanup
-  rm -rf "$DEST_LOCATION"
-
   pass "Test Logger Report File"
   cleanup_on_success
 }
 
 test_additional_folders_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export ADDITIONAL_FOLDERS="add1,add2"
 
-  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
-  mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
+  mkdir -p $SOURCE_LOCATION/add2 && touch $SOURCE_LOCATION/add2/test.txt
 
   mock_docker_ps_lines=$(echo "")
 
@@ -1527,8 +1502,8 @@ test_additional_folders_env() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/add1/ tests/dest/add1/" &&
-      echo "-ahq tests/src/add2/ tests/dest/add2/"
+    echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/" &&
+      echo "-ahq $SOURCE_LOCATION/add2/ $DEST_LOCATION/add2/"
   )
 
   test_rsync \
@@ -1539,22 +1514,20 @@ test_additional_folders_env() {
 
   cleanup_on_success
   clear_files
-  export BACKUP_ON_START="true"
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS="-aq"
   export ADDITIONAL_FOLDERS="add1"
 
-  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
 
   mock_docker_ps_lines=$(echo "")
 
   disallowed_rsync_output=$(
-    echo "-ahq tests/src/add1/ tests/dest/add1/"
+    echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/"
   )
 
   expected_rsync_output=$(
-    echo "-aq tests/src/add1/ tests/dest/add1/"
+    echo "-aq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/"
   )
 
   test_rsync \
@@ -1568,12 +1541,10 @@ test_additional_folders_env() {
 
 test_additional_folders_label() {
   clear_files
-  export BACKUP_ON_START="true"
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
-  mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
+  mkdir -p $SOURCE_LOCATION/add2 && touch $SOURCE_LOCATION/add2/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1583,9 +1554,9 @@ test_additional_folders_label() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/add1/ tests/dest/add1/" &&
-      echo "-ahq tests/src/add2/ tests/dest/add2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/" &&
+      echo "-ahq $SOURCE_LOCATION/add2/ $DEST_LOCATION/add2/"
   )
 
   test_rsync \
@@ -1596,11 +1567,9 @@ test_additional_folders_label() {
 
   cleanup_on_success
   clear_files
-  export BACKUP_ON_START="true"
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1610,8 +1579,8 @@ test_additional_folders_label() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/add1/ tests/dest/add1/" &&
-      echo "-ahq tests/src/container1/ tests/dest/container1/"
+    echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/" &&
+      echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
   )
 
   test_rsync \
@@ -1625,13 +1594,11 @@ test_additional_folders_label() {
 
 test_additional_folders_label_during() {
   clear_files
-  export BACKUP_ON_START="true"
 
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/src/container2 && touch tests/src/container2/test.txt
-  mkdir -p tests/src/add1 && touch tests/src/add1/test.txt
-  mkdir -p tests/src/add2 && touch tests/src/add2/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/container2 && touch $SOURCE_LOCATION/container2/test.txt
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
+  mkdir -p $SOURCE_LOCATION/add2 && touch $SOURCE_LOCATION/add2/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1" &&
@@ -1642,12 +1609,12 @@ test_additional_folders_label_during() {
   )
 
   expected_rsync_output=$(
-    echo "-ahq tests/src/container1/ tests/dest/container1/" &&
-      echo "-ahq tests/src/add1/ tests/dest/add1/" &&
-      echo "-ahq tests/src/add2/ tests/dest/add2/" &&
-      echo "-ahq tests/src/container2/ tests/dest/container2/" &&
-      echo "-ahq tests/src/add1/ tests/dest/add1/" &&
-      echo "-ahq tests/src/add2/ tests/dest/add2/"
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+      echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/" &&
+      echo "-ahq $SOURCE_LOCATION/add2/ $DEST_LOCATION/add2/" &&
+      echo "-ahq $SOURCE_LOCATION/container2/ $DEST_LOCATION/container2/" &&
+      echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/" &&
+      echo "-ahq $SOURCE_LOCATION/add2/ $DEST_LOCATION/add2/"
   )
 
   test_rsync \
@@ -1671,11 +1638,9 @@ test_additional_folders_label_during() {
 
 test_pre_and_post_backup_curl_env() {
   clear_files
-  export BACKUP_ON_START="true"
   export PRE_BACKUP_CURL="curl -X GET 'google.com'"
   export POST_BACKUP_CURL="curl -X GET 'bing.com'"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1696,15 +1661,13 @@ test_pre_and_post_backup_curl_env() {
   cleanup_on_success
 
   test_curl \
-    --name "Test curl - none (env)" \
+    --name "Test Curl - none (env)" \
     --disallow "$expected_curl_output"
 }
 
 test_pre_and_post_backup_curl_label() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1732,9 +1695,7 @@ test_pre_and_post_backup_curl_label() {
 
 test_pre_and_post_backup_curl_label() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1765,9 +1726,7 @@ test_pre_and_post_backup_curl_label() {
 
 test_lifecycle_hooks() {
   clear_files
-  export BACKUP_ON_START="true"
-  mkdir -p tests/src/container1 && touch tests/src/container1/test.txt
-  mkdir -p tests/dest
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
 
   mock_docker_ps_lines=$(
     echo "abc123:container1"
@@ -1816,10 +1775,10 @@ test_lifecycle_hooks() {
   cleanup_on_success
 }
 
-# ---- Call Tests ----
-reset_environment_variables
+cecho "CYAN" "Beginning tests..."
+cleanup_on_success
 
-# Run the tests
+# ---- Call Tests ----
 test_rsync_commands
 test_docker_commands
 test_skip_containers
@@ -1836,7 +1795,6 @@ test_custom_rsync_args_label
 test_custom_rsync_args_both
 test_keep_src_dir_name_env
 test_keep_src_dir_name_label
-test_backup_on_start
 test_report_file_on_backup_only
 test_logThis
 test_logThis_report_file
@@ -1846,6 +1804,7 @@ test_additional_folders_label_during
 test_pre_and_post_backup_curl_env
 test_pre_and_post_backup_curl_label
 test_lifecycle_hooks
+# test_backup_on_start # <--- Cannot test this using S6
 
 # Cleanup
 teardown

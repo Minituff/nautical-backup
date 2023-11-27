@@ -158,7 +158,7 @@ The additional folders must either exist or be mounted into the `app/source` fol
 nautical-backup.additional-folders=folder1,folder_name2
 ```
 
-⌛ **When to backup additional folders?**
+### When to backup additional folders?
 
 Use this setting to decide if when the additional folders are backed up.
 
@@ -318,7 +318,7 @@ nautical-backup.lifecycle.after=/bin/sh ./script.sh
     docker exec -it <container-name> /bin/sh ./script.sh
     ```
 
-⌛ **Timeouts**
+### Lifecycle Hook Timeouts
 
 The default timeout for all lifecycle hooks is `60 seconds` <small>(60s)</small>.
 We can change this using another label.

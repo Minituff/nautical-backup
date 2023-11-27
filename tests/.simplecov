@@ -18,15 +18,17 @@ SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
 
 # .simplecov
 SimpleCov.profiles.define 'bashcov' do
+  filters.clear # This will remove the :root_filter and :bundler_filter that come via simplecov's defaults
   load_profile 'rails'
   command_name 'Unit Tests'
   enable_coverage :branch
   primary_coverage :branch
-  add_filter %r{^/snippets/}
-  add_filter %r{^/.git/}
-  add_filter %r{^/tests/}
-  add_filter "pkg/test.sh"
-  add_group "Pkg scripts", "/pkg"
+
+  # Remove any .sh files that start with "_"
+  add_filter %r{^/_.*.sh}
+
+  # These are not run from the unit test suite
+  add_filter %r{^/.*utils.sh}
 
   # simplecov 0.22.0+
   enable_coverage_for_eval if respond_to? :enable_coverage_for_eval
@@ -36,6 +38,6 @@ end
 if ENV.key? 'SKIP_PROFILE'
   puts "Skipping bashcov profile..."
 else
-  puts "Loading bashcov configurations..."
+  puts "--- Loading bashcov configurations ---"
   SimpleCov.load_profile 'bashcov'
 end

@@ -6,15 +6,19 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
-			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions zsh-syntax-highlighting",
-			"omzPlugins": "https://github.com/zsh-users/zsh-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
+			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions fast-syntax-highlighting zsh-autocomplete",
+			"omzPlugins": "https://github.com/zdharma-continuum/fast-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions https://github.com/marlonrichert/zsh-autocomplete"
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "ruby-full,nano,curl,jq"
+			"packages": "nano,curl,jq,python3,python3-pip"
 		}
 	},
-
+	"containerEnv": {
+		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
+		"NAUTICAL_DB_NAME": "nautical-db.json",
+		"PYTHONPATH": "." // Required for python to work
+	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -25,8 +29,12 @@
 				"tetradresearch.vscode-h2o",
 				"meronz.manpages",
 				"jeff-hykin.better-dockerfile-syntax",
-				"streetsidesoftware.code-spell-checker"
-			   ],
+				"streetsidesoftware.code-spell-checker",
+				"ms-python.python",
+				"ms-python.black-formatter",
+				"njpwerner.autodocstring",
+				"rangav.vscode-thunder-client"
+			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
 				"terminal.integrated.profiles.linux": {
@@ -37,11 +45,39 @@
 					"zsh": {
 						"path": "zsh"
 					}
-				}
+				},
+				"files.associations": {
+					"*.env": "shellscript"
+				},
+				"python.testing.pytestEnabled": true,
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestArgs": [
+					"-s"
+				],
+				"python.analysis.inlayHints.pytestParameters": true,
+				"python.formatting.provider": "none",
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter"
+				},
+				"black-formatter.args": [
+					"--line-length",
+					"120"
+				],
+				"python.languageServer": "Pylance"
 			}
 		}
 	},
+	"forwardPorts": [
+		8069
+	],
+	"portsAttributes": {
+		"8000": {
+			"label": "Nautical Docs"
+		},
+		"8069": {
+			"label": "Nautical Rest API"
+		}
+	},
 	"remoteUser": "root",
-	"postCreateCommand": "./.devcontainer/postCreateCommand.sh"
-	// "forwardPorts": [],  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"postCreateCommand": "./.devcontainer/scripts/postCreateCommand.sh",
 }

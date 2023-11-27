@@ -1,3 +1,9 @@
 /dev
 coverage
 .vscode
+__pycache__
+pytest_cache
+.coverage
+htmlcov
+coverage.xml
+/tests/destination

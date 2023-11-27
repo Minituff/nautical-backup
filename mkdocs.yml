@@ -10,15 +10,13 @@ repo_url: 'https://github.com/minituff/nautical-backup'
 
 # copyright: 'Copyright &copy; 2023 James Tufarelli'
 
-hide:
-  - footer
 
 # Plugins
 plugins:
   # git-revision-date-localized:
   #   enable_creation_date: true
   # offline:
-  search:
+  - search
   # minify:
   #   minify_html: true
   # autolinks:
@@ -38,15 +36,17 @@ nav:
  - Environment Variables: arguments.md
  - Docker Labels: labels.md
  - Updating Nautical: updates.md
+ - Rest API: rest-api.md
  - Advanced Usage: 
    - Source & Destination Mappings: advanced/advanced.md
    - NFS Shares: advanced/nfs-share.md
    - Remote Backups: advanced/remote-backups.md
  - Q & A: q-and-a.md
  - Developer Documentation:
+   - Dev Container: developers/dev-container.md
+   - Tests: developers/tests.md
    - Contributing to the Docs: developers/docs.md
    - Developer Env Variables: developers/env.md
-   - Unit Tests: developers/tests.md
 
 
 extra:
@@ -131,7 +131,7 @@ markdown_extensions:
       check_paths: true
       base_path: snippets
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.inlinehilite
   - pymdownx.magiclink:

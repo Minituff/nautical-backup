@@ -9,10 +9,29 @@ This documentation is built using 2 major components:
 ## Running the Docs Locally
 Spinning up the the docs locally ideal for development thanks to *hot reload*.
 
-There are two easy ways to get MkDocs up and running locally:
+There are three easy ways to get MkDocs up and running locally:
 
-1. [Docker](#docker) (easiest)
+1. [VsCode DevContainer](#vscode-devcontainer) (recommended)
+1. [Docker](#docker) 
 1. [Python and pip](#python-and-pip)
+
+!!! warning "Methods 2 and 3 will not work in a VsCode DevContainer——use method 1 instead."
+
+### VSCode DevContainer
+Spin up the Nautical developer environment using a VsCode DevContainer following [these](./dev-container.md) steps.
+
+Then simply run `nb docs` in the terminal.
+
+```bash
+nb docs 
+# INFO    -  Building documentation...
+# INFO    -  Cleaning site directory
+# INFO    -  Documentation built in 1.43 seconds
+# INFO    -  [22:52:06] Watching paths for changes: 'docs', 'mkdocs.yml'
+# INFO    -  [22:52:06] Serving on http://127.0.0.1:8000/nautical-backup/
+```
+
+!!! tip "The `nb` command comes pre-loaded with the DevContainer."
 
 ### Docker
 
@@ -78,53 +97,21 @@ Material for MkDocs is published as a [Python package](https://pypi.org/project/
    # Python 3.10.5
    ```
 1. Clone repository to local machine and open in editor (VSCode recommended)
-1. Set up virtual environment
-   ```bash
-   python -m venv .env
-   ```
-   You should now see a new folder titled `.env` in the project's root directory.
-
-1. Activate virtual environment
-
-    ```bash
-    .env\Scripts\activate
-    # (.env) ~ (1)
-    ```
-
-    1. Notice the `(.env)` in the terminal.
-   
-        This is how you know you have activated the virtual environment.
-
-
-    !!! tip "About virtual environments"
-        * Opening a new VSCode terminal will usually run `.env\Scripts\activate` automatically.
-
-        ❗ **NOTE:** You will need to ensure the `env` is activated each time you open your IDE or terminal.
-
-2. Install project plugins/libraries: 
+1. Install project plugins/libraries: 
    
     ```command
     pip install mkdocs-material
     ```
-   
-    !!! warning "Ensure you are in the virtual environment"
-
-        If you are not in the `env` this will install the requirements to the main python directory, which is not ideal.
 
     This will automatically install compatible versions of all dependencies:
 
     [MkDocs](https://www.mkdocs.org/), [Markdown](https://python-markdown.github.io/), [Pygments](https://pygments.org/) and [Python Markdown Extensions](https://facelessuser.github.io/pymdown-extensions/).
 
-3. Serve the docs:
+2. Serve the docs:
    
     ```bash
-    cd docs #(1)!
     mkdocs serve
     ```
-
-    1. We must be in the docs directory before serving
-   
-
    MKDocs will now be available at: http://127.0.0.1:8000
 
 <br>
