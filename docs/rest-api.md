@@ -1,8 +1,5 @@
-<!-- https://blueswen.github.io/mkdocs-swagger-ui-tag/ -->
-
-
 ## Enable The API
-The API is ^^disabled by default^^; turning it on is simple. Follow these 3 steps:
+The API is ^^disabled by default^^, but turning it on is simple. Follow these 3 steps:
 
 ### 1. Set the environment variable
 
@@ -16,21 +13,22 @@ Once enabled, you will see the following message after starting the Nautical con
 > INFO: API listening on port 8069...
 
 ### 2. Map the port
-Next, you need to ensure you map the port from the Nautical container.
-Add the ==highlighted== section to your Nautical config.
+Next, you need to ensure you map the port from the Nautical container. See the ==highlighted== sections of this example Nautical config:
 
 === "Docker Compose"
-    ```yaml hl_lines="10 11"
-    ------8<------ "docker-compose-example-no-tooltips.yml:0:10"
+    ```yaml hl_lines="11 13"
+    ------8<------ "docker-compose-example-no-tooltips.yml:0:11"
+          - HTTP_REST_API_ENABLED=true
         ports:
           - "8069:8069/tcp"
     ```
     
 === "Docker Cli"
 
-    ```bash hl_lines="6"
+    ```bash hl_lines="6 7"
     ------8<------ "docker-run-example-no-tooltips.sh::6"
-      -p 8069:8069/tcp
+      -e HTTP_REST_API_ENABLED="true" \
+      -p 8069:8069/tcp \
     ------8<------ "docker-run-example-no-tooltips.sh:10:"
     ```
 
@@ -47,6 +45,8 @@ curl -X GET \
   'http://localhost:8069/auth' \
   --header 'Authorization: Basic YWRtaW46cGFzc3dvcmQ='
 ```
+
+!!! tip "Use [this](https://mixedanalytics.com/tools/basic-authentication-generator) site to generate a Base64 token."
 
 ## Dashboard
 > GET
