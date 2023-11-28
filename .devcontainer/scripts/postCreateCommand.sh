@@ -19,6 +19,7 @@ python3 -m pip install -r /workspaces/nautical-backup/pytest/requirements.txt
 cecho CYAN "Adding aliases (for convenience)..."
 for file in ~/.zshrc ~/.bashrc; do
     echo "alias home=\"cd /workspaces/nautical-backup\"" >> "$file"
+    echo "alias cls=\"clear\"" >> "$file"
 done
 
 # cecho CYAN "Installing python packages (for docs)..."
