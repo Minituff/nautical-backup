@@ -41,12 +41,13 @@
         "README.md"
       ],
       "automerge": true,
+      "rangeStrategy": "bump",
       "labels": ["documentation"],
       "assignees": ["minituff"],
       "ignoreTests": true
     },
     {
-      "description": "Dockerfile depedencies",
+      "description": "Dockerfile dependencies",
       "matchDatasources": ["docker"],
       "matchFileNames": [
         "Dockerfile"
@@ -54,6 +55,26 @@
       "labels": ["depedency"],
       "assignees": ["minituff"],
       "automerge": true,
+      "rangeStrategy": "bump",
+      "ignoreTests": false,
+      "schedule": ["at any time"],
+      "minimumReleaseAge": "2 days",
+      "commitBody": "[bump version]",
+      "extends": [
+        "default:automergeDigest",
+        "default:automergeBranchPush"
+      ]
+    },
+    {
+      "description": "Python dependencies",
+      "matchDatasources": ["pypi"],
+      "matchFileNames": [
+        "**/requirements.txt"
+      ],
+      "labels": ["depedency"],
+      "assignees": ["minituff"],
+      "automerge": true,
+      "rangeStrategy": "bump",
       "ignoreTests": false,
       "schedule": ["at any time"],
       "minimumReleaseAge": "2 days",
