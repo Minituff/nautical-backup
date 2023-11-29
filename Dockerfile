@@ -16,7 +16,7 @@ LABEL maintainer="minituff"
 ARG TEST_MODE="-1"
 
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
-ENV S6_OVERLAY_VERSION="3.1.6.0"
+ENV S6_OVERLAY_VERSION="3.1.6.2"
 
 
 # Install S6 Overlay
