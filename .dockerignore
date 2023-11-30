@@ -1,0 +1,24 @@
+.git
+.github
+.gitattributes
+.gitignore
+.devcontainer
+.coverage
+dev
+docs
+snippets
+tests
+.vscode
+htmlcov
+mkdocs.yml
+pytest
+.pytest_cache
+README.md
+LICENSE
+
+# Files/Folders we need
+# api
+# Dockerfile
+# .dockerignore
+# pkg
+# s6-overlay
