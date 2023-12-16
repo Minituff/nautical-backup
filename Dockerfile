@@ -59,9 +59,9 @@ ENV TZ_DATA_VERSION="2023c-r1"
 # renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
 ENV DOS2UNIX_VERSION="7.4.4-r1"
 # renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
-ENV JQ_VERSION="1.6-r3"
+ENV JQ_VERSION="1.6-r4"
 # renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
-ENV CURL_VERSION="8.4.0-r0"
+ENV CURL_VERSION="8.5.0-r0"
 # renovate: datasource=repology depName=alpine_3_18/python3 versioning=loose
 ENV PYTHON_VERSION="3.11.6-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
