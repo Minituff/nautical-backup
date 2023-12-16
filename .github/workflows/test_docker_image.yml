@@ -55,7 +55,7 @@ jobs:
         files: coverage.xml
 
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-code-coverage
         path: htmlcov/
@@ -109,7 +109,7 @@ jobs:
         files: tests/coverage/coverage.xml # The json file will not work here
     
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: bash-code-coverage
         path: tests/coverage/
