@@ -55,7 +55,7 @@ ENV BASH_VERSION="5.2.15-r5"
 # renovate: datasource=repology depName=alpine_3_18/rsync versioning=loose
 ENV RSYNC_VERSION="3.2.7-r4"
 # renovate: datasource=repology depName=alpine_3_18/tzdata versioning=loose
-ENV TZ_DATA_VERSION="2023c-r1"
+ENV TZ_DATA_VERSION="2023d-r0"
 # renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
 ENV DOS2UNIX_VERSION="7.4.4-r1"
 # renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
