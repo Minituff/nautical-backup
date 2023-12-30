@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'Dockerfile'  # If file has changed
+      - 'api/requirements.txt'
 
 jobs:
   build:
