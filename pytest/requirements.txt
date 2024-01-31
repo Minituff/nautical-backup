@@ -1,7 +1,7 @@
 # Tests
 pytest==8.0.0
 pytest-cov==4.1.0
-black==24.1.0
+black==24.1.1
 httpx==0.26.0
 pytest-testdox==3.1.0
 mock==5.1.0
