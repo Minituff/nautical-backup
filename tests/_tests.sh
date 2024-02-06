@@ -1514,6 +1514,8 @@ test_additional_folders_env() {
 
   cleanup_on_success
   clear_files
+
+  # Test additional foldesr with custom rsync args
   export USE_DEFAULT_RSYNC_ARGS="false"
   export RSYNC_CUSTOM_ARGS="-aq"
   export ADDITIONAL_FOLDERS="add1"
@@ -1537,6 +1539,69 @@ test_additional_folders_env() {
     --disallow "$disallowed_rsync_output"
 
   cleanup_on_success
+}
+
+test_additional_folders_before_env(){
+  clear_files
+  export ADDITIONAL_FOLDERS="add1"
+  export ADDITIONAL_FOLDERS_WHEN="before"
+
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  disallowed_rsync_output=$(
+    echo "anthing_to_not_allow"
+  )
+
+  expected_rsync_output=$(
+   echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/" &&
+    echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/"
+  )
+
+  test_rsync \
+    --name "Test additional folders env (before)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+  clear_files
+}
+
+test_additional_folders_after_env(){
+  clear_files
+
+  export ADDITIONAL_FOLDERS="add1"
+  export ADDITIONAL_FOLDERS_WHEN="after"
+
+  mkdir -p $SOURCE_LOCATION/container1 && touch $SOURCE_LOCATION/container1/test.txt
+  mkdir -p $SOURCE_LOCATION/add1 && touch $SOURCE_LOCATION/add1/test.txt
+
+  mock_docker_ps_lines=$(
+    echo "abc123:container1"
+  )
+
+  disallowed_rsync_output=$(
+    echo "anthing_to_not_allow"
+  )
+
+  expected_rsync_output=$(
+   echo "-ahq $SOURCE_LOCATION/container1/ $DEST_LOCATION/container1/" &&
+    echo "-ahq $SOURCE_LOCATION/add1/ $DEST_LOCATION/add1/"
+  )
+
+  test_rsync \
+    --name "Test additional folders env (after)" \
+    --mock_ps "$mock_docker_ps_lines" \
+    --expect "$expected_rsync_output" \
+    --disallow "$disallowed_rsync_output"
+
+  cleanup_on_success
+  clear_files
 }
 
 test_additional_folders_label() {
@@ -1801,6 +1866,8 @@ test_logThis_report_file
 test_additional_folders_env
 test_additional_folders_label
 test_additional_folders_label_during
+test_additional_folders_before_env
+test_additional_folders_after_env
 test_pre_and_post_backup_curl_env
 test_pre_and_post_backup_curl_label
 test_lifecycle_hooks
