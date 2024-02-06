@@ -44,7 +44,7 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 # Copy all necessary files into the container (from /pkg in the repository to /app in the container)
 COPY pkg app
 
-# Copy the api
+# Copy the api folder from the git repo into the container
 COPY api api
 
 # Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.18&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
@@ -55,7 +55,7 @@ ENV BASH_VERSION="5.2.15-r5"
 # renovate: datasource=repology depName=alpine_3_18/rsync versioning=loose
 ENV RSYNC_VERSION="3.2.7-r4"
 # renovate: datasource=repology depName=alpine_3_18/tzdata versioning=loose
-ENV TZ_DATA_VERSION="2023d-r0"
+ENV TZ_DATA_VERSION="2024a-r0"
 # renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
 ENV DOS2UNIX_VERSION="7.4.4-r1"
 # renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
