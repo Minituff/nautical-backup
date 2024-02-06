@@ -33,7 +33,7 @@ jobs:
       # This new Github Release will kickoff the the pipeline at `docker-image.yml`
       # A release tag is needed for the pipeline to run correctly
       - name: Create a GitHub release
-        uses: ncipollo/release-action@v1.13.0
+        uses: ncipollo/release-action@v1.14.0
         with:
           # Get the tag name from previous step
           tag: ${{ steps.tag_version.outputs.new_tag }}
