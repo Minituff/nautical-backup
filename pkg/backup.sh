@@ -344,8 +344,8 @@ db put "containers_skipped" "$containers_skipped"
 
 logThis "Success. $containers_completed containers backed up! $containers_skipped skipped." "INFO"
 
-if [ "$ADDITIONAL_FOLDERS_WHEN" = "after" ]; then
-    BackupAdditionalFolders $ADDITIONAL_FOLDERS_LIST_STR $default_rsync_args $custom_args
+if [ "$ADDITIONAL_FOLDERS_WHEN" = "after" ] && [ ! -z "$ADDITIONAL_FOLDERS" ]; then
+    BackupAdditionalFolders "$ADDITIONAL_FOLDERS" "$default_rsync_args" "$custom_args"
 fi
 
 if [ ! -z "$POST_BACKUP_CURL" ]; then
