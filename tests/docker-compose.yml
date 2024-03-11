@@ -60,10 +60,10 @@ services:
     container_name: nautical-backup-test4
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
-      - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}\pkg:/app
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests:/tests
     ports:
       - "8069:8069/tcp"
     environment:

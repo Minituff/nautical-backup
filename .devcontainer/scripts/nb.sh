@@ -7,6 +7,7 @@ show_help() {
     echo "  run            - Run already built Nautical container"
     echo "  build-run      - Build and run Nautical container"
     echo ""
+    echo "  unit-test      - Build and run Unit tests locally"
     echo "  build-test     - Build and run Nautical Testing container"
     echo "  test           - Run already built test Nautical container"
     echo "  build-test-run - Build and run Nautical Testing container"
@@ -41,6 +42,12 @@ execute_command() {
         cecho CYAN "Running Nautical..."
         cd $APP_HOME/dev
         docker-compose up
+        ;;
+    unit-test)
+        cd $APP_HOME
+        nb build-test
+        cd $APP_HOME/tests
+        docker compose run nautical-backup-test4 --exit-code-from nautical-backup-test4
         ;;
     build-test)
         clear

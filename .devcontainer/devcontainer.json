@@ -17,7 +17,10 @@
 	"containerEnv": {
 		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
 		"NAUTICAL_DB_NAME": "nautical-db.json",
-		"PYTHONPATH": "." // Required for python to work
+		"PYTHONPATH": ".", // Required for python to work
+	},
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
 	"customizations": {
 		"vscode": {
@@ -33,7 +36,8 @@
 				"ms-python.python",
 				"ms-python.black-formatter",
 				"njpwerner.autodocstring",
-				"rangav.vscode-thunder-client"
+				"rangav.vscode-thunder-client",
+				"ms-azuretools.vscode-docker"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",

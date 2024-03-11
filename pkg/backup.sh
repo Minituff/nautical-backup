@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bash
 
 source /app/logger.sh # Use the logger script
-source /app/utils.sh # Use the logger script
+source /app/utils.sh  # Use the utils script
 
 logThis "Starting backup..."
 
@@ -9,8 +9,8 @@ db put "backup_running" "true"
 db add_current_datetime "last_cron"
 
 # Convert the string into an array
-IFS=',' read -r -a SKIP_CONTAINERS_ARRAY <<< "$SKIP_CONTAINERS"
-IFS=',' read -r -a SKIP_STOPPING_ARRAY <<< "$SKIP_STOPPING" 
+IFS=',' read -r -a SKIP_CONTAINERS_ARRAY <<<"$SKIP_CONTAINERS"
+IFS=',' read -r -a SKIP_STOPPING_ARRAY <<<"$SKIP_STOPPING"
 
 SKIP_CONTAINERS_ARRAY+=("$SELF_CONTAINER_ID")
 
@@ -60,7 +60,6 @@ if [ ! -z "$RSYNC_CUSTOM_ARGS" ]; then
     logThis "Adding custom rsync arguments ($RSYNC_CUSTOM_ARGS)" "DEBUG"
     custom_args="$RSYNC_CUSTOM_ARGS"
 fi
-
 
 containers_completed=0
 
@@ -145,9 +144,11 @@ BackupContainer() {
         logThis "Overriding destination directory for $container to $new_destination_dir from label" "DEBUG"
     fi
 
+    # TODO: Add option for no source directory requirement
     if [ -d "$src_dir" ]; then
         if [ $skip_stopping -eq 0 ]; then
             logThis "Stopping $container..."
+            # * ******** Stop the container ********
             docker stop $container 2>&1 >/dev/null
             if [ $? -ne 0 ]; then
                 logThis "Error stopping container $container. Skipping backup for this container." "ERROR"
@@ -159,7 +160,7 @@ BackupContainer() {
 
         logThis "RUNNING: 'rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/'" "DEBUG"
 
-        # Run rsync
+        # * ******** Run rsync  ********
         eval rsync $default_rsync_args $custom_args $src_dir/ $dest_dir/
 
         if [ $? -ne 0 ]; then
@@ -181,6 +182,7 @@ BackupContainer() {
 
         if [ $skip_stopping -eq 0 ]; then
             logThis "Starting $container container..."
+            # * ******** Start the container ********
             docker start $container 2>&1 >/dev/null
             if [ $? -ne 0 ]; then
                 logThis "Error restarting container $container. Please check manually!" "ERROR"
@@ -230,6 +232,73 @@ if [ "$ADDITIONAL_FOLDERS_WHEN" = "before" ] && [ ! -z "$ADDITIONAL_FOLDERS" ]; 
     BackupAdditionalFolders "$ADDITIONAL_FOLDERS" "$default_rsync_args" "$custom_args"
 fi
 
+HandleGroupLessContainers() {
+    local name=$1
+    local id=$2
+    local labels=$3
+    if echo "$labels" | grep -q '"nautical-backup.curl.before"'; then
+        curl_before=$(echo "$labels" | jq -r '.["nautical-backup.curl.before"]')
+        logThis "Running PRE-backup curl command for $name" "DEBUG"
+        CurlCommand "$curl_before"
+    fi
+
+    # Handle BEFORE lifecycle hook
+    if echo "$labels" | grep -q '"nautical-backup.lifecycle.before"'; then
+        lifecycle_before=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.before"]')
+        logThis "Running PRE-backup lifecycle hook for $name" "DEBUG"
+
+        lifecycle_before_timeout="60s"
+        if echo "$labels" | grep -q '"nautical-backup.lifecycle.before.timeout"'; then
+            lifecycle_before_timeout=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.before.timeout"]')
+        fi
+        LifecycleHook "$name" "$lifecycle_before" "$lifecycle_before_timeout"
+    fi
+
+    if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
+        logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $name" "DEBUG"
+        default_rsync_args=""
+    fi
+
+    if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
+        new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
+        custom_args=$new_custom_rsync_args
+        logThis "Using custom rsync args for $name" "DEBUG"
+    fi
+
+    new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
+
+    if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"before"'; then
+        BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+    fi
+
+    # * ******** Backup the container ********
+    BackupContainer "$name" "$labels" "$default_rsync_args" "$custom_args"
+
+    if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"after"'; then
+        BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
+    fi
+
+    # Handle AFTER lifecycle hook
+    if echo "$labels" | grep -q '"nautical-backup.lifecycle.after"'; then
+        lifecycle_after=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.after"]')
+        logThis "Running PRE-backup lifecycle hook for $name" "DEBUG"
+
+        lifecycle_after_timeout="60s"
+        if echo "$labels" | grep -q '"nautical-backup.lifecycle.after.timeout"'; then
+            lifecycle_after_timeout=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.after.timeout"]')
+        fi
+        LifecycleHook "$name" "$lifecycle_after" "$lifecycle_after_timeout"
+    fi
+
+    if echo "$labels" | grep -q '"nautical-backup.curl.after"'; then
+        curl_after=$(echo "$labels" | jq -r '.["nautical-backup.curl.after"]')
+        logThis "Running PRE-backup curl command for $name" "DEBUG"
+        CurlCommand "$curl_after"
+    fi
+}
+
+declare -A containersByGroup
+
 # Loop through all running containers
 IFS=$'\n'
 for entry in $containers; do
@@ -239,12 +308,12 @@ for entry in $containers; do
 
     logThis "Checking  $name." "DEBUG"
 
+    # Use docker inspect to get the labels for the container
+    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
+
     if [ "$REQUIRE_LABEL" = "true" ]; then
         skip=1 # Skip by default unless lable is found
     fi
-
-    # Use docker inspect to get the labels for the container
-    labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
 
     if echo "$labels" | grep -q '"nautical-backup.enable":"true"'; then
         logThis "Enabling $name based on label." "DEBUG"
@@ -275,69 +344,41 @@ for entry in $containers; do
     done
 
     if [ $skip -eq 0 ]; then
-        if echo "$labels" | grep -q '"nautical-backup.curl.before"'; then
-            curl_before=$(echo "$labels" | jq -r '.["nautical-backup.curl.before"]')
-            logThis "Running PRE-backup curl command for $name" "DEBUG"
-            CurlCommand "$curl_before"
+        if echo "$labels" | grep -q '"nautical-backup.group"'; then
+            group=$(echo "$labels" | jq -r '.["nautical-backup.group"]')
+        else
+            group="default"
         fi
 
-        # Handle BEFORE lifecycle hook
-        if echo "$labels" | grep -q '"nautical-backup.lifecycle.before"'; then
-            lifecycle_before=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.before"]')
-            logThis "Running PRE-backup lifecycle hook for $name" "DEBUG"
-            
-            lifecycle_before_timeout="60s"
-            if echo "$labels" | grep -q '"nautical-backup.lifecycle.before.timeout"'; then
-                lifecycle_before_timeout=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.before.timeout"]')
-            fi
-            LifecycleHook "$name" "$lifecycle_before" "$lifecycle_before_timeout"
-        fi
-
-        if echo "$labels" | grep -q '"nautical-backup.use-default-rsync-args":"false"'; then
-            logThis "Disabling default rsync args ($DEFAULT_RSYNC_ARGS) for $name" "DEBUG"
-            default_rsync_args=""
-        fi
-
-        if echo "$labels" | grep -q '"nautical-backup.rsync-custom-args"'; then
-            new_custom_rsync_args=$(echo "$labels" | jq -r '.["nautical-backup.rsync-custom-args"]')
-            custom_args=$new_custom_rsync_args
-            logThis "Using custom rsync args for $name" "DEBUG"
-        fi
-
-        new_additional_folders_from_label=$(echo "$labels" | jq -r '.["nautical-backup.additional-folders"]')
-
-        if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"before"'; then
-            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
-        fi
-
-        BackupContainer "$name" "$labels" "$default_rsync_args" "$custom_args"
-
-        if echo "$labels" | grep -q '"nautical-backup.additional-folders.when":"after"'; then
-            BackupAdditionalFolders "$new_additional_folders_from_label" $default_rsync_args $custom_args
-        fi
-
-        # Handle AFTER lifecycle hook
-        if echo "$labels" | grep -q '"nautical-backup.lifecycle.after"'; then
-            lifecycle_after=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.after"]')
-            logThis "Running PRE-backup lifecycle hook for $name" "DEBUG"
-            
-            lifecycle_after_timeout="60s"
-            if echo "$labels" | grep -q '"nautical-backup.lifecycle.after.timeout"'; then
-                lifecycle_after_timeout=$(echo "$labels" | jq -r '.["nautical-backup.lifecycle.after.timeout"]')
-            fi
-            LifecycleHook "$name" "$lifecycle_after" "$lifecycle_after_timeout"
-        fi
-
-        if echo "$labels" | grep -q '"nautical-backup.curl.after"'; then
-            curl_after=$(echo "$labels" | jq -r '.["nautical-backup.curl.after"]')
-            logThis "Running PRE-backup curl command for $name" "DEBUG"
-            CurlCommand "$curl_after"
-        fi
+        # Add container details to the array
+        containerDetails="$id:$name"
+        containersByGroup[$group]+="$containerDetails "
     fi
 done
 
-containers_skipped=$((number_of_containers - containers_completed))
+   
 
+for group in "${!containersByGroup[@]}"; do
+    echo "Processing group: $group"
+
+    if [ "$group" == "default" ]; then
+        # Process each container individually for the default group
+        for container in ${containersByGroup[$group]}; do
+            id=${container%%:*}
+            name=${container##*:}
+            echo "PROCESSING $name $id"
+            # Use docker inspect to get the labels for the container
+            labels=$(docker inspect --format '{{json .Config.Labels}}' $id)
+            HandleGroupLessContainers $id $name $labels
+        done
+    else
+        echo "Processing group: $group"
+    fi
+
+done
+
+
+containers_skipped=$((number_of_containers - containers_completed))
 
 db put "containers_completed" "$containers_completed"
 db put "containers_skipped" "$containers_skipped"
