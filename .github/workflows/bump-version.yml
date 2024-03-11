@@ -24,7 +24,7 @@ jobs:
       # Bump the `patch` level
       - name: Bump version and push tag
         id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
+        uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.REPO_GITHUB_SECRET }}
           fetch_all_tags: false
