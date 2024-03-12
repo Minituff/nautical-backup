@@ -2,4 +2,4 @@
 version: '3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:1.4.8 # Change this to the latest version
+    image: minituff/nautical-backup:1.4.9 # Change this to the latest version
