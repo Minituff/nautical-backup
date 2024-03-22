@@ -1,24 +1,20 @@
-.git
-.github
-.gitattributes
-.gitignore
-.devcontainer
-.coverage
-dev
-docs
-snippets
-tests
-.vscode
-htmlcov
-mkdocs.yml
-pytest
-.pytest_cache
-README.md
-LICENSE
+
+# Ignore everything
+*
 
 # Files/Folders we need
-# api
-# Dockerfile
-# .dockerignore
-# pkg
-# s6-overlay
+!pytest/requirements.txt
+!api/requirements.txt
+!api
+!Dockerfile
+!.dockerignore
+!pkg
+!s6-overlay
+
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db
