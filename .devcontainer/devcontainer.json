@@ -28,6 +28,7 @@
 	},
 	"customizations": {
 		"vscode": {
+			"http.proxyStrictSSL": false,
 			"extensions": [
 				"mhutchie.git-graph",
 				"foxundermoon.shell-format",

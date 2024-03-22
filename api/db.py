@@ -16,6 +16,12 @@ class DB:
             # If db_path is a folder (not a file), just make it a file
             self.db_path += "/nautical-db.json"
 
+    def __repr__(self) -> str:
+        return str({
+            "db_path": self.db_path,
+            "db" : dict(self._read_db())
+            })
+    
     def _read_db(self):
         if os.path.exists(self.db_path) and os.path.isfile(self.db_path):
             with open(self.db_path, "r") as f:

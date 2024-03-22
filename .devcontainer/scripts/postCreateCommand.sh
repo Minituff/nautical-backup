@@ -9,11 +9,11 @@ ln -s /workspaces/nautical-backup/.devcontainer/scripts/nb.sh /usr/bin/nb
 chmod +x /usr/bin/nb
 
 
-# cecho CYAN "Installing python packages (for api)..."
-# python3 -m pip install -r /workspaces/nautical-backup/api/requirements.txt
+cecho CYAN "Installing python packages (for api)..."
+python3 -m pip install -r /workspaces/nautical-backup/api/requirements.txt
 
-# cecho CYAN "Installing python packages (for api tests)..."
-# python3 -m pip install -r /workspaces/nautical-backup/pytest/requirements.txt
+cecho CYAN "Installing python packages (for api tests)..."
+python3 -m pip install -r /workspaces/nautical-backup/pytest/requirements.txt
 
 
 cecho CYAN "Adding aliases (for convenience)..."

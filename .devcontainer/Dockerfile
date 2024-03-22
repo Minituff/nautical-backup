@@ -5,6 +5,6 @@ COPY api/requirements.txt /tmp/nautical/api-requirements.txt
 COPY pytest/requirements.txt /tmp/nautical/pytest-requirements.txt
 
 RUN echo "Installing python packages (for api)..." && \
-    python3 -m pip install -r /tmp/nautical/api-requirements.txt && \
+    python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/api-requirements.txt && \
     echo "Installing python packages (for api tests)..." && \
-    python3 -m pip install -r /tmp/nautical/pytest-requirements.txt
+    python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/pytest-requirements.txt
