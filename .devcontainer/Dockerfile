@@ -9,3 +9,6 @@ RUN echo "Installing python packages (for api)..." && \
     python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/api-requirements.txt && \
     echo "Installing python packages (for api tests)..." && \
     python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/pytest-requirements.txt
+
+# For development, prevents Nautical from stopping VSCode DevContainer
+LABEL nautical-backup.enable=false

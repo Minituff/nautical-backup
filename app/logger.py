@@ -1,11 +1,11 @@
 import datetime
 import os
-from app.env import ENV
+from app.nautical_env import NauticalEnv
 
 class Logger:
     def __init__(self):
         self.levels = {"TRACE": 0, "DEBUG": 1, "INFO": 2, "WARN": 3, "ERROR": 4}
-        self.env = ENV()
+        self.env = NauticalEnv()
         
         # Defaults
         self.script_logging_level = "INFO"
