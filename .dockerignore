@@ -8,7 +8,7 @@
 !api
 !Dockerfile
 !.dockerignore
-!pkg
+!app
 !s6-overlay
 
 

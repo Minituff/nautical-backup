@@ -41,8 +41,8 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
-# Copy all necessary files into the container (from /pkg in the repository to /app in the container)
-COPY pkg app
+# Copy all necessary files into the container (from /app in the repository to /app in the container)
+COPY app app
 
 # Copy the api folder from the git repo into the container
 COPY api api
