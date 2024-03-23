@@ -11,20 +11,17 @@ class DB:
             NAUTICAL_DB_PATH = os.getenv("NAUTICAL_DB_PATH", "/config")
             NAUTICAL_DB_NAME = os.getenv("NAUTICAL_DB_NAME", "nautical-db.json")
             self.db_path = f"{NAUTICAL_DB_PATH}/{NAUTICAL_DB_NAME}"
-        
+
         if os.path.exists(self.db_path) and not os.path.isfile(self.db_path):
             # If db_path is a folder (not a file), just make it a file
             self.db_path += "/nautical-db.json"
-        
+
         self._initialize_db()
         self._seed_db()
-        
+
     def __repr__(self) -> str:
-        return str({
-            "db_path": self.db_path,
-            "db" : dict(self._read_db())
-            })  
-        
+        return str({"db_path": self.db_path, "db": dict(self._read_db())})
+
     def _initialize_db(self):
         """Initialize the database if it doesn't exist."""
         if os.path.isfile(self.db_path):
@@ -35,14 +32,14 @@ class DB:
 
             if not os.path.isfile(self.db_path):
                 print(f"Creating Database at path: '{self.db_path}'...")
-                with open(self.db_path, 'w') as db_file:
+                with open(self.db_path, "w") as db_file:
                     json.dump({}, db_file)
-                    
+
                 print(f"Database initialized at '{self.db_path}'...")
-                
+
     def _seed_db(self):
         """Seed the database with default values."""
-        with open(self.db_path, 'r+') as db_file:
+        with open(self.db_path, "r+") as db_file:
             data = json.load(db_file)
 
             if data.get("backup_running") is None:
@@ -63,7 +60,7 @@ class DB:
             db_file.seek(0)
             json.dump(data, db_file, indent=4)
             db_file.truncate()
-            
+
     def _read_db(self):
         if os.path.exists(self.db_path) and os.path.isfile(self.db_path):
             with open(self.db_path, "r") as f:

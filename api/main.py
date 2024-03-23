@@ -16,7 +16,6 @@ from api.authorize import authorize
 import api.nautical_router as nautical_router
 
 
-
 @lru_cache
 def get_settings():
     return Settings()

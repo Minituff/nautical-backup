@@ -31,6 +31,7 @@
 	"customizations": {
 		"vscode": {
 			"http.proxyStrictSSL": false,
+			"extensions.verifySignature": false,
 			"extensions": [
 				"mhutchie.git-graph",
 				"foxundermoon.shell-format",
