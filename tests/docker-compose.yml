@@ -84,9 +84,9 @@ services:
     ports:
       - "8069:8069/tcp"
     environment:
-      - TEST_MODE=0 # Do not run coverage, but run all unit tests
+      # - TEST_MODE=-1 # Do not run coverage, but run all unit tests
       - BACKUP_ON_START=true
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
     # entrypoint: ["sleep", "infinity"]
-    entrypoint: ["python3", "/app/backup.py"]
+    # entrypoint: ["python3", "/app/backup.py"]
