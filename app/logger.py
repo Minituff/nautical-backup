@@ -1,20 +1,21 @@
 import datetime
 import os
-
+from app.env import ENV
 
 class Logger:
     def __init__(self):
         self.levels = {"TRACE": 0, "DEBUG": 1, "INFO": 2, "WARN": 3, "ERROR": 4}
-
+        self.env = ENV()
+        
         # Defaults
         self.script_logging_level = "INFO"
         self.report_file_logging_level = "INFO"
         self.report_file_on_backup_only = "true"
 
         # Override the defaults with environment variables if they exist
-        self.script_logging_level = os.environ.get("LOG_LEVEL", self.script_logging_level)
-        self.report_file_logging_level = os.environ.get("REPORT_FILE_LOG_LEVEL", self.report_file_logging_level)
-        self.report_file_on_backup_only = os.environ.get("REPORT_FILE_ON_BACKUP_ONLY", self.report_file_on_backup_only)
+        self.script_logging_level = self.env.LOG_LEVEL or self.script_logging_level
+        self.report_file_logging_level = self.env.REPORT_FILE_LOG_LEVEL or self.report_file_logging_level
+        self.report_file_on_backup_only = self.env.REPORT_FILE_ON_BACKUP_ONLY or self.report_file_on_backup_only
 
         self.dest_location = os.environ.get("DEST_LOCATION", "")
         self.report_file = f"Backup Report - {datetime.datetime.now().strftime('%Y-%m-%d')}.txt"
