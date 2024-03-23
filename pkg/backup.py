@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Or whatever path to your python interpreter
 
 # TODO: Add the following lines to your Dockerfile
@@ -39,6 +39,7 @@ class NauticalBackup:
         # Example usage
         print(skip_containers_array)
         print(skip_stopping_array)
+        self.db.put("backup_running", False)
         
 if __name__ == "__main__":
     nautical = NauticalBackup()

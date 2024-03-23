@@ -4,9 +4,7 @@
 # docker compose run nautical-backup-test3
 # docker compose run nautical-backup-test4
 
-version: '3'
 services:  
-  
   nautical-backup-test1:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test1
@@ -80,6 +78,7 @@ services:
       - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
       - ${LOCAL_WORKSPACE_FOLDER-./}\tests\destination:/app/destination
       - ${LOCAL_WORKSPACE_FOLDER-./}\pkg:/app
+      - ${LOCAL_WORKSPACE_FOLDER-./}\dev\config:/config
       - ${LOCAL_WORKSPACE_FOLDER-./}\api:/api
       - ${LOCAL_WORKSPACE_FOLDER-./}\tests:/tests
     ports:
@@ -89,4 +88,5 @@ services:
       - BACKUP_ON_START=true
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
-    entrypoint: ["sleep", "infinity"]
+    # entrypoint: ["sleep", "infinity"]
+    entrypoint: ["python3", "/app/backup.py"]
