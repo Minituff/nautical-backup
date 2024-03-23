@@ -7,9 +7,14 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from functools import lru_cache
 
+# print current python path
+print(os.path.dirname(__file__))
+print(os.environ.get("PYTHONPATH"))
+
 from api.config import Settings
 from api.authorize import authorize
 import api.nautical_router as nautical_router
+
 
 
 @lru_cache

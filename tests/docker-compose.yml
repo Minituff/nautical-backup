@@ -70,3 +70,23 @@ services:
       - TEST_MODE=4 # Do not run coverage, but run all unit tests
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
+  
+  # NOT RUN IN CI
+  nautical-backup-test5:
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test5
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}\pkg:/app
+      - ${LOCAL_WORKSPACE_FOLDER-./}\api:/api
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests:/tests
+    ports:
+      - "8069:8069/tcp"
+    environment:
+      - TEST_MODE=0 # Do not run coverage, but run all unit tests
+      - BACKUP_ON_START=true
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_KILL_GRACETIME=100 # How long until S6 kills
+    entrypoint: ["sleep", "infinity"]

@@ -106,6 +106,9 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
       gem install bashcov simplecov-cobertura simplecov-html; \
     fi
 
+# Required for Python imports to work
+ENV PYTHONPATH="."
+
 # Add S6 files
 COPY --chmod=755 s6-overlay/ /
 

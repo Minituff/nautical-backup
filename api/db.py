@@ -33,16 +33,16 @@ class DB:
         with open(self.db_path, "w") as f:
             json.dump(data, f, indent=4)
 
-    def get(self, key, default=None):
+    def get(self, key: str, default=None):
         data = self._read_db()
         return data.get(key, default)
 
-    def put(self, key, value):
+    def put(self, key: str, value):
         data = self._read_db()
         data[key] = value
         self._write_db(data)
 
-    def delete(self, key):
+    def delete(self, key: str):
         data = self._read_db()
         if key in data:
             del data[key]

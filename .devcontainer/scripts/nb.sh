@@ -13,6 +13,8 @@ show_help() {
     echo "  test           - Run already built test Nautical container"
     echo "  build-test-run - Build and run Nautical Testing container"
     echo ""
+    echo "  dev            - Run Nautical Development container"
+    echo "  build-dev      - Build and run Nautical Development container"
     echo "  api            - Run the Python API locally"
     echo "  pytest         - Pytest locally and capture coverage"
     echo "  format         - Format all python code with black"
@@ -54,11 +56,19 @@ execute_command() {
         cd $APP_HOME/tests
         docker compose run nautical-backup-test4 --exit-code-from nautical-backup-test4
         ;;
+    dev)
+        cd $APP_HOME/tests
+        docker compose run nautical-backup-test5 --exit-code-from nautical-backup-test5
+        ;;
     build-test)
         clear
         cecho CYAN "Building Test Nautical container..."
         cd $APP_HOME
         docker build -t minituff/nautical-test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .
+        ;;
+    build-dev)
+        cd $APP_HOME
+        nb build-test
         ;;
     test)
         cecho CYAN "Running Nautical container tests..."
