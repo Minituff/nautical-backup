@@ -89,7 +89,7 @@ class TestAPI:
         assert response.status_code == 200
         
         
-        assert response.json()["backup_running"] == db.get("backup_running", "false")
+        assert response.json()["backup_running"] == db.get("backup_running", False)
         assert response.json()["errors"] == db.get("errors", 0)
         assert response.json()["skipped"] == db.get("containers_skipped", 0)
         assert response.json()["completed"] == db.get("containers_completed", 0)

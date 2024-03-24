@@ -1,16 +1,13 @@
 #!/usr/bin/python3
 # Or whatever path to your python interpreter
 
-# TODO: Add the following lines to your Dockerfile
-# ln -s /workspaces/nautical-backup/pkg/backup.py /usr/local/bin/script-test
-# chmod +x /usr/local/bin/script-test
-
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 import sys
 import subprocess
 from pathlib import Path
+from enum import Enum
 
 import docker
 from docker.models.containers import Container
@@ -20,7 +17,6 @@ from api.db import DB
 from api.config import Settings
 from app.logger import Logger
 from app.nautical_env import NauticalEnv
-from enum import Enum
 
 class BeforeOrAfter(Enum):
     BEFORE = 1
@@ -38,8 +34,7 @@ class NauticalBackup:
         self.logger = Logger()
         self.settings = Settings()
         self.docker = docker.from_env()
-        # The prefix and suffix used to define this group
-        self.default_group_pfx_sfx = "&"
+        self.default_group_pfx_sfx = "&" # The prefix and suffix used to define this group
 
         self.verify_source_location(self.env.SOURCE_LOCATION)
         self.verify_destination_location(self.env.DEST_LOCATION)
@@ -362,7 +357,6 @@ class NauticalBackup:
             custom_rsync_args = ""
         
         return f"{default_rsync_args} {custom_rsync_args}"
-
 
     def backup(self):
         self.db.put("backup_running", True)
