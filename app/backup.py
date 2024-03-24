@@ -13,6 +13,7 @@ import subprocess
 
 import docker
 from docker.models.containers import Container
+from docker.errors import APIError
 
 from api.db import DB
 from api.config import Settings
@@ -165,11 +166,11 @@ class NauticalBackup:
         """Runs a commend inside the child container"""
         if when == BeforeOrAfter.BEFORE:
             command = str(c.labels.get("nautical-backup.lifecycle.before", ""))
-            timeout = str(c.labels.get("nautical-backup.lifecycle.before.timeout", 60))
+            timeout = str(c.labels.get("nautical-backup.lifecycle.before.timeout", "60"))
             if command and command != "":
                 self.log_this("Running DURING-backup lifecycle hook for $name", "DEBUG")
         elif when == BeforeOrAfter.AFTER:
-            timeout = str(c.labels.get("nautical-backup.lifecycle.after.timeout", 60))
+            timeout = str(c.labels.get("nautical-backup.lifecycle.after.timeout", "60"))
             command = str(c.labels.get("nautical-backup.lifecycle.after", ""))
             if command and command != "":
                 self.log_this("Running AFTER-backup lifecycle hook for $name", "DEBUG")
@@ -183,7 +184,39 @@ class NauticalBackup:
         self.log_this(f"RUNNING '{command}'", "DEBUG")
         c.exec_run(command)
         
-
+    def _stop_container(self, c:Container, attempt=1) -> bool:
+            c.reload() # Refresh the status for this container
+            
+            SKIP_STOPPING = self.env.SKIP_STOPPING
+            skip_stopping_set = set(SKIP_STOPPING.split(","))
+            if c.name in skip_stopping_set or c.id in skip_stopping_set:
+                self.log_this(f"Container {c.name} is in SKIP_STOPPING list. Will not stop container." "DEBUG")
+                return True
+            
+            stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
+            if stop_before_backup.lower() == "false":
+                self.log_this(f"Skipping stopping of {c.name} because of label" "DEBUG")
+                return True
+            if c.status != "running":
+                self.log_this(f"Container {c.name} was not running. No need to stop.", "DEBUG")
+                return True
+            
+            try:
+                self.log_this(f"Stopping {c.name}...")
+                c.stop(timeout=10) #* Actually stop the container
+            except APIError as e:
+                self.log_this(f"Error stopping container {c.name}. Skipping backup for this container.", "ERROR")
+                return False
+            
+            c.reload() # Refresh the status for this container
+            
+            if c.status == "exited":
+                return True
+            elif attempt <= 3:
+                self.log_this(f"Container {c.name} was not in exited state. Trying again (Attempt {attempt}/3)", "ERROR")
+                self._stop_container(c, attempt=attempt+1)
+            return False
+            
     def backup(self):
         self.db.put("backup_running", True)
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
@@ -197,21 +230,25 @@ class NauticalBackup:
                 self._run_curl(c, BeforeAfterorDuring.BEFORE)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
-                SKIP_STOPPING = self.env.SKIP_STOPPING
-                skip_stopping_set = set(SKIP_STOPPING.split(","))
+                stop_result = self._stop_container(c)
                 # Stop containers
                 pass
             
         # During backup
         for group, containers in containers_by_group.items():
             for c in containers:
+                c.reload() # Refresh the status for this container
                 # Backup containers
+                # if c.status == "exited" or label says its okay
+                    # self._backup_now()
                 pass
         # After backup
         for group, containers in containers_by_group.items():
             for c in containers:
                 # Start containers
-                pass
+                
+                self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
+                self._run_curl(c, BeforeAfterorDuring.AFTER)
 
         self.db.put("backup_running", False)
 
