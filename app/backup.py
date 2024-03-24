@@ -119,7 +119,7 @@ class NauticalBackup:
     def group_containers(self) -> Dict[str, List[Container]]:
         containers: List[Container] = self.docker.containers.list()  # type: ignore
         starting_container_amt = len(containers)
-        self.log_this(f"Processing {starting_container_amt} number of containers...")
+        self.log_this(f"Processing {starting_container_amt} containers...")
         self.db.put("number_of_containers", starting_container_amt)
 
         containers_by_group: Dict[str, List[Container]] = {}
@@ -300,7 +300,7 @@ class NauticalBackup:
         
         dest_dir = self._get_dest_dir(c, src_dir_no_path)
         
-        self.log_this(f"Backing up {c.name} data..." "INFO")
+        self.log_this(f"Backing up {c.name} data...", "INFO")
         
         rsync_args = self._get_rsync_args(c)
         self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
@@ -311,9 +311,11 @@ class NauticalBackup:
         
         command = f"{rsync_args} {src_folder} {dest_folder}"
         
-        self.log_this(f"RUNNING: 'rsync {command}'", "INFO")
+        self.log_this(f"RUNNING: 'rsync {command}'", "DEBUG")
         
-        out = subprocess.run(command, shell=True, executable="/usr/bin/rsync", capture_output=False)
+        args = command.split() # Split the command into a list of arguments
+        
+        out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
         
     def _get_rsync_args(self, c: Container) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS

@@ -75,10 +75,10 @@ services:
     container_name: nautical-backup-test5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
-      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}\dev/source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}\dev/destination:/app/destination
       - ${LOCAL_WORKSPACE_FOLDER-./}\app:/app
-      - ${LOCAL_WORKSPACE_FOLDER-./}\dev\config:/config
+      - ${LOCAL_WORKSPACE_FOLDER-./}\dev/config:/config
       - ${LOCAL_WORKSPACE_FOLDER-./}\api:/api
       - ${LOCAL_WORKSPACE_FOLDER-./}\tests:/tests
     ports:
