@@ -203,8 +203,8 @@ class NauticalBackup:
                 self.log_this(f"Container {c.name} was not running. No need to stop.", "DEBUG")
                 return True
             
+            self.log_this(f"Stopping {c.name}...", "INFO")
             try:
-                self.log_this(f"Stopping {c.name}...")
                 c.stop(timeout=10) #* Actually stop the container
             except APIError as e:
                 self.log_this(f"Error stopping container {c.name}. Skipping backup for this container.", "ERROR")
@@ -242,7 +242,7 @@ class NauticalBackup:
                 self._start_container(c, attempt=attempt+1)
             return False
     
-    def _get_src_dir(self, c: Container) -> Tuple[Path, str]:
+    def _get_src_dir(self, c: Container, run_number=1) -> Tuple[Path, str]:
         base_src_dir = Path(self.env.SOURCE_LOCATION)
         src_dir_no_path = str(c.name)
         src_dir: Path = base_src_dir / src_dir_no_path
@@ -251,17 +251,20 @@ class NauticalBackup:
             new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.name)]
             src_dir = base_src_dir / new_src_dir
             src_dir_no_path = new_src_dir
-            self.log_this(f"Overriding source directory for {c.name} to '{new_src_dir}'")
+            if run_number == 1:
+                self.log_this(f"Overriding source directory for {c.name} to '{new_src_dir}'")
         
         if str(c.id) in self.env.OVERRIDE_SOURCE_DIR:
             new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.id)]
             src_dir = base_src_dir / new_src_dir
             src_dir_no_path = new_src_dir
-            self.log_this(f"Overriding source directory for {c.id} to '{new_src_dir}'")
+            if run_number == 1:
+                self.log_this(f"Overriding source directory for {c.id} to '{new_src_dir}'")
         
         label_src = str(c.labels.get("nautical-backup.override-source-dir", ""))
         if label_src and label_src != "":
-            self.log_this(f"Overriding source directory for {c.name} to '{label_src}' from label")
+            if run_number == 1:
+                self.log_this(f"Overriding source directory for {c.name} to '{label_src}' from label")
             src_dir = base_src_dir / label_src
             src_dir_no_path = label_src
         
@@ -296,7 +299,7 @@ class NauticalBackup:
         pass
 
     def _backup_main_folder(self, c: Container):
-        src_dir, src_dir_no_path = self._get_src_dir(c)
+        src_dir, src_dir_no_path = self._get_src_dir(c, run_number=2)
         
         dest_dir = self._get_dest_dir(c, src_dir_no_path)
         
@@ -363,10 +366,9 @@ class NauticalBackup:
                 if not src_dir.exists():
                     if src_dir_required == "false":
                         self.log_this(f"{c.name} - Source directory $src_dir does, but that's okay", "DEBUG")
-                else:
+       
                     self.log_this(f"{c.name} - Source directory $src_dir does not exist. Skipping", "DEBUG")
                     continue
-                
                 stop_result = self._stop_container(c)  # Stop containers
             
             # During backup
@@ -376,7 +378,7 @@ class NauticalBackup:
                 if c.status != "exited":
                     stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
                     if stop_before_backup.lower() == "true":
-                        self.log_this(f"Skipping backup {c.name} because it was not stopped" "WARN")
+                        self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         continue
             
             self._backup_main_folder(c)
