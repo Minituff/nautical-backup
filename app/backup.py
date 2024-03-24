@@ -242,7 +242,7 @@ class NauticalBackup:
                 self._start_container(c, attempt=attempt+1)
             return False
     
-    def _get_src_dir(self, c: Container, run_number=1) -> Tuple[Path, str]:
+    def _get_src_dir(self, c: Container, log=False) -> Tuple[Path, str]:
         base_src_dir = Path(self.env.SOURCE_LOCATION)
         src_dir_no_path = str(c.name)
         src_dir: Path = base_src_dir / src_dir_no_path
@@ -251,19 +251,19 @@ class NauticalBackup:
             new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.name)]
             src_dir = base_src_dir / new_src_dir
             src_dir_no_path = new_src_dir
-            if run_number == 1:
+            if log == True:
                 self.log_this(f"Overriding source directory for {c.name} to '{new_src_dir}'")
         
         if str(c.id) in self.env.OVERRIDE_SOURCE_DIR:
             new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.id)]
             src_dir = base_src_dir / new_src_dir
             src_dir_no_path = new_src_dir
-            if run_number == 1:
+            if log == True:
                 self.log_this(f"Overriding source directory for {c.id} to '{new_src_dir}'")
         
         label_src = str(c.labels.get("nautical-backup.override-source-dir", ""))
         if label_src and label_src != "":
-            if run_number == 1:
+            if log == True:
                 self.log_this(f"Overriding source directory for {c.name} to '{label_src}' from label")
             src_dir = base_src_dir / label_src
             src_dir_no_path = label_src
@@ -296,17 +296,33 @@ class NauticalBackup:
         return dest_dir
     
     def _backup_additional_folders(self, c: Container):
-        pass
+        additional_folders = str(c.labels.get("nautical-backup.additional-folders", ""))
+        base_src_dir = Path(self.env.SOURCE_LOCATION)
+        base_dest_dir = Path(self.env.DEST_LOCATION)
+        
+        rsync_args = self._get_rsync_args(c, log=False)
+        
+        for folder in additional_folders.split(","):
+            if folder == "": continue
+            
+            src_dir = base_src_dir / folder
+            dest_dir = base_dest_dir / folder
+            self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
+            self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
 
-    def _backup_main_folder(self, c: Container):
-        src_dir, src_dir_no_path = self._get_src_dir(c, run_number=2)
+    def _backup_container_foldes(self, c: Container):
+        src_dir, src_folder_top = self._get_src_dir(c, log=False)
         
-        dest_dir = self._get_dest_dir(c, src_dir_no_path)
+        dest_dir = self._get_dest_dir(c, src_folder_top)
         
-        self.log_this(f"Backing up {c.name} data...", "INFO")
+        self.log_this(f"Backing up {c.name}...", "INFO")
         
         rsync_args = self._get_rsync_args(c)
         self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
+        
+        additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
+        if not additional_folders_when or additional_folders_when == "during":
+            self._backup_additional_folders(c)
     
     def _ryn_rsync(self, c: Container, rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
@@ -320,25 +336,29 @@ class NauticalBackup:
         
         out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
         
-    def _get_rsync_args(self, c: Container) -> str:
+    def _get_rsync_args(self, c: Container, log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
         
         if str(self.env.USE_DEFAULT_RSYNC_ARGS).lower() == "false":
-            self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
+            if log == True:
+                self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             default_rsync_args = ""
         
         use_default_args = str(c.labels.get("nautical-backup.use-default-rsync-args", "")).lower()
         if use_default_args == "false":
-            self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
+            if log == True:
+                self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             default_rsync_args = ""
         
         if str(self.env.RSYNC_CUSTOM_ARGS) != "":
             custom_rsync_args = str(self.env.RSYNC_CUSTOM_ARGS)
-            self.log_this(f"Adding custom rsync arguments ({custom_rsync_args})", "DEBUG")
+            if log == True:
+                self.log_this(f"Adding custom rsync arguments ({custom_rsync_args})", "DEBUG")
         
         custom_rsync_args = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
         if custom_rsync_args != "":
-            self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
+            if log == True:
+                self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             custom_rsync_args = ""
         
         return f"{default_rsync_args} {custom_rsync_args}"
@@ -361,6 +381,10 @@ class NauticalBackup:
                 self._run_curl(c, BeforeAfterorDuring.BEFORE)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
                 
+                additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
+                if additional_folders_when == "before":
+                    self._backup_additional_folders(c)
+            
                 src_dir, src_dir_no_path = self._get_src_dir(c)
                 src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
                 if not src_dir.exists():
@@ -369,6 +393,7 @@ class NauticalBackup:
        
                     self.log_this(f"{c.name} - Source directory $src_dir does not exist. Skipping", "DEBUG")
                     continue
+                
                 stop_result = self._stop_container(c)  # Stop containers
             
             # During backup
@@ -381,7 +406,7 @@ class NauticalBackup:
                         self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         continue
             
-            self._backup_main_folder(c)
+            self._backup_container_foldes(c)
             
             # After backup
             for c in containers:
@@ -390,6 +415,10 @@ class NauticalBackup:
                 
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
                 self._run_curl(c, BeforeAfterorDuring.AFTER)
+                
+                additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
+                if additional_folders_when == "after":
+                    self._backup_additional_folders(c)
 
         self.db.put("backup_running", False)
 
