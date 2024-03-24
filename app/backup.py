@@ -28,12 +28,12 @@ class BeforeAfterorDuring(Enum):
     DURING = 3
 
 class NauticalBackup:
-    def __init__(self):
+    def __init__(self, docker_client: docker.DockerClient):
         self.db = DB()
         self.env = NauticalEnv()
         self.logger = Logger()
         self.settings = Settings()
-        self.docker = docker.from_env()
+        self.docker = docker_client
         self.default_group_pfx_sfx = "&" # The prefix and suffix used to define this group
 
         self.verify_source_location(self.env.SOURCE_LOCATION)
@@ -125,6 +125,8 @@ class NauticalBackup:
             # Create a default group, so ungrouped items are not grouped together
             default_group = f"{self.default_group_pfx_sfx}{str(c.id)[0:12]}{self.default_group_pfx_sfx}"
             group = str(c.labels.get("nautical-backup.group", default_group))
+            if not group or group == "":
+                group = default_group
 
             if group not in containers_by_group:
                 containers_by_group[group] = [c]
@@ -152,7 +154,7 @@ class NauticalBackup:
             return None
         
         # Example command "curl -o /app/destination/google google.com"
-        if not command or command == "":
+        if not str(command) or str(command) == "" or str(command) == "None":
             return None
         
         self.log_this(f"Running CURL command: {command}")
@@ -418,5 +420,6 @@ class NauticalBackup:
 
 
 if __name__ == "__main__":
-    nautical = NauticalBackup()
+    docker_client = docker.from_env()
+    nautical = NauticalBackup(docker_client)
     nautical.backup()
