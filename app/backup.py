@@ -7,7 +7,7 @@
 
 import os
 from datetime import datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 import sys
 import subprocess
 
@@ -18,8 +18,17 @@ from api.db import DB
 from api.config import Settings
 from app.logger import Logger
 from app.nautical_env import NauticalEnv
+from enum import Enum
 
-
+class BeforeOrAfter(Enum):
+    BEFORE = 1
+    AFTER = 2
+    
+class BeforeAfterorDuring(Enum):
+    BEFORE = 1
+    AFTER = 2
+    DURING = 3
+    
 class NauticalBackup:
     def __init__(self):
         self.db = DB()
@@ -125,35 +134,80 @@ class NauticalBackup:
 
         return containers_by_group
 
-    def _run_curl(self, command: str) -> subprocess.CompletedProcess[bytes]:
+    def _run_curl(self, c: Container, when: BeforeAfterorDuring) -> Optional[subprocess.CompletedProcess[bytes]]:
         """Runs a curl command from the Nautical Container itself."""
-        # "curl -o /app/destination/google google.com"
+        
+        if when == BeforeAfterorDuring.BEFORE:
+            command = str(c.labels.get("nautical-backup.curl.before", ""))
+            if command and command != "":
+                self.log_this("Running PRE-backup curl command for $name", "DEBUG")
+        elif when == BeforeAfterorDuring.DURING:
+            command = str(c.labels.get("nautical-backup.curl.during", ""))
+            if command and command != "":
+                self.log_this("Running DURING-backup curl command for $name", "DEBUG")
+        elif when == BeforeAfterorDuring.AFTER:
+            command = str(c.labels.get("nautical-backup.curl.after", ""))
+            if command and command != "":
+                self.log_this("Running AFTER-backup curl command for $name", "DEBUG")
+        else:
+            return None
+        
+        # Example command "curl -o /app/destination/google google.com"
+        if not command or command == "":
+            return None
+        
         self.log_this(f"Running CURL command: {command}")
         out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=False)
         return out
 
+
+    def _run_lifecyle_hook(self, c: Container, when: BeforeOrAfter):
+        """Runs a commend inside the child container"""
+        if when == BeforeOrAfter.BEFORE:
+            command = str(c.labels.get("nautical-backup.lifecycle.before", ""))
+            timeout = str(c.labels.get("nautical-backup.lifecycle.before.timeout", 60))
+            if command and command != "":
+                self.log_this("Running DURING-backup lifecycle hook for $name", "DEBUG")
+        elif when == BeforeOrAfter.AFTER:
+            timeout = str(c.labels.get("nautical-backup.lifecycle.after.timeout", 60))
+            command = str(c.labels.get("nautical-backup.lifecycle.after", ""))
+            if command and command != "":
+                self.log_this("Running AFTER-backup lifecycle hook for $name", "DEBUG")
+        else:
+            return
+        if not command or command == "":
+            return None
+        
+        command = f"timeout {timeout} " + command
+
+        self.log_this(f"RUNNING '{command}'", "DEBUG")
+        c.exec_run(command)
+        
+
     def backup(self):
         self.db.put("backup_running", True)
-        datetime_format2 = datetime.now().strftime("%m/%d/%y %I:%M")
-        self.db.put("last_cron", datetime_format2)
+        self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 
         containers_by_group = self.group_containers()
 
+        # Before backup
         for group, containers in containers_by_group.items():
             for c in containers:
-                curl_before = str(c.labels.get("nautical-backup.curl.before", ""))
-                self._run_curl(curl_before)
+                # Run before hooks
+                self._run_curl(c, BeforeAfterorDuring.BEFORE)
+                self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
                 SKIP_STOPPING = self.env.SKIP_STOPPING
                 skip_stopping_set = set(SKIP_STOPPING.split(","))
                 # Stop containers
                 pass
-
+            
+        # During backup
         for group, containers in containers_by_group.items():
             for c in containers:
                 # Backup containers
                 pass
-
+        # After backup
         for group, containers in containers_by_group.items():
             for c in containers:
                 # Start containers
