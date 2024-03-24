@@ -9,6 +9,8 @@ import os
 from datetime import datetime
 from typing import Dict, List, Union
 import sys
+import subprocess
+
 import docker
 from docker.models.containers import Container
 
@@ -123,6 +125,13 @@ class NauticalBackup:
 
         return containers_by_group
 
+    def _run_curl(self, command: str) -> subprocess.CompletedProcess[bytes]:
+        """Runs a curl command from the Nautical Container itself."""
+        # "curl -o /app/destination/google google.com"
+        self.log_this(f"Running CURL command: {command}")
+        out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=False)
+        return out
+
     def backup(self):
         self.db.put("backup_running", True)
         datetime_format2 = datetime.now().strftime("%m/%d/%y %I:%M")
@@ -132,16 +141,19 @@ class NauticalBackup:
 
         for group, containers in containers_by_group.items():
             for c in containers:
+                curl_before = str(c.labels.get("nautical-backup.curl.before", ""))
+                self._run_curl(curl_before)
+
                 SKIP_STOPPING = self.env.SKIP_STOPPING
                 skip_stopping_set = set(SKIP_STOPPING.split(","))
                 # Stop containers
                 pass
-        
+
         for group, containers in containers_by_group.items():
             for c in containers:
                 # Backup containers
                 pass
-            
+
         for group, containers in containers_by_group.items():
             for c in containers:
                 # Start containers
