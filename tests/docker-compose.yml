@@ -88,5 +88,7 @@ services:
       - BACKUP_ON_START=true
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
+      - OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
+      - OVERRIDE_DEST_DIR=Pi.Alert:pialert
     # entrypoint: ["sleep", "infinity"]
     # entrypoint: ["python3", "/app/backup.py"]
