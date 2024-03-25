@@ -208,7 +208,6 @@ class NauticalBackup:
                 return False
             
             c.reload() # Refresh the status for this container
-            
             if c.status == "exited":
                 return True
             elif attempt <= 3:
@@ -416,6 +415,7 @@ class NauticalBackup:
                 if additional_folders_when == "after":
                     self._backup_additional_folders(c)
 
+                self.log_this(f"Backup of {c.name} complete!", "INFO")
         self.db.put("backup_running", False)
 
 

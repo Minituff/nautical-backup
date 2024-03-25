@@ -1,10 +1,11 @@
 import os
 import pytest
 from pathlib import Path
-from mock import mock, MagicMock, patch
+from mock import PropertyMock, mock, MagicMock, patch
 from pathlib import Path
 import docker
 from docker.models.containers import Container
+from itertools import cycle
 
 from app.nautical_env import NauticalEnv
 from app.backup import NauticalBackup
@@ -17,10 +18,11 @@ class TestBackup:
         "nautical-backup.additional-folders.when": "during",
         "nautical-backup.additional-folders": "",
         "nautical-backup.rsync-custom-args": "",
-        "nautical-backup.use-default-rsync-args": ""
-        
+        "nautical-backup.use-default-rsync-args": "",
+        "nautical-backup.override-source-dir": "",
+        "nautical-backup.override-destination-dir": "",
     }
-    
+
     @classmethod
     def setup_class(cls):
         """Runs 1 time before all tests in this class"""
@@ -31,24 +33,28 @@ class TestBackup:
     ):
         # Create a mock container instance
         mockDockerClient = MagicMock(spec=docker.DockerClient)
-        
-        
-   
+
         # Set up the mock labels dictionary and its get method
         def fake_labels(*args):
             if args[0] in default_labels:
                 return default_labels[args[0]]
-            
-            if args[1]: # Default value
+
+            if args[1]:  # Default value
                 return args[1]
-            
+
         mockContainer1 = MagicMock(spec=Container)
         mockContainer1.name = "container1"
         mockContainer1.id = "1234456789"
+
+        # These statuses are in the exact order as expected throughout the lifecycle of the backup
+        type(mockContainer1).status = PropertyMock(
+            side_effect=cycle(["running", "exited", "exited", "exited", "running"])
+        )
+
         mockContainer1.labels.get.side_effect = fake_labels
-        
+
         mockDockerClient.containers.list.return_value = [mockContainer1]
-        
+
         nb = NauticalBackup(mockDockerClient)
         nb.backup()
 
