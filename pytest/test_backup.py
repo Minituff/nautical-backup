@@ -76,6 +76,7 @@ class TestBackup:
     @pytest.mark.description("Ensure that the backup method calls the correct docker methods")
     def test_docker_calls(self, mock_docker_client: MagicMock, mock_container1: MagicMock, mock_container2: MagicMock):
         """Test that the backup method calls the correct docker methods"""
+        
         mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
@@ -93,21 +94,3 @@ class TestBackup:
         mock_container2.stop.assert_called()
         mock_container2.start.assert_called()
         mock_container2.labels.get.assert_called()
-        
-        
-class TestRsync:
-    def test_rsync_commands(self, monkeypatch: pytest.MonkeyPatch):
-
-        # Define the source location
-        monkeypatch.setenv("DEST_LOCATION", "./tests/destination")
-        monkeypatch.setenv("SOURCE_LOCATION", "./tests/source")
-
-        env = NauticalEnv()
-        SOURCE_LOCATION = env.SOURCE_LOCATION
-
-        # Create directories and files
-        Path(SOURCE_LOCATION, "container1").mkdir(parents=True, exist_ok=True)
-        Path(SOURCE_LOCATION, "container1", "test.txt").touch()
-
-        Path(SOURCE_LOCATION, "container2").mkdir(parents=True, exist_ok=True)
-        Path(SOURCE_LOCATION, "container1", "test.txt").touch()

@@ -44,7 +44,7 @@ jobs:
       run: python3 -m black --verbose --check --line-length 120 api
 
     - name: Run tests and collect coverage
-      run: python3 -m pytest --cov api --cov-report html --cov-report term --cov-report xml
+      run: python3 -m pytest --cov api --cov app --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta

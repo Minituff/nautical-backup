@@ -382,8 +382,8 @@ class NauticalBackup:
                     self._backup_additional_folders(c)
             
                 src_dir, src_dir_no_path = self._get_src_dir(c)
-                src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
                 if not src_dir.exists():
+                    src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
                     if src_dir_required == "false":
                         self.log_this(f"{c.name} - Source directory $src_dir does, but that's okay", "DEBUG")
        
