@@ -12,18 +12,25 @@ from app.backup import NauticalBackup
 
 
 @pytest.fixture
-def docker_mocks(request: pytest.FixtureRequest) -> tuple[MagicMock, MagicMock, MagicMock]:
-    """Creates a mock Docker client and two mock containers.
+def mock_docker_client() -> MagicMock:
+    return MagicMock(spec=docker.DockerClient)
 
-    To use:
-    ```
-    def test_docker_run(self, docker_mocks):
-        mockDockerClient, mockContainer1, mockContainer2 = docker_mocks
-        mockDockerClient.containers.list.return_value = [mockContainer1, mockContainer2]
-        # Do something...
-    ```
-    """
-    # Set defaults
+
+@pytest.fixture
+def mock_container1(request: pytest.FixtureRequest) -> MagicMock:
+    return create_mock_container(request)
+
+
+@pytest.fixture
+def mock_container2(request: pytest.FixtureRequest) -> MagicMock:
+    return create_mock_container(request)
+
+@pytest.fixture
+def mock_container3(request: pytest.FixtureRequest) -> MagicMock:
+    return create_mock_container(request)
+
+
+def create_mock_container(request: pytest.FixtureRequest) -> MagicMock:
     default_labels = {
         "nautical-backup.group": "",
         "nautical-backup.additional-folders.when": "",
@@ -34,58 +41,60 @@ def docker_mocks(request: pytest.FixtureRequest) -> tuple[MagicMock, MagicMock, 
         "nautical-backup.override-destination-dir": "",
     }
 
-    labels = dict(request.param.get("labels", default_labels))
-
-    # These status are exactly what is required for the backup to run
+    # Use default labels but overwrite as added
+    labels = default_labels
+    request_labels = dict(request.param.get("labels", {}))
+    if request_labels:
+        labels.update(request_labels)
+    
     status_side_effect = request.param.get("status_side_effect", ["running", "exited", "exited", "exited", "running"])
+    
+    mock_container = MagicMock(spec=Container)
+    mock_container.name = request.param.get("name", "containerName_default")
+    mock_container.id = request.param.get("id", "id_default")
+    
+    type(mock_container).status = PropertyMock(side_effect=cycle(status_side_effect))
+    
+    mock_container.labels.get.side_effect = lambda key, default=None: labels.get(key, default)
 
-    # Create mocks
-
-    mockDockerClient = MagicMock(spec=docker.DockerClient)
-    mockContainer1 = MagicMock(spec=Container)
-    mockContainer1.name = "container1"
-    mockContainer1.id = "1234456789"
-    type(mockContainer1).status = PropertyMock(side_effect=cycle(status_side_effect))
-
-    def fake_labels(key, default=None):
-        return labels.get(key, default)
-
-    mockContainer1.labels.get.side_effect = fake_labels
-
-    mockContainer2 = MagicMock(spec=Container)
-    mockContainer2.name = "container2"
-    mockContainer2.id = "9876543210"
-    type(mockContainer1).status = PropertyMock(side_effect=cycle(status_side_effect))
-    mockContainer2.labels.get.side_effect = fake_labels
-
-    return mockDockerClient, mockContainer1, mockContainer2
+    return mock_container
 
 
 class TestBackup:
     # Default parameters for the entire class
-    pytestmark = pytest.mark.parametrize(
-        "docker_mocks",
-        [
-            {
-                # "status_side_effect": ["running", "exited", "exited", "exited", "running"],
-            },
-        ],
-        indirect=["docker_mocks"],
-    )
+    pytestmark = [
+        pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True),
+        pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+        # pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
+    ]
 
     @classmethod
     def setup_class(cls):
         """Runs 1 time before all tests in this class"""
         pass
-
-    def test_docker_run(self, docker_mocks):
-        mockDockerClient, mockContainer1, mockContainer2 = docker_mocks
-        mockDockerClient.containers.list.return_value = [mockContainer1, mockContainer2]
-
-        nb = NauticalBackup(mockDockerClient)
+    
+    @pytest.mark.description("Ensure that the backup method calls the correct docker methods")
+    def test_docker_calls(self, mock_docker_client: MagicMock, mock_container1: MagicMock, mock_container2: MagicMock):
+        """Test that the backup method calls the correct docker methods"""
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
         nb.backup()
-
-
+        
+        mock_docker_client.containers.list.assert_called()
+        
+        assert mock_container1.id == "123456789"
+        assert mock_container1.name == "container1"
+        mock_container1.stop.assert_called()
+        mock_container1.start.assert_called()
+        mock_container1.labels.get.assert_called()
+        
+        assert mock_container2.id == "9876543210"
+        assert mock_container2.name == "container2"
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+        mock_container2.labels.get.assert_called()
+        
+        
 class TestRsync:
     def test_rsync_commands(self, monkeypatch: pytest.MonkeyPatch):
 

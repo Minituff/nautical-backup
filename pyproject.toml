@@ -1,0 +1,17 @@
+[tool.black]
+line-length = 120
+
+
+ 
+
+[tool.pytest.ini_options]
+python_files = "test_*.py *_test.py"
+addopts = "--ignore-glob=notebooks/*  --strict-markers"
+required_plugins = "pytest-cov"
+pythonpath = ".."
+markers = [
+    "it: name an test",
+    "description: descption of a test",
+    "integration: name an integration test (deselect with '-m \"not integration\"')",
+
+]

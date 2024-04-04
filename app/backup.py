@@ -114,7 +114,8 @@ class NauticalBackup:
     def group_containers(self) -> Dict[str, List[Container]]:
         containers: List[Container] = self.docker.containers.list()  # type: ignore
         starting_container_amt = len(containers)
-        self.log_this(f"Processing {starting_container_amt} containers...")
+        self.log_this(f"Processing {starting_container_amt} containers...", "INFO")
+        self.log_this(f"Containers: {containers}", "DEBUG")
         self.db.put("number_of_containers", starting_container_amt)
 
         containers_by_group: Dict[str, List[Container]] = {}
