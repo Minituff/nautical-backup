@@ -42,11 +42,13 @@ jobs:
     - name: Run Black format
       run: python3 -m black --verbose --check --line-length 120 api
 
+    - name: Prepare enviornment
+      run: |
+        echo "NAUTICAL_DB_PATH=${GITHUB_WORKSPACE}/dev/config" >> "$GITHUB_ENV"
+        echo "SOURCE_LOCATION=${GITHUB_WORKSPACE}/dev/source" >> "$GITHUB_ENV"
+        echo "DEST_LOCATION=${GITHUB_WORKSPACE}/dev/destination" >> "$GITHUB_ENV"
+
     - name: Run tests and collect coverage
-      env:
-        NAUTICAL_DB_PATH: "${GITHUB_WORKSPACE}/dev/config"
-        SOURCE_LOCATION: "${GITHUB_WORKSPACE}/dev/source"
-        DEST_LOCATION: "${GITHUB_WORKSPACE}/dev/destination"
       run: |
         echo "NAUTICAL_DB_PATH: ${NAUTICAL_DB_PATH}" 
         python3 -m pytest --cov api --cov app --cov-report html --cov-report term --cov-report xml
