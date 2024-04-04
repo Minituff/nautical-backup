@@ -20,7 +20,7 @@
 	},
 	"containerEnv": {
 		"PYTHONPATH": ".", // Required for python to work
-		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
+		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev/config",
 		"NAUTICAL_DB_NAME": "nautical-db.json",
 		"DEST_LOCATION": "/workspaces/nautical-backup/dev/destination",
 		"SOURCE_LOCATION": "/workspaces/nautical-backup/dev/source",
@@ -47,7 +47,8 @@
 				"njpwerner.autodocstring",
 				"rangav.vscode-thunder-client",
 				"ms-azuretools.vscode-docker",
-				"bungcip.better-toml"
+				"bungcip.better-toml",
+				"littlefoxteam.vscode-python-test-adapter"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",

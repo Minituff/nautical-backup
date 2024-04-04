@@ -7,3 +7,5 @@ pytest_cache
 htmlcov
 coverage.xml
 /tests/destination
+fake-path/
+fake-path2/

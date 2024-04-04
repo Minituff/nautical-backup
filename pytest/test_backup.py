@@ -40,7 +40,7 @@ def create_mock_container(request: pytest.FixtureRequest) -> MagicMock:
         "nautical-backup.override-source-dir": "",
         "nautical-backup.override-destination-dir": "",
     }
-
+   
     # Use default labels but overwrite as added
     labels = default_labels
     request_labels = dict(request.param.get("labels", {}))
@@ -56,7 +56,17 @@ def create_mock_container(request: pytest.FixtureRequest) -> MagicMock:
     type(mock_container).status = PropertyMock(side_effect=cycle(status_side_effect))
     
     mock_container.labels.get.side_effect = lambda key, default=None: labels.get(key, default)
-
+    
+    #  Create source and dest directories if they don't already exist
+    if request.param.get("source_exists", True):
+        nautical_env = NauticalEnv()
+        source_dir = Path(nautical_env.SOURCE_LOCATION) / mock_container.name
+        source_dir.mkdir(parents=True, exist_ok=True)
+    if request.param.get("dest_exists", True):
+        nautical_env = NauticalEnv()
+        dest_dir = Path(nautical_env.DEST_LOCATION) / mock_container.name
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        
     return mock_container
 
 
@@ -71,7 +81,9 @@ class TestBackup:
     @classmethod
     def setup_class(cls):
         """Runs 1 time before all tests in this class"""
-        pass
+        nautical_env = NauticalEnv()
+        db_location = Path(nautical_env.NAUTICAL_DB_PATH)
+        db_location.mkdir(parents=True, exist_ok=True)
     
     @pytest.mark.description("Ensure that the backup method calls the correct docker methods")
     def test_docker_calls(self, mock_docker_client: MagicMock, mock_container1: MagicMock, mock_container2: MagicMock):

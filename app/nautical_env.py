@@ -26,7 +26,9 @@ class NauticalEnv:
         self.REQUIRE_LABEL = False
         if os.environ.get("REQUIRE_LABEL", "False").lower() == True:
             self.REQUIRE_LABEL = True 
-    
+
+        self.NAUTICAL_DB_PATH = os.environ.get("NAUTICAL_DB_PATH", "")
+        
     @ staticmethod
     def _populate_override_dirs(env_name: str) ->  Dict[str, str]:
         """Translate the Enviornment variable from single string to Python Dict.
