@@ -50,9 +50,9 @@ jobs:
     
     - name: Create necessary folders
       run: |
-        mkdir $NAUTICAL_DB_PATH
-        mkdir $SOURCE_LOCATION
-        mkdir $DEST_LOCATION
+        mkdir -p $NAUTICAL_DB_PATH
+        mkdir -p $SOURCE_LOCATION
+        mkdir -p $DEST_LOCATION
 
     - name: Run tests and collect coverage
       run: |
