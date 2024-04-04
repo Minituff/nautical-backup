@@ -15,8 +15,7 @@ on:
       - 'dev'
   push:
     branches:
-      - 'api'  #! TODO: REMOVE
-      # - 'codecov'
+      - 'group-updates'  #! TODO: REMOVE
     # tags:
     #   - 'v*'
 
