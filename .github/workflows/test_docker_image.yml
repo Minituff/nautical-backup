@@ -47,6 +47,9 @@ jobs:
         echo "NAUTICAL_DB_PATH=${GITHUB_WORKSPACE}/dev/config" >> "$GITHUB_ENV"
         echo "SOURCE_LOCATION=${GITHUB_WORKSPACE}/dev/source" >> "$GITHUB_ENV"
         echo "DEST_LOCATION=${GITHUB_WORKSPACE}/dev/destination" >> "$GITHUB_ENV"
+        mkdir $NAUTICAL_DB_PATH
+        mkdir $SOURCE_LOCATION
+        mkdir $DEST_LOCATION
 
     - name: Run tests and collect coverage
       run: |
