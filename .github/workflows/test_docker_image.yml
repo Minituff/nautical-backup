@@ -43,7 +43,13 @@ jobs:
       run: python3 -m black --verbose --check --line-length 120 api
 
     - name: Run tests and collect coverage
-      run: python3 -m pytest --cov api --cov app --cov-report html --cov-report term --cov-report xml
+      env:
+        NAUTICAL_DB_PATH: "${GITHUB_WORKSPACE}/dev/config"
+        SOURCE_LOCATION: "${GITHUB_WORKSPACE}/dev/source"
+        DEST_LOCATION: "${GITHUB_WORKSPACE}/dev/destination"
+      run: |
+        echo "NAUTICAL_DB_PATH: ${NAUTICAL_DB_PATH}" 
+        python3 -m pytest --cov api --cov app --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta
@@ -63,7 +69,7 @@ jobs:
 
   test_docker_architecture:
     name: Validate Docker Architecture
-    # if: contains(github.event.head_commit.message, '[ci]')
+    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -76,7 +82,7 @@ jobs:
 
   bash_unit_test_and_coverage:
     name: Integration tests 
-    # if: contains(github.event.head_commit.message, '[ci]')
+    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
