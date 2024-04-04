@@ -311,11 +311,18 @@ class NauticalBackup:
         src_dir, src_folder_top = self._get_src_dir(c, log=False)
         
         dest_dir = self._get_dest_dir(c, src_folder_top)
+        if not dest_dir.exists():
+            self.log_this(f"Destination directory '{dest_dir}'does not exit", "DEBUG")
         
-        self.log_this(f"Backing up {c.name}...", "INFO")
+        if src_dir.exists():
+            self.log_this(f"Backing up {c.name}...", "INFO")
         
-        rsync_args = self._get_rsync_args(c)
-        self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
+            rsync_args = self._get_rsync_args(c)
+            self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
+        else:
+            self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
+            
+        
         
         additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
