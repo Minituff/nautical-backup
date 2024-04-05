@@ -18,3 +18,18 @@ markers = [
 filterwarnings = [
     'ignore',
 ]
+
+[tool.coverage]
+    [tool.coverage.run]
+    omit = [
+        # omit anything in a .local directory anywhere
+        '*/.local/*',
+        '__init__.py',
+        'tests/*',
+        '*/tests/*',
+        # omit anything in a .venv directory anywhere
+        '.venv/*'
+    ]
+
+    [tool.coverage.report]
+    skip_empty = true
