@@ -24,7 +24,7 @@ class NauticalEnv:
         self.RSYNC_CUSTOM_ARGS = os.environ.get("RSYNC_CUSTOM_ARGS", "")
         
         self.REQUIRE_LABEL = False
-        if os.environ.get("REQUIRE_LABEL", "False").lower() == True:
+        if os.environ.get("REQUIRE_LABEL", "False").lower() == "true":
             self.REQUIRE_LABEL = True 
 
         self.NAUTICAL_DB_PATH = os.environ.get("NAUTICAL_DB_PATH", "")

@@ -96,7 +96,7 @@ class NauticalBackup:
 
         if self.env.REQUIRE_LABEL == True and nautical_backup_enable is not True:
             self.log_this(
-                f"Skipping ${c.name} as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true.", "DEBUG"
+                f"Skipping {c.name} as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true.", "DEBUG"
             )
             return True
 

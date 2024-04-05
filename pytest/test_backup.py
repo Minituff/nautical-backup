@@ -20,7 +20,8 @@ def rm_tree(pth: Path):
         else:
             rm_tree(child)
     pth.rmdir()
-    
+
+
 @pytest.fixture
 def mock_docker_client() -> MagicMock:
     return MagicMock(spec=docker.DockerClient)
@@ -101,16 +102,28 @@ def create_mock_container(request: pytest.FixtureRequest) -> MagicMock:
 class TestBackup:
     # Default parameters for the entire class
     # pytestmark = [
-        # pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True),
-        # pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True),
+    # pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True),
+    # pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True),
     # ]
 
     @classmethod
     def setup_class(cls):
         """Runs 1 time before all tests in this class"""
         nautical_env = NauticalEnv()
-        db_location = Path(nautical_env.NAUTICAL_DB_PATH)
-        db_location.mkdir(parents=True, exist_ok=True)
+
+        cls.db_location = Path(nautical_env.NAUTICAL_DB_PATH)
+        cls.src_location = Path(nautical_env.SOURCE_LOCATION)
+        cls.dest_location = Path(nautical_env.DEST_LOCATION)
+
+        # Before each test, clean the relavent directories
+        rm_tree(cls.src_location)
+        rm_tree(cls.dest_location)
+        rm_tree(cls.db_location)
+
+        # Make sure the directories exist
+        cls.db_location.mkdir(parents=True, exist_ok=True)
+        cls.src_location.mkdir(parents=True, exist_ok=True)
+        cls.dest_location.mkdir(parents=True, exist_ok=True)
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
@@ -150,7 +163,9 @@ class TestBackup:
         assert mock_subprocess_run.call_count == 2
 
     @mock.patch("subprocess.run")
-    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789", "source_exists": False}], indirect=True)
+    @pytest.mark.parametrize(
+        "mock_container1", [{"name": "container1", "id": "123456789", "source_exists": False}], indirect=True
+    )
     @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
     def test_missing_source_dir(
         self,
@@ -164,11 +179,143 @@ class TestBackup:
         mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
-        
+
         # Container once has no source dir, so no rsync or stop is called
         mock_container1.stop.assert_not_called()
-        
+
         mock_container2.stop.assert_called()
-        
+
         # Rsync should only be called once
         mock_subprocess_run.assert_called_once()
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_rsync_commands(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test if Rsync was called with the correct arguments"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Rsync should only be called once
+        mock_subprocess_run.assert_called_once()
+
+        mock_subprocess_run.assert_any_call(
+            ["-ahq", f"{self.src_location}/container1/", f"{self.dest_location}/container1/"],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_skip_container_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that the backup method calls the correct docker methods"""
+
+        monkeypatch.setenv("SKIP_CONTAINERS", "container-name2,container1,container-name3")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 should be skipped
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+
+        # Container2 should be stopped and started
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+
+        # Rsync should only be called once (on container2)
+        assert mock_subprocess_run.call_count == 1
+
+    # TODO: Skip container with label
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789", "labels": {"nautical-backup.enable": "false"}}],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_enable_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that the backup method calls the correct docker methods"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 should be skipped
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+
+        # Container2 should be stopped and started
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+
+        # Rsync should only be called once (on container2)
+        assert mock_subprocess_run.call_count == 1
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789", "labels": {"nautical-backup.enable": "false"}}],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [{"name": "container2", "id": "9876543210", "labels": {"nautical-backup.enable": "true"}}],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
+    def test_require_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that the backup method calls the correct docker methods"""
+
+        monkeypatch.setenv("REQUIRE_LABEL", "true")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 should be skipped
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+
+        # Container3 should be skipped
+        mock_container3.stop.assert_not_called()
+        mock_container3.start.assert_not_called()
+
+        # Container2 should be stopped and started
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+
+        # Rsync should only be called once (on container2)
+        assert mock_subprocess_run.call_count == 1
