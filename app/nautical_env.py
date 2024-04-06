@@ -20,7 +20,7 @@ class NauticalEnv:
         self.OVERRIDE_SOURCE_DIR = self._populate_override_dirs("OVERRIDE_SOURCE_DIR")
         self.OVERRIDE_DEST_DIR = self._populate_override_dirs("OVERRIDE_DEST_DIR")
 
-        self.DEFAULT_RNC_ARGS = "-ahq"  # Default
+        self.DEFAULT_RNC_ARGS = "-raq"  # Default
         self.USE_DEFAULT_RSYNC_ARGS = os.environ.get("USE_DEFAULT_RSYNC_ARGS", "")
         self.RSYNC_CUSTOM_ARGS = os.environ.get("RSYNC_CUSTOM_ARGS", "")
 

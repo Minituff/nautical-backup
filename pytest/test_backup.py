@@ -232,7 +232,7 @@ class TestBackup:
         mock_subprocess_run.assert_called_once()
 
         mock_subprocess_run.assert_any_call(
-            ["-ahq", f"{self.src_location}/container1/", f"{self.dest_location}/container1/"],
+            ["-raq", f"{self.src_location}/container1/", f"{self.dest_location}/container1/"],
             shell=True,
             executable="/usr/bin/rsync",
             capture_output=False,
@@ -373,13 +373,13 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            ["-ahq", f"{self.src_location}/container1-override/", f"{self.dest_location}/container1-override/"],
+            ["-raq", f"{self.src_location}/container1-override/", f"{self.dest_location}/container1-override/"],
             shell=True,
             executable="/usr/bin/rsync",
             capture_output=False,
         )
         mock_subprocess_run.assert_any_call(
-            ["-ahq", f"{self.src_location}/container2-new/", f"{self.dest_location}/container2-new/"],
+            ["-raq", f"{self.src_location}/container2-new/", f"{self.dest_location}/container2-new/"],
             shell=True,
             executable="/usr/bin/rsync",
             capture_output=False,
@@ -416,7 +416,7 @@ class TestBackup:
 
         mock_subprocess_run.assert_any_call(
             [
-                "-ahq",
+                "-raq",
                 f"{self.src_location}/container1-override-label/",
                 f"{self.dest_location}/container1-override-label/",
             ],
@@ -452,13 +452,13 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            ["-ahq", f"{self.src_location}/container1/", f"{self.dest_location}/container1-override/"],
+            ["-raq", f"{self.src_location}/container1/", f"{self.dest_location}/container1-override/"],
             shell=True,
             executable="/usr/bin/rsync",
             capture_output=False,
         )
         mock_subprocess_run.assert_any_call(
-            ["-ahq", f"{self.src_location}/container2/", f"{self.dest_location}/container2-new/"],
+            ["-raq", f"{self.src_location}/container2/", f"{self.dest_location}/container2-new/"],
             shell=True,
             executable="/usr/bin/rsync",
             capture_output=False,
@@ -491,7 +491,7 @@ class TestBackup:
 
         mock_subprocess_run.assert_any_call(
             [
-                "-ahq",
+                "-raq",
                 f"{self.src_location}/container1/",
                 f"{self.dest_location}/container1-override-label/",
             ],
@@ -733,7 +733,7 @@ class TestBackup:
         )
 
     @mock.patch("subprocess.run")
-    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container1", [{"name": "Pi.Alert", "id": "123456789"}], indirect=True)
     def test_keep_src_dir_name_env_false(
         self,
         mock_subprocess_run: MagicMock,
@@ -745,13 +745,13 @@ class TestBackup:
 
         # Folders must be created before the backup is called
         nautical_env = NauticalEnv()
-        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "pialert", and_file=True)
 
         # Skip stopping container1 and container2 (by name and id)
         monkeypatch.setenv("KEEP_SRC_DIR_NAME", "false")
         monkeypatch.setenv(
             "OVERRIDE_SOURCE_DIR",
-            "container1:container1-override,container2:container2-override,container3:container3-new",
+            "Pi.Alert:pialert",
         )
 
         mock_docker_client.containers.list.return_value = [mock_container1]
@@ -763,9 +763,9 @@ class TestBackup:
         # Rsync custom args should overwrite the default args
         mock_subprocess_run.assert_called_once_with(
             [
-                "-aq",
-                f"{self.src_location}/container1-override/",
-                f"{self.dest_location}/container1/",
+                "-raq",
+                f"{self.src_location}/pialert/",
+                f"{self.dest_location}/Pi.Alert/",
             ],
             shell=True,
             executable="/usr/bin/rsync",
@@ -803,7 +803,7 @@ class TestBackup:
         # Rsync custom args should overwrite the default args
         mock_subprocess_run.assert_called_once_with(
             [
-                "-ahq",
+                "-raq",
                 f"{self.src_location}/container1-override/",
                 f"{self.dest_location}/container1-override/",
             ],
@@ -845,7 +845,7 @@ class TestBackup:
 
         mock_subprocess_run.assert_any_call(
             [
-                "-ahq",
+                "-raq",
                 f"{self.src_location}/container1-new/",
                 f"{self.dest_location}/container1/",
             ],
@@ -887,7 +887,7 @@ class TestBackup:
 
         mock_subprocess_run.assert_any_call(
             [
-                "-ahq",
+                "-raq",
                 f"{self.src_location}/container1-new/",
                 f"{self.dest_location}/container1-new/",
             ],
@@ -937,7 +937,7 @@ class TestBackup:
         expected_calls = [
             call(
                 [
-                    "-ahq",
+                    "-raq",
                     f"{self.src_location}/container1/",
                     f"{self.dest_location}/container1/",
                 ],
@@ -947,7 +947,7 @@ class TestBackup:
             ),
             call(
                 [
-                    "-ahq",
+                    "-raq",
                     f"{self.src_location}/add1/",
                     f"{self.dest_location}/add1/",
                 ],
@@ -996,7 +996,7 @@ class TestBackup:
         expected_calls = [
             call(
                 [
-                    "-ahq",
+                    "-raq",
                     f"{self.src_location}/add1/",
                     f"{self.dest_location}/add1/",
                 ],
@@ -1006,7 +1006,7 @@ class TestBackup:
             ),
             call(
                 [
-                    "-ahq",
+                    "-raq",
                     f"{self.src_location}/container1/",
                     f"{self.dest_location}/container1/",
                 ],

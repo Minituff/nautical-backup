@@ -275,7 +275,16 @@ class NauticalBackup:
         base_dest_dir = Path(self.env.DEST_LOCATION)
         dest_dir: Path = base_dest_dir / str(c.name)
 
-        keep_src_dir_name_label = str(c.labels.get("nautical-backup.keep_src_dir_name", "true")).lower()
+        keep_src_dir_name_label = str(c.labels.get("nautical-backup.keep_src_dir_name", "")).lower()
+
+        # This allows the user to set the KEEP_SRC_DIR_NAME environment variable to override the label's default if set
+        # But the label will still override the environment variable if set to false/true
+        if str(self.env.KEEP_SRC_DIR_NAME).lower() == "" and keep_src_dir_name_label == "":
+            keep_src_dir_name_label = "true"
+
+        if str(self.env.KEEP_SRC_DIR_NAME).lower() == "true" and keep_src_dir_name_label != "false":
+            dest_dir: Path = base_dest_dir / src_dir_name
+
         if keep_src_dir_name_label == "true":
             dest_dir: Path = base_dest_dir / src_dir_name
 
