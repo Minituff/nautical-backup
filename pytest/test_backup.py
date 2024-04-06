@@ -21,6 +21,15 @@ def rm_tree(pth: Path):
             rm_tree(child)
     pth.rmdir()
 
+def create_folder(pth: Path, and_file: bool = False):
+    """Useful for creating folders and files for testing"""
+    pth.mkdir(parents=True, exist_ok=True)
+
+    if and_file:
+        # Create test files
+        test_file = pth / "test_file.txt"
+        with open(test_file, "w") as test_file:
+            test_file.write("This is a test file")
 
 @pytest.fixture
 def mock_docker_client() -> MagicMock:
@@ -124,6 +133,20 @@ class TestBackup:
         cls.db_location.mkdir(parents=True, exist_ok=True)
         cls.src_location.mkdir(parents=True, exist_ok=True)
         cls.dest_location.mkdir(parents=True, exist_ok=True)
+    
+    @classmethod
+    def teardown_class(cls):
+        """Runs 1 time after all tests in this class"""
+        nautical_env = NauticalEnv()
+
+        cls.db_location = Path(nautical_env.NAUTICAL_DB_PATH)
+        cls.src_location = Path(nautical_env.SOURCE_LOCATION)
+        cls.dest_location = Path(nautical_env.DEST_LOCATION)
+
+        # Before each test, clean the relavent directories
+        rm_tree(cls.src_location)
+        rm_tree(cls.dest_location)
+        rm_tree(cls.db_location)
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
@@ -319,3 +342,43 @@ class TestBackup:
 
         # Rsync should only be called once (on container2)
         assert mock_subprocess_run.call_count == 1
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
+    def test_override_src_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that the backup method calls the correct docker methods"""
+
+        monkeypatch.setenv("OVERRIDE_SOURCE_DIR", "container1:container1-override,9876543210:container2-new")
+        
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container2-new", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_subprocess_run.assert_any_call(
+            ["-ahq", f"{self.src_location}/container1-override/", f"{self.dest_location}/container1-override/"],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+        mock_subprocess_run.assert_any_call(
+            ["-ahq", f"{self.src_location}/container2-new/", f"{self.dest_location}/container2-new/"],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+        assert mock_subprocess_run.call_count == 3
