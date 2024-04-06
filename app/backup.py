@@ -18,14 +18,17 @@ from api.config import Settings
 from app.logger import Logger
 from app.nautical_env import NauticalEnv
 
+
 class BeforeOrAfter(Enum):
     BEFORE = 1
     AFTER = 2
+
 
 class BeforeAfterorDuring(Enum):
     BEFORE = 1
     AFTER = 2
     DURING = 3
+
 
 class NauticalBackup:
     def __init__(self, docker_client: docker.DockerClient):
@@ -34,7 +37,7 @@ class NauticalBackup:
         self.logger = Logger()
         self.settings = Settings()
         self.docker = docker_client
-        self.default_group_pfx_sfx = "&" # The prefix and suffix used to define this group
+        self.default_group_pfx_sfx = "&"  # The prefix and suffix used to define this group
 
         self.verify_source_location(self.env.SOURCE_LOCATION)
         self.verify_destination_location(self.env.DEST_LOCATION)
@@ -138,7 +141,7 @@ class NauticalBackup:
 
     def _run_curl(self, c: Container, when: BeforeAfterorDuring) -> Optional[subprocess.CompletedProcess[bytes]]:
         """Runs a curl command from the Nautical Container itself."""
-        
+
         if when == BeforeAfterorDuring.BEFORE:
             command = str(c.labels.get("nautical-backup.curl.before", ""))
             if command and command != "":
@@ -153,11 +156,11 @@ class NauticalBackup:
                 self.log_this("Running AFTER-backup curl command for $name", "DEBUG")
         else:
             return None
-        
+
         # Example command "curl -o /app/destination/google google.com"
         if not str(command) or str(command) == "" or str(command) == "None":
             return None
-        
+
         self.log_this(f"Running CURL command: {command}")
         out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=False)
         return out
@@ -178,72 +181,72 @@ class NauticalBackup:
             return
         if not command or command == "":
             return None
-        
+
         command = f"timeout {timeout} " + command
 
         self.log_this(f"RUNNING '{command}'", "DEBUG")
         c.exec_run(command)
-        
-    def _stop_container(self, c:Container, attempt=1) -> bool:
-            c.reload() # Refresh the status for this container
-            
-            SKIP_STOPPING = self.env.SKIP_STOPPING
-            skip_stopping_set = set(SKIP_STOPPING.split(","))
-            if c.name in skip_stopping_set or c.id in skip_stopping_set:
-                self.log_this(f"Container {c.name} is in SKIP_STOPPING list. Will not stop container." "DEBUG")
-                return True
-            
-            stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
-            if stop_before_backup.lower() == "false":
-                self.log_this(f"Skipping stopping of {c.name} because of label" "DEBUG")
-                return True
-            if c.status != "running":
-                self.log_this(f"Container {c.name} was not running. No need to stop.", "DEBUG")
-                return True
-            
-            self.log_this(f"Stopping {c.name}...", "INFO")
-            try:
-                c.stop(timeout=10) #* Actually stop the container
-            except APIError as e:
-                self.log_this(f"Error stopping container {c.name}. Skipping backup for this container.", "ERROR")
-                return False
-            
-            c.reload() # Refresh the status for this container
-            if c.status == "exited":
-                return True
-            elif attempt <= 3:
-                self.log_this(f"Container {c.name} was not in exited state. Trying again (Attempt {attempt}/3)", "ERROR")
-                self._stop_container(c, attempt=attempt+1)
+
+    def _stop_container(self, c: Container, attempt=1) -> bool:
+        c.reload()  # Refresh the status for this container
+
+        SKIP_STOPPING = self.env.SKIP_STOPPING
+        skip_stopping_set = set(SKIP_STOPPING.split(","))
+        if c.name in skip_stopping_set or c.id in skip_stopping_set:
+            self.log_this(f"Container {c.name} is in SKIP_STOPPING list. Will not stop container." "DEBUG")
+            return True
+
+        stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
+        if stop_before_backup.lower() == "false":
+            self.log_this(f"Skipping stopping of {c.name} because of label" "DEBUG")
+            return True
+        if c.status != "running":
+            self.log_this(f"Container {c.name} was not running. No need to stop.", "DEBUG")
+            return True
+
+        self.log_this(f"Stopping {c.name}...", "INFO")
+        try:
+            c.stop(timeout=10)  # * Actually stop the container
+        except APIError as e:
+            self.log_this(f"Error stopping container {c.name}. Skipping backup for this container.", "ERROR")
             return False
-        
-    def _start_container(self, c:Container, attempt=1) -> bool:
-            c.reload() # Refresh the status for this container
-            
-            if c.status != "exited":
-                self.log_this(f"Container {c.name} was not stopped. No need to start.", "DEBUG")
-                return True
-            
-            try:
-                self.log_this(f"Starting {c.name}...")
-                c.start() #* Actually stop the container
-            except APIError as e:
-                self.log_this(f"Error starting container {c.name}.", "ERROR")
-                return False
-            
-            c.reload() # Refresh the status for this container
-            
-            if c.status == "running":
-                return True
-            elif attempt <= 3:
-                self.log_this(f"Container {c.name} was not in running state. Trying again (Attempt {attempt}/3)", "ERROR")
-                self._start_container(c, attempt=attempt+1)
+
+        c.reload()  # Refresh the status for this container
+        if c.status == "exited":
+            return True
+        elif attempt <= 3:
+            self.log_this(f"Container {c.name} was not in exited state. Trying again (Attempt {attempt}/3)", "ERROR")
+            self._stop_container(c, attempt=attempt + 1)
+        return False
+
+    def _start_container(self, c: Container, attempt=1) -> bool:
+        c.reload()  # Refresh the status for this container
+
+        if c.status != "exited":
+            self.log_this(f"Container {c.name} was not stopped. No need to start.", "DEBUG")
+            return True
+
+        try:
+            self.log_this(f"Starting {c.name}...")
+            c.start()  # * Actually stop the container
+        except APIError as e:
+            self.log_this(f"Error starting container {c.name}.", "ERROR")
             return False
-    
+
+        c.reload()  # Refresh the status for this container
+
+        if c.status == "running":
+            return True
+        elif attempt <= 3:
+            self.log_this(f"Container {c.name} was not in running state. Trying again (Attempt {attempt}/3)", "ERROR")
+            self._start_container(c, attempt=attempt + 1)
+        return False
+
     def _get_src_dir(self, c: Container, log=False) -> Tuple[Path, str]:
         base_src_dir = Path(self.env.SOURCE_LOCATION)
         src_dir_no_path = str(c.name)
         src_dir: Path = base_src_dir / src_dir_no_path
-        
+
         if str(c.name) in self.env.OVERRIDE_SOURCE_DIR:
             print("FOUND OVERRIDE for", c.name, self.env.OVERRIDE_SOURCE_DIR[str(c.name)])
             new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.name)]
@@ -258,51 +261,52 @@ class NauticalBackup:
             src_dir_no_path = new_src_dir
             if log == True:
                 self.log_this(f"Overriding source directory for {c.id} to '{new_src_dir}'")
-        
+
         label_src = str(c.labels.get("nautical-backup.override-source-dir", ""))
         if label_src and label_src != "":
             if log == True:
                 self.log_this(f"Overriding source directory for {c.name} to '{label_src}' from label")
             src_dir = base_src_dir / label_src
             src_dir_no_path = label_src
-        
+
         return src_dir, src_dir_no_path
-    
+
     def _get_dest_dir(self, c: Container, src_dir_name: str) -> Path:
         base_dest_dir = Path(self.env.DEST_LOCATION)
         dest_dir: Path = base_dest_dir / str(c.name)
-        
+
         keep_src_dir_name_label = str(c.labels.get("nautical-backup.keep_src_dir_name", "true")).lower()
         if keep_src_dir_name_label == "true":
             dest_dir: Path = base_dest_dir / src_dir_name
-        
+
         if str(c.name) in self.env.OVERRIDE_DEST_DIR:
             new_dest_dir = self.env.OVERRIDE_DEST_DIR[str(c.name)]
             dest_dir = base_dest_dir / new_dest_dir
             self.log_this(f"Overriding destination directory for {c.name} to '{new_dest_dir}'")
-        
+
         if str(c.id) in self.env.OVERRIDE_DEST_DIR:
             new_dest_dir = self.env.OVERRIDE_DEST_DIR[str(c.id)]
             dest_dir = base_dest_dir / new_dest_dir
             self.log_this(f"Overriding destination directory for {c.id} to '{new_dest_dir}'")
-        
+
         label_dest = str(c.labels.get("nautical-backup.override-destination-dir", ""))
         if label_dest and label_dest != "":
             self.log_this(f"Overriding destination directory for {c.name} to '{label_dest}' from label")
             dest_dir = base_dest_dir / label_dest
-        
+
         return dest_dir
-    
+
     def _backup_additional_folders(self, c: Container):
         additional_folders = str(c.labels.get("nautical-backup.additional-folders", ""))
         base_src_dir = Path(self.env.SOURCE_LOCATION)
         base_dest_dir = Path(self.env.DEST_LOCATION)
-        
+
         rsync_args = self._get_rsync_args(c, log=False)
-        
+
         for folder in additional_folders.split(","):
-            if folder == "": continue
-            
+            if folder == "":
+                continue
+
             src_dir = base_src_dir / folder
             dest_dir = base_dest_dir / folder
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
@@ -310,62 +314,60 @@ class NauticalBackup:
 
     def _backup_container_foldes(self, c: Container):
         src_dir, src_folder_top = self._get_src_dir(c, log=False)
-        
+
         dest_dir = self._get_dest_dir(c, src_folder_top)
         if not dest_dir.exists():
             self.log_this(f"Destination directory '{dest_dir}'does not exit", "DEBUG")
-        
+
         if src_dir.exists():
             self.log_this(f"Backing up {c.name}...", "INFO")
-        
+
             rsync_args = self._get_rsync_args(c)
             self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
         else:
             self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
-            
-        
-        
+
         additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
             self._backup_additional_folders(c)
-    
+
     def _ryn_rsync(self, c: Container, rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
         dest_folder = f"{dest_dir.absolute()}/"
-        
+
         command = f"{rsync_args} {src_folder} {dest_folder}"
-        
+
         self.log_this(f"RUNNING: 'rsync {command}'", "DEBUG")
-        
-        args = command.split() # Split the command into a list of arguments
-        
+
+        args = command.split()  # Split the command into a list of arguments
+
         out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
-        
+
     def _get_rsync_args(self, c: Container, log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
-        
+
         if str(self.env.USE_DEFAULT_RSYNC_ARGS).lower() == "false":
             if log == True:
                 self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             default_rsync_args = ""
-        
+
         use_default_args = str(c.labels.get("nautical-backup.use-default-rsync-args", "")).lower()
         if use_default_args == "false":
             if log == True:
                 self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             default_rsync_args = ""
-        
+
         if str(self.env.RSYNC_CUSTOM_ARGS) != "":
             custom_rsync_args = str(self.env.RSYNC_CUSTOM_ARGS)
             if log == True:
                 self.log_this(f"Adding custom rsync arguments ({custom_rsync_args})", "DEBUG")
-        
+
         custom_rsync_args = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
         if custom_rsync_args != "":
             if log == True:
                 self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             custom_rsync_args = ""
-        
+
         return f"{default_rsync_args} {custom_rsync_args}"
 
     def backup(self):
@@ -378,48 +380,48 @@ class NauticalBackup:
             # No need to print group for individual containers
             if not group.startswith(self.default_group_pfx_sfx) and not group.endswith(self.default_group_pfx_sfx):
                 self.log_this(f"Backing up group: {group}")
-                
+
             # Before backup
             for c in containers:
                 # Run before hooks
                 self._run_curl(c, BeforeAfterorDuring.BEFORE)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
-                
+
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "before":
                     self._backup_additional_folders(c)
-            
+
                 src_dir, src_dir_no_path = self._get_src_dir(c)
                 if not src_dir.exists():
                     src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
                     if src_dir_required == "false":
                         self.log_this(f"{c.name} - Source directory $src_dir does, but that's okay", "DEBUG")
-       
+
                     self.log_this(f"{c.name} - Source directory $src_dir does not exist. Skipping", "DEBUG")
                     continue
-                
+
                 stop_result = self._stop_container(c)  # Stop containers
-            
+
             # During backup
             for c in containers:
                 # Backup containers
-                c.reload() # Refresh the status for this container
+                c.reload()  # Refresh the status for this container
                 if c.status != "exited":
                     stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
                     if stop_before_backup.lower() == "true":
                         self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         continue
-            
+
             self._backup_container_foldes(c)
-            
+
             # After backup
             for c in containers:
-                
+
                 start_result = self._start_container(c)  # Start containers
-                
+
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
                 self._run_curl(c, BeforeAfterorDuring.AFTER)
-                
+
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "after":
                     self._backup_additional_folders(c)

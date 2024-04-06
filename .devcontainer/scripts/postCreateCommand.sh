@@ -34,6 +34,9 @@ locale-gen
 # Test commands
 nb --help
 
+cecho CYAN "Installing pre-commit hooks..."
+pre-commit install 
+
 cecho "GREEN" "Success!! Nautical Development enviornment ready to go!!"
 cecho "GREEN" "Use the command 'nb --help' to get started."
 

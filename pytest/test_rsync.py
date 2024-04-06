@@ -5,8 +5,7 @@ from pathlib import Path
 
 from app.nautical_env import NauticalEnv
 
-        
-        
+
 # class TestRsync:
 #     def test_rsync_commands(self, monkeypatch: pytest.MonkeyPatch):
 

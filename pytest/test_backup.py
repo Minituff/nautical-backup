@@ -21,6 +21,7 @@ def rm_tree(pth: Path):
             rm_tree(child)
     pth.rmdir()
 
+
 def create_folder(pth: Path, and_file: bool = False):
     """Useful for creating folders and files for testing"""
     pth.mkdir(parents=True, exist_ok=True)
@@ -30,6 +31,7 @@ def create_folder(pth: Path, and_file: bool = False):
         test_file = pth / "test_file.txt"
         with open(test_file, "w") as test_file:
             test_file.write("This is a test file")
+
 
 @pytest.fixture
 def mock_docker_client() -> MagicMock:
@@ -133,7 +135,7 @@ class TestBackup:
         cls.db_location.mkdir(parents=True, exist_ok=True)
         cls.src_location.mkdir(parents=True, exist_ok=True)
         cls.dest_location.mkdir(parents=True, exist_ok=True)
-    
+
     @classmethod
     def teardown_class(cls):
         """Runs 1 time after all tests in this class"""
@@ -320,7 +322,7 @@ class TestBackup:
         mock_container3: MagicMock,
         monkeypatch: pytest.MonkeyPatch,
     ):
-        """Test that the backup method calls the correct docker methods"""
+        """Test that the REQUIRE_LABEL variable works as expected"""
 
         monkeypatch.setenv("REQUIRE_LABEL", "true")
 
@@ -356,10 +358,10 @@ class TestBackup:
         mock_container3: MagicMock,
         monkeypatch: pytest.MonkeyPatch,
     ):
-        """Test that the backup method calls the correct docker methods"""
+        """Test that override source dir works with environment variables"""
 
         monkeypatch.setenv("OVERRIDE_SOURCE_DIR", "container1:container1-override,9876543210:container2-new")
-        
+
         # Folders must be created before the backup is called
         nautical_env = NauticalEnv()
         create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
@@ -382,3 +384,42 @@ class TestBackup:
             capture_output=False,
         )
         assert mock_subprocess_run.call_count == 3
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-source-dir": "container1-override-label"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_src_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test override source dir with label"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override-label", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_subprocess_run.assert_any_call(
+            [
+                "-ahq",
+                f"{self.src_location}/container1-override-label/",
+                f"{self.dest_location}/container1-override-label/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
