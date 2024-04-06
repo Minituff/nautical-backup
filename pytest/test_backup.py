@@ -476,7 +476,7 @@ class TestBackup:
         ],
         indirect=True,
     )
-    def test_override_desrt_label(
+    def test_override_dest_label(
         self,
         mock_subprocess_run: MagicMock,
         mock_docker_client: MagicMock,
@@ -498,3 +498,107 @@ class TestBackup:
             executable="/usr/bin/rsync",
             capture_output=False,
         )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
+    def test_skip_stopping_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that the backup method calls the correct docker methods"""
+
+        # Skip stopping container1 and container2 (by name and id)
+        monkeypatch.setenv("SKIP_STOPPING", "container-fake,container1,9876543210")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 should not be stopped
+        mock_container1.stop.assert_not_called()
+
+        # Container2 should not be stopped
+        mock_container2.stop.assert_not_called()
+
+        # Container3 should be stopped and started
+        mock_container3.stop.assert_called()
+
+        # Rsync should only for all containers
+        assert mock_subprocess_run.call_count == 3
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.stop-before-backup": "false"},
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_skip_stopping_label_false(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+    ):
+        """Test skip stopping (false) label"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 should not be stopped because of the label
+        mock_container1.stop.assert_not_called()
+
+        # Container2 should be stopped since nothing has changed
+        mock_container2.stop.assert_called()
+
+        # Rsync should be run for both containers
+        assert mock_subprocess_run.call_count == 2
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.stop-before-backup": "true"},
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_skip_stopping_label_true(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+    ):
+        """Test skip stopping (true) label"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 should be stopped because of the label
+        mock_container1.stop.assert_called()
+
+        # Container2 should be stopped since nothing has changed
+        mock_container2.stop.assert_called()
+
+        # Rsync should be run for both containers
+        assert mock_subprocess_run.call_count == 2

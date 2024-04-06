@@ -254,7 +254,7 @@ class NauticalBackup:
             src_dir_no_path = new_src_dir
             if log == True:
                 self.log_this(f"Overriding source directory for {c.name} to '{new_src_dir}'")
-        print("SRC DIR", src_dir)
+
         if str(c.id) in self.env.OVERRIDE_SOURCE_DIR:
             new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.id)]
             src_dir = base_src_dir / new_src_dir
