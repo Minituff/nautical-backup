@@ -310,7 +310,7 @@ class NauticalBackup:
             src_dir = base_src_dir / folder
             dest_dir = base_dest_dir / folder
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
-            self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
+            self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
     def _backup_container_foldes(self, c: Container):
         src_dir, src_folder_top = self._get_src_dir(c, log=False)
@@ -323,7 +323,7 @@ class NauticalBackup:
             self.log_this(f"Backing up {c.name}...", "INFO")
 
             rsync_args = self._get_rsync_args(c)
-            self._ryn_rsync(c, rsync_args, src_dir, dest_dir)
+            self._run_rsync(c, rsync_args, src_dir, dest_dir)
         else:
             self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
 
@@ -331,7 +331,7 @@ class NauticalBackup:
         if not additional_folders_when or additional_folders_when == "during":
             self._backup_additional_folders(c)
 
-    def _ryn_rsync(self, c: Container, rsync_args: str, src_dir: Path, dest_dir: Path):
+    def _run_rsync(self, c: Container, rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
         dest_folder = f"{dest_dir.absolute()}/"
 

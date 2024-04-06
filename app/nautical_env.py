@@ -30,6 +30,10 @@ class NauticalEnv:
 
         self.NAUTICAL_DB_PATH = os.environ.get("NAUTICAL_DB_PATH", "")
 
+        # Not associated with containers
+        self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
+        self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")
+
     @staticmethod
     def _populate_override_dirs(env_name: str) -> Dict[str, str]:
         """Translate the Enviornment variable from single string to Python Dict.

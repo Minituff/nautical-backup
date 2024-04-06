@@ -6,6 +6,7 @@ from pathlib import Path
 import docker
 from docker.models.containers import Container
 from itertools import cycle
+from mock import call
 
 from app.nautical_env import NauticalEnv
 from app.backup import NauticalBackup
@@ -730,3 +731,289 @@ class TestBackup:
             executable="/usr/bin/rsync",
             capture_output=False,
         )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_keep_src_dir_name_env_false(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """This test checks if the destination directory is renamed when KEEP_SRC_DIR_NAME is false"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+
+        # Skip stopping container1 and container2 (by name and id)
+        monkeypatch.setenv("KEEP_SRC_DIR_NAME", "false")
+        monkeypatch.setenv(
+            "OVERRIDE_SOURCE_DIR",
+            "container1:container1-override,container2:container2-override,container3:container3-new",
+        )
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Rsync should only be called once
+        # Rsync should be called with custom args
+        # Rsync custom args should overwrite the default args
+        mock_subprocess_run.assert_called_once_with(
+            [
+                "-aq",
+                f"{self.src_location}/container1-override/",
+                f"{self.dest_location}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_keep_src_dir_name_env_true(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """This test ensures that the source directory name is mirrored in the destination directory name when KEEP_SRC_DIR_NAME is set to true."""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+
+        # Skip stopping container1 and container2 (by name and id)
+        monkeypatch.setenv("KEEP_SRC_DIR_NAME", "true")
+        monkeypatch.setenv(
+            "OVERRIDE_SOURCE_DIR",
+            "container1:container1-override,container2:container2-override,container3:container3-new",
+        )
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Rsync should only be called once
+        # Rsync should be called with custom args
+        # Rsync custom args should overwrite the default args
+        mock_subprocess_run.assert_called_once_with(
+            [
+                "-ahq",
+                f"{self.src_location}/container1-override/",
+                f"{self.dest_location}/container1-override/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.keep_src_dir_name": "false",
+                    "nautical-backup.override-source-dir": "container1-new",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_keep_src_dir_name_label_false(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test test_keep_src_dir_name_label_false"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-new", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_subprocess_run.assert_any_call(
+            [
+                "-ahq",
+                f"{self.src_location}/container1-new/",
+                f"{self.dest_location}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.keep_src_dir_name": "true",
+                    "nautical-backup.override-source-dir": "container1-new",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_keep_src_dir_name_label_true(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test that the source directory name is mirrored in the destination directory name when KEEP_SRC_DIR_NAME is set to true."""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-new", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_subprocess_run.assert_any_call(
+            [
+                "-ahq",
+                f"{self.src_location}/container1-new/",
+                f"{self.dest_location}/container1-new/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    # TODO: Test backup on start
+    # TODO: Test standalone additional folders
+    # TODO: Test standalone addional folders when (before/after)
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.additional-folders": "add1",
+                    "nautical-backup.additional-folders.when": "after",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_additional_folders_label_after(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test test_additional_folders_label"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 2
+
+        # This specifies the order. Additional folders must come after container1
+        expected_calls = [
+            call(
+                [
+                    "-ahq",
+                    f"{self.src_location}/container1/",
+                    f"{self.dest_location}/container1/",
+                ],
+                shell=True,
+                executable="/usr/bin/rsync",
+                capture_output=False,
+            ),
+            call(
+                [
+                    "-ahq",
+                    f"{self.src_location}/add1/",
+                    f"{self.dest_location}/add1/",
+                ],
+                shell=True,
+                executable="/usr/bin/rsync",
+                capture_output=False,
+            ),
+        ]
+
+        mock_subprocess_run.assert_has_calls(expected_calls)
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.additional-folders": "add1",
+                    "nautical-backup.additional-folders.when": "before",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_additional_folders_label_before(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test test_additional_folders_label"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 2
+
+        # This specifies the order. Additional folders must come after container1
+        expected_calls = [
+            call(
+                [
+                    "-ahq",
+                    f"{self.src_location}/add1/",
+                    f"{self.dest_location}/add1/",
+                ],
+                shell=True,
+                executable="/usr/bin/rsync",
+                capture_output=False,
+            ),
+            call(
+                [
+                    "-ahq",
+                    f"{self.src_location}/container1/",
+                    f"{self.dest_location}/container1/",
+                ],
+                shell=True,
+                executable="/usr/bin/rsync",
+                capture_output=False,
+            ),
+        ]
+
+        mock_subprocess_run.assert_has_calls(expected_calls)
