@@ -423,3 +423,78 @@ class TestBackup:
             executable="/usr/bin/rsync",
             capture_output=False,
         )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
+    def test_override_dest_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that override destination dir works with environment variables"""
+
+        monkeypatch.setenv("OVERRIDE_DEST_DIR", "container1:container1-override,9876543210:container2-new")
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.DEST_LOCATION) / "container1-override", and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / "container2-new", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_subprocess_run.assert_any_call(
+            ["-ahq", f"{self.src_location}/container1/", f"{self.dest_location}/container1-override/"],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+        mock_subprocess_run.assert_any_call(
+            ["-ahq", f"{self.src_location}/container2/", f"{self.dest_location}/container2-new/"],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+        assert mock_subprocess_run.call_count == 3
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-destination-dir": "container1-override-label"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_desrt_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test override source dir with label"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_subprocess_run.assert_any_call(
+            [
+                "-ahq",
+                f"{self.src_location}/container1/",
+                f"{self.dest_location}/container1-override-label/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )

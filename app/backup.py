@@ -317,7 +317,7 @@ class NauticalBackup:
 
         dest_dir = self._get_dest_dir(c, src_folder_top)
         if not dest_dir.exists():
-            self.log_this(f"Destination directory '{dest_dir}'does not exit", "DEBUG")
+            self.log_this(f"Destination directory '{dest_dir}' does not exit", "DEBUG")
 
         if src_dir.exists():
             self.log_this(f"Backing up {c.name}...", "INFO")
