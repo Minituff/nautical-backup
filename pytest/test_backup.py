@@ -605,7 +605,7 @@ class TestBackup:
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
-    def test_skip_custom_rsync_args_env(
+    def test_custom_rsync_args_env(
         self,
         mock_subprocess_run: MagicMock,
         mock_docker_client: MagicMock,
@@ -625,11 +625,106 @@ class TestBackup:
         # Rsync should only be called once
         # Rsync should be called with custom args
         # Rsync custom args should overwrite the default args
+        mock_subprocess_run.assert_called_once_with(
+            [
+                "-aq",
+                f"{self.src_location}/container1/",
+                f"{self.dest_location}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.use-default-rsync-args": "false",
+                    "nautical-backup.rsync-custom-args": "-aq",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_custom_rsync_args_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test custom rsync args with label"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
         mock_subprocess_run.assert_any_call(
             [
                 "-aq",
                 f"{self.src_location}/container1/",
                 f"{self.dest_location}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.use-default-rsync-args": "false",
+                    "nautical-backup.rsync-custom-args": "-aq",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_custom_rsync_args_env_and_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test custom rsync args with label"""
+
+        monkeypatch.setenv("USE_DEFAULT_RSYNC_ARGS", "false")
+        monkeypatch.setenv("RSYNC_CUSTOM_ARGS", "-something")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container 1 will use the label's custom rsync args
+        mock_subprocess_run.assert_any_call(
+            [
+                "-aq",
+                f"{self.src_location}/container1/",
+                f"{self.dest_location}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+
+        # Container 2 will use env custom rsync args
+        mock_subprocess_run.assert_any_call(
+            [
+                "-something",
+                f"{self.src_location}/container2/",
+                f"{self.dest_location}/container2/",
             ],
             shell=True,
             executable="/usr/bin/rsync",
