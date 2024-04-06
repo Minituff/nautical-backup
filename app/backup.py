@@ -345,6 +345,8 @@ class NauticalBackup:
 
     def _get_rsync_args(self, c: Container, log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
+        custom_rsync_args = ""
+        used_default_args = True
 
         if str(self.env.USE_DEFAULT_RSYNC_ARGS).lower() == "false":
             if log == True:
@@ -361,12 +363,20 @@ class NauticalBackup:
             custom_rsync_args = str(self.env.RSYNC_CUSTOM_ARGS)
             if log == True:
                 self.log_this(f"Adding custom rsync arguments ({custom_rsync_args})", "DEBUG")
+            used_default_args = False
 
-        custom_rsync_args = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
-        if custom_rsync_args != "":
+        custom_rsync_args_label = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
+        if custom_rsync_args_label != "":
             if log == True:
-                self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
-            custom_rsync_args = ""
+                self.log_this(f"Setting custom rsync args from label ({custom_rsync_args_label})", "DEBUG")
+            custom_rsync_args = custom_rsync_args_label
+            used_default_args = False
+
+        if log == True:
+            if used_default_args == True:
+                self.log_this(f"Using default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
+            else:
+                self.log_this(f"Using custom rsync arguments ({custom_rsync_args})", "DEBUG")
 
         return f"{default_rsync_args} {custom_rsync_args}"
 

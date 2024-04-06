@@ -602,3 +602,36 @@ class TestBackup:
 
         # Rsync should be run for both containers
         assert mock_subprocess_run.call_count == 2
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_skip_custom_rsync_args_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that the backup method calls the correct docker methods"""
+
+        # Skip stopping container1 and container2 (by name and id)
+        monkeypatch.setenv("USE_DEFAULT_RSYNC_ARGS", "false")
+        monkeypatch.setenv("RSYNC_CUSTOM_ARGS", "-aq")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Rsync should only be called once
+        # Rsync should be called with custom args
+        # Rsync custom args should overwrite the default args
+        mock_subprocess_run.assert_any_call(
+            [
+                "-aq",
+                f"{self.src_location}/container1/",
+                f"{self.dest_location}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )

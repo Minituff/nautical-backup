@@ -6,7 +6,7 @@ from mock import mock, MagicMock, patch
 from app.logger import Logger, LogLevel
 
 
-class TestBackup:
+class TestLogger:
     @classmethod
     def setup_class(cls):
         """Runs 1 time before all tests in this class"""
@@ -44,3 +44,10 @@ class TestBackup:
 
         rf = f"Backup Report - {datetime.now().strftime('%Y-%m-%d')}.txt"
         assert logger.report_file == rf
+
+
+# TODO: Test report file
+
+# TODO: Test LogThis
+
+# TODO: Test LogThisReportFile
