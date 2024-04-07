@@ -322,6 +322,31 @@ class NauticalBackup:
 
         return dest_dir
 
+    def _backup_additional_folders_standalone(self, when: BeforeOrAfter):
+        """Backup folders that are not associated with a container."""
+        additional_folders = str(self.env.ADDITIONAL_FOLDERS)
+        additional_folders_when = str(self.env.ADDITIONAL_FOLDERS_WHEN)
+
+        # Ensure backups is only run when it should be
+        if additional_folders_when == "before" and when != BeforeOrAfter.BEFORE:
+            return
+        if additional_folders_when == "after" and when != BeforeOrAfter.AFTER:
+            return
+
+        base_src_dir = Path(self.env.SOURCE_LOCATION)
+        base_dest_dir = Path(self.env.DEST_LOCATION)
+
+        rsync_args = self._get_rsync_args(None, log=False)
+
+        for folder in additional_folders.split(","):
+            if folder == "":
+                continue
+
+            src_dir = base_src_dir / folder
+            dest_dir = base_dest_dir / folder
+            self.log_this(f"Backing up standalone additional folder '{folder}'")
+            self._run_rsync(None, rsync_args, src_dir, dest_dir)
+
     def _backup_additional_folders(self, c: Container):
         additional_folders = str(c.labels.get("nautical-backup.additional-folders", ""))
         base_src_dir = Path(self.env.SOURCE_LOCATION)
@@ -357,7 +382,7 @@ class NauticalBackup:
         if not additional_folders_when or additional_folders_when == "during":
             self._backup_additional_folders(c)
 
-    def _run_rsync(self, c: Container, rsync_args: str, src_dir: Path, dest_dir: Path):
+    def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
         dest_folder = f"{dest_dir.absolute()}/"
 
@@ -369,7 +394,7 @@ class NauticalBackup:
 
         out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
 
-    def _get_rsync_args(self, c: Container, log=False) -> str:
+    def _get_rsync_args(self, c: Optional[Container], log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
         custom_rsync_args = ""
         used_default_args = True
@@ -379,11 +404,12 @@ class NauticalBackup:
                 self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             default_rsync_args = ""
 
-        use_default_args = str(c.labels.get("nautical-backup.use-default-rsync-args", "")).lower()
-        if use_default_args == "false":
-            if log == True:
-                self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
-            default_rsync_args = ""
+        if c:
+            use_default_args = str(c.labels.get("nautical-backup.use-default-rsync-args", "")).lower()
+            if use_default_args == "false":
+                if log == True:
+                    self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
+                default_rsync_args = ""
 
         if str(self.env.RSYNC_CUSTOM_ARGS) != "":
             custom_rsync_args = str(self.env.RSYNC_CUSTOM_ARGS)
@@ -391,12 +417,13 @@ class NauticalBackup:
                 self.log_this(f"Adding custom rsync arguments ({custom_rsync_args})", "DEBUG")
             used_default_args = False
 
-        custom_rsync_args_label = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
-        if custom_rsync_args_label != "":
-            if log == True:
-                self.log_this(f"Setting custom rsync args from label ({custom_rsync_args_label})", "DEBUG")
-            custom_rsync_args = custom_rsync_args_label
-            used_default_args = False
+        if c:
+            custom_rsync_args_label = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
+            if custom_rsync_args_label != "":
+                if log == True:
+                    self.log_this(f"Setting custom rsync args from label ({custom_rsync_args_label})", "DEBUG")
+                custom_rsync_args = custom_rsync_args_label
+                used_default_args = False
 
         if log == True:
             if used_default_args == True:
@@ -411,6 +438,7 @@ class NauticalBackup:
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 
         self._run_curl(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
+        self._backup_additional_folders_standalone(BeforeOrAfter.BEFORE)
 
         containers_by_group = self.group_containers()
 
@@ -477,6 +505,7 @@ class NauticalBackup:
 
                 self.log_this(f"Backup of {c.name} complete!", "INFO")
 
+        self._backup_additional_folders_standalone(BeforeOrAfter.AFTER)
         self._run_curl(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
         self.db.put("backup_running", False)
 

@@ -81,11 +81,3 @@ class Logger:
             if not (message_type == "init" and self.report_file_on_backup_only == "true"):
                 with open(os.path.join(self.dest_location, self.report_file), "a") as f:
                     f.write(f"{datetime.datetime.now()} - {str(log_level)[9:]}: {log_message}\n")
-
-
-if __name__ == "__main__":
-    # Example usage
-    logger = Logger()
-    logger.create_new_report_file()
-    logger.log_this("This is an info message")
-    logger.log_this("This is a debug message", log_level="DEBUG")

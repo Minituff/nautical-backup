@@ -305,8 +305,6 @@ class TestBackup:
         # Rsync should only be called once (on container2)
         assert mock_subprocess_run.call_count == 1
 
-    # TODO: Skip container with label
-
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
         "mock_container1",
@@ -944,9 +942,83 @@ class TestBackup:
             capture_output=False,
         )
 
-    # TODO: Test backup on start
-    # TODO: Test standalone additional folders
-    # TODO: Test standalone addional folders when (before/after)
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_additional_folders_env_before(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test additional folders env before"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+
+        # Skip stopping container1 and container2 (by name and id)
+        monkeypatch.setenv("ADDITIONAL_FOLDERS", "add1,add2")
+        monkeypatch.setenv("ADDITIONAL_FOLDERS_WHEN", "before")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_args_list[0][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/add1/",
+        ]
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/add2/",
+            f"{self.dest_location}/add2/",
+        ]
+        assert mock_subprocess_run.call_args_list[2][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_additional_folders_env_after(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test additional folders env after"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+
+        # Skip stopping container1 and container2 (by name and id)
+        monkeypatch.setenv("ADDITIONAL_FOLDERS", "add1,add2")
+        monkeypatch.setenv("ADDITIONAL_FOLDERS_WHEN", "after")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_args_list[0][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/add1/",
+        ]
+        assert mock_subprocess_run.call_args_list[2][0][0] == [
+            "-raq",
+            f"{self.src_location}/add2/",
+            f"{self.dest_location}/add2/",
+        ]
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
