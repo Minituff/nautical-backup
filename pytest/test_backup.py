@@ -1154,3 +1154,45 @@ class TestBackup:
             f"{self.dest_location}/container1/",
         ]
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'bing.com'"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.curl.before": "curl -X GET 'aol.com'",
+                    "nautical-backup.curl.during": "curl -X GET 'msn.com'",
+                    "nautical-backup.curl.after": "curl -X GET 'espn.com'",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_curl_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test backing up additional folders 'during' the container backup"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 4
+        assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'aol.com'"
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
+        assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
+
+
+# TODO: test_lifecycle_hooks
+# TODO: TEST grouping

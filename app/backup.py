@@ -461,6 +461,8 @@ class NauticalBackup:
 
                 self._backup_container_foldes(c)
 
+                self._run_curl(c, BeforeAfterorDuring.DURING, attached_to_container=True)
+
             # After backup
             for c in containers:
 
