@@ -1061,8 +1061,8 @@ class TestBackup:
             call.mock_subprocess_run(
                 [
                     "-raq",
-                    "/workspaces/nautical-backup/dev/source/container1/",
-                    "/workspaces/nautical-backup/dev/destination/container1/",
+                    f"{self.src_location}/container1/",
+                    f"{self.dest_location}/container1/",
                 ],
                 shell=True,
                 executable="/usr/bin/rsync",
@@ -1071,8 +1071,8 @@ class TestBackup:
             call.mock_subprocess_run(
                 [
                     "-raq",
-                    "/workspaces/nautical-backup/dev/source/add1/",
-                    "/workspaces/nautical-backup/dev/destination/add1/",
+                    f"{self.src_location}/add1/",
+                    f"{self.dest_location}/add1/",
                 ],
                 shell=True,
                 executable="/usr/bin/rsync",
