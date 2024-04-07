@@ -1017,3 +1017,67 @@ class TestBackup:
         ]
 
         mock_subprocess_run.assert_has_calls(expected_calls)
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.additional-folders": "add1",
+                    "nautical-backup.additional-folders.when": "during",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_additional_folders_label_during(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test backing up additional folders 'during' the container backup"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+
+        # You can check the order of calls to mockContainer1.stop and subprocess.run
+        parent_mock = MagicMock()
+        parent_mock.attach_mock(mock_container1.stop, "mockContainer1_stop")
+        parent_mock.attach_mock(mock_container1.start, "mockContainer1_start")
+        parent_mock.attach_mock(mock_subprocess_run, "mock_subprocess_run")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # This specifies the order. Additional folders must come after container1, but before container1.start
+        expected_calls = [
+            call.mockContainer1_stop(timeout=10),
+            call.mock_subprocess_run(
+                [
+                    "-raq",
+                    "/workspaces/nautical-backup/dev/source/container1/",
+                    "/workspaces/nautical-backup/dev/destination/container1/",
+                ],
+                shell=True,
+                executable="/usr/bin/rsync",
+                capture_output=False,
+            ),
+            call.mock_subprocess_run(
+                [
+                    "-raq",
+                    "/workspaces/nautical-backup/dev/source/add1/",
+                    "/workspaces/nautical-backup/dev/destination/add1/",
+                ],
+                shell=True,
+                executable="/usr/bin/rsync",
+                capture_output=False,
+            ),
+            call.mockContainer1_start(),
+        ]
+        assert parent_mock.mock_calls == expected_calls
