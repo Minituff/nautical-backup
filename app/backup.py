@@ -139,23 +139,40 @@ class NauticalBackup:
 
         return containers_by_group
 
-    def _run_curl(self, c: Container, when: BeforeAfterorDuring) -> Optional[subprocess.CompletedProcess[bytes]]:
+    def _run_curl(
+        self, c: Optional[Container], when: BeforeAfterorDuring, attached_to_container=False
+    ) -> Optional[subprocess.CompletedProcess[bytes]]:
         """Runs a curl command from the Nautical Container itself."""
+        command = ""  # Curl command
 
-        if when == BeforeAfterorDuring.BEFORE:
-            command = str(c.labels.get("nautical-backup.curl.before", ""))
-            if command and command != "":
-                self.log_this("Running PRE-backup curl command for $name", "DEBUG")
-        elif when == BeforeAfterorDuring.DURING:
-            command = str(c.labels.get("nautical-backup.curl.during", ""))
-            if command and command != "":
-                self.log_this("Running DURING-backup curl command for $name", "DEBUG")
-        elif when == BeforeAfterorDuring.AFTER:
-            command = str(c.labels.get("nautical-backup.curl.after", ""))
-            if command and command != "":
-                self.log_this("Running AFTER-backup curl command for $name", "DEBUG")
+        if attached_to_container == True and c:
+            if when == BeforeAfterorDuring.BEFORE:
+                command = str(c.labels.get("nautical-backup.curl.before", ""))
+                if command and command != "":
+                    self.log_this("Running PRE-backup curl command for $name", "DEBUG")
+            elif when == BeforeAfterorDuring.DURING:
+                command = str(c.labels.get("nautical-backup.curl.during", ""))
+                if command and command != "":
+                    self.log_this("Running DURING-backup curl command for $name", "DEBUG")
+            elif when == BeforeAfterorDuring.AFTER:
+                command = str(c.labels.get("nautical-backup.curl.after", ""))
+                if command and command != "":
+                    self.log_this("Running AFTER-backup curl command for $name", "DEBUG")
+            else:
+                return None
         else:
-            return None
+            nautical_env = NauticalEnv()
+
+            if when == BeforeAfterorDuring.BEFORE:
+                command = str(nautical_env.PRE_BACKUP_CURL)
+                if command and command != "":
+                    self.log_this("Running PRE_BACKUP_CURL", "DEBUG")
+            elif when == BeforeAfterorDuring.AFTER:
+                command = str(nautical_env.POST_BACKUP_CURL)
+                if command and command != "":
+                    self.log_this("Running POST_BACKUP_CURL", "DEBUG")
+            else:
+                return None
 
         # Example command "curl -o /app/destination/google google.com"
         if not str(command) or str(command) == "" or str(command) == "None":
@@ -393,6 +410,8 @@ class NauticalBackup:
         self.db.put("backup_running", True)
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 
+        self._run_curl(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
+
         containers_by_group = self.group_containers()
 
         for group, containers in containers_by_group.items():
@@ -403,7 +422,7 @@ class NauticalBackup:
             # Before backup
             for c in containers:
                 # Run before hooks
-                self._run_curl(c, BeforeAfterorDuring.BEFORE)
+                self._run_curl(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
@@ -439,13 +458,15 @@ class NauticalBackup:
                 start_result = self._start_container(c)  # Start containers
 
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
-                self._run_curl(c, BeforeAfterorDuring.AFTER)
+                self._run_curl(c, BeforeAfterorDuring.AFTER, attached_to_container=True)
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "after":
                     self._backup_additional_folders(c)
 
                 self.log_this(f"Backup of {c.name} complete!", "INFO")
+
+        self._run_curl(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
         self.db.put("backup_running", False)
 
 

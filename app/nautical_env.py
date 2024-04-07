@@ -34,6 +34,9 @@ class NauticalEnv:
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
         self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")
 
+        self.PRE_BACKUP_CURL = os.environ.get("PRE_BACKUP_CURL", "")
+        self.POST_BACKUP_CURL = os.environ.get("POST_BACKUP_CURL", "")
+
     @staticmethod
     def _populate_override_dirs(env_name: str) -> Dict[str, str]:
         """Translate the Enviornment variable from single string to Python Dict.

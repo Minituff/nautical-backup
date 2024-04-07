@@ -215,6 +215,37 @@ class TestBackup:
         mock_subprocess_run.assert_called_once()
 
     @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "status_side_effect": ["running", "running", "running", "running", "running"],
+                "source_exists": False,
+            }
+        ],
+        indirect=True,
+    )
+    def test_missing_source_dir_no_stop_and_start(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test 'docker stop' and 'rsync' is not called if source dir is missing"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container once has no source dir, so no rsync or stop is called
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+
+        mock_subprocess_run.assert_not_called()
+
+    @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     def test_rsync_commands(
         self,
@@ -1081,3 +1112,34 @@ class TestBackup:
             call.mockContainer1_start(),
         ]
         assert parent_mock.mock_calls == expected_calls
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_pre_and_post_backup_curl_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test backing up additional folders 'during' the container backup"""
+
+        monkeypatch.setenv("PRE_BACKUP_CURL", "curl -X GET 'google.com'")
+        monkeypatch.setenv("POST_BACKUP_CURL", "curl -X GET 'bing.com'")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 3
+        assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'google.com'"
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'bing.com'"
