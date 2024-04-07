@@ -532,7 +532,17 @@ class TestBackup:
         )
 
     @mock.patch("subprocess.run")
-    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "status_side_effect": ["running", "running", "running", "running", "running"],
+            }
+        ],
+        indirect=True,
+    )
     @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
     @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
     def test_skip_stopping_env(
@@ -573,6 +583,7 @@ class TestBackup:
                 "name": "container1",
                 "id": "123456789",
                 "labels": {"nautical-backup.stop-before-backup": "false"},
+                "status_side_effect": ["running", "running", "running", "running", "running"],
             }
         ],
         indirect=True,

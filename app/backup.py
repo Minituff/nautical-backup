@@ -210,7 +210,7 @@ class NauticalBackup:
         SKIP_STOPPING = self.env.SKIP_STOPPING
         skip_stopping_set = set(SKIP_STOPPING.split(","))
         if c.name in skip_stopping_set or c.id in skip_stopping_set:
-            self.log_this(f"Container {c.name} is in SKIP_STOPPING list. Will not stop container." "DEBUG")
+            self.log_this(f"Container {c.name} is in SKIP_STOPPING list. Will not stop container.", "DEBUG")
             return True
 
         stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
@@ -446,11 +446,20 @@ class NauticalBackup:
                 c.reload()  # Refresh the status for this container
                 if c.status != "exited":
                     stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
-                    if stop_before_backup.lower() == "true":
+
+                    # Allow the user to skip stopping the container before backup
+                    # Here we allow the Enviorment variable to supercede the EMPTY label
+                    stop_before_backup_env = True
+                    SKIP_STOPPING = self.env.SKIP_STOPPING
+                    skip_stopping_set = set(SKIP_STOPPING.split(","))
+                    if c.name in skip_stopping_set or c.id in skip_stopping_set:
+                        stop_before_backup_env = False
+
+                    if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
                         self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         continue
 
-            self._backup_container_foldes(c)
+                self._backup_container_foldes(c)
 
             # After backup
             for c in containers:
