@@ -1,0 +1,22 @@
+# docker compose -f watchtower.yml up -d
+---
+version: '3'
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+    environment:
+      - TZ=America/Los_Angeles
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
+    labels:
+      - "nautical-backup.enable=true"
+      # - "nautical-backup.stop-before-backup=true"
+      - "nautical-backup.override-source-dir=watchtower-data"
+      # - "nautical-backup.use-default-rsync-args=false"
+      - "nautical-backup.rsync-custom-args= "
+      - "nautical-backup.keep_src_dir_name=true"
+      # - "nautical-backup.override-destination-dir=watchtower-data-new"

@@ -1,0 +1,98 @@
+
+# cd .. docker build -t nautical-backup . --progress=plain --no-cache
+# cd dev && docker compose up
+---
+version: '3'
+services:
+  # nautical-backup-test:
+  #   image: nautical-backup # Use the local image
+  #   container_name: nautical-test
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\source:/app/source
+  #     - C:\Users\James-PC\IdeaProjects\nautical-backup\tests\destination:/app/destination
+  #     # - C:\Users\James-PC\IdeaProjects\nautical-backup\pkg:/app
+  #     # - C:\Users\James-PC\IdeaProjects\nautical-backup\tests:/tests
+  #   ports:
+  #     - "8069:8069/tcp"
+  #   environment:
+  #     - TZ=America/Los_Angeles
+  #     - BACKUP_ON_START=true
+  #     - LOG_LEVEL=DEBUG
+  #     - HTTP_REST_API_ENABLED=true
+  #     # - TEST_MODE=-1
+  #     - S6_KILL_GRACETIME=100 # How long until S6 kills
+
+
+  # nautical-backup:
+  #   image: nautical-backup # Use the local image
+  #   container_name: nautical-backup
+  #   hostname: nautical-backup
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - C:\Users\James-PC\IdeaProjects\nautical-backup\dev\source:/app/source
+  #     - C:\Users\James-PC\IdeaProjects\nautical-backup\dev\additional/add2:/app/source/add2
+  #     - C:\Users\James-PC\IdeaProjects\nautical-backup\dev\destination:/app/destination
+  #   ports:
+  #     - "8069:8069/tcp"
+  #   environment:
+  #     - TZ=America/Los_Angeles
+  #     - S6_KILL_GRACETIME=100 # How long until S6 kills
+  #     # - HTTP_REST_API_USERNAME=admin
+  #     # - HTTP_REST_API_PASSWORD=password
+  #     # - S6_VERBOSITY=2
+  #     - CRON_SCHEDULE=0 4 * * * # Every minute
+  #     - LOG_LEVEL=DEBUG
+  #     - SKIP_CONTAINERS=example1,example2,example3
+  #     - BACKUP_ON_START=true
+  #     - REPORT_FILE_ON_BACKUP_ONLY=false
+  #     # - REQUIRE_LABEL=true
+  #     # - OVERRIDE_SOURCE_DIR=watchtower:watchtower-data
+  #     # - OVERRIDE_DEST_DIR=watchtower:watchtower-data-test,another_container:another_data
+  #     - REPORT_FILE=false
+  #     # - SKIP_STOPPING=example1,watchtower
+  #     # - RSYNC_CUSTOM_ARGS=-raq --exclude='*.log' --exclude='*.txt'
+  #     - REPORT_FILE_LOG_LEVEL=DEBUG
+  #     # - USE_DEFAULT_RSYNC_ARGS=false
+  #     - KEEP_SRC_DIR_NAME=false
+  #     - EXIT_AFTER_INIT=false
+
+  # lifecycle:
+  #   image: lifecycle
+  #   container_name: lifecycle
+  #   labels:
+  #   - "nautical-backup.lifecycle.before.timeout=10s"
+  #   - "nautical-backup.lifecycle.before=/bin/sh ./sleep.sh"
+  #   - "nautical-backup.lifecycle.after=/bin/sh ./goodbye.sh"
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+    environment:
+      - TZ=America/Los_Angeles
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
+    labels:
+      - "nautical-backup.enable=true"
+      # - "nautical-backup.stop-before-backup=true"
+      - "nautical-backup.override-source-dir=watchtower-data"
+      - "nautical-backup.additional-folders=add1"
+      # - "nautical-backup.use-default-rsync-args=false"
+      - "nautical-backup.rsync-custom-args= "
+      - "nautical-backup.group=your-mom"
+
+  nautical-backup:
+    image: nautical-backup:test
+    container_name: nautical-backup-test
+    # labels:
+    #   - "nautical-backup.curl.before=curl -o google google.com"
+    volumes:
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
+    environment: # Optional variables
+      - TZ=America/Los_Angeles
+      - CRON_SCHEDULE=0 4 * * *
+      - SKIP_CONTAINERS=example1,example2,example3
+      - REQUIRE_LABEL=true
