@@ -272,29 +272,35 @@ class TestBackup:
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "6969696969"}], indirect=True)
     def test_skip_container_env(
         self,
         mock_subprocess_run: MagicMock,
         mock_docker_client: MagicMock,
         mock_container1: MagicMock,
         mock_container2: MagicMock,
+        mock_container3: MagicMock,
         monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that the backup method calls the correct docker methods"""
 
-        monkeypatch.setenv("SKIP_CONTAINERS", "container-name2,container1,container-name3")
+        monkeypatch.setenv("SKIP_CONTAINERS", "container-name2,container1,container-fake,6969696969")
 
-        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        # Container1 should be skipped
+        # Container1 should be skipped by NAME
         mock_container1.stop.assert_not_called()
         mock_container1.start.assert_not_called()
 
         # Container2 should be stopped and started
         mock_container2.stop.assert_called()
         mock_container2.start.assert_called()
+
+        # Container3 should be skipped by ID
+        mock_container3.stop.assert_not_called()
+        mock_container3.start.assert_not_called()
 
         # Rsync should only be called once (on container2)
         assert mock_subprocess_run.call_count == 1
@@ -1097,32 +1103,15 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        # This specifies the order. Additional folders must come after container1, but before container1.start
-        expected_calls = [
-            call.mockContainer1_stop(timeout=10),
-            call.mock_subprocess_run(
-                [
-                    "-raq",
-                    f"{self.src_location}/container1/",
-                    f"{self.dest_location}/container1/",
-                ],
-                shell=True,
-                executable="/usr/bin/rsync",
-                capture_output=False,
-            ),
-            call.mock_subprocess_run(
-                [
-                    "-raq",
-                    f"{self.src_location}/add1/",
-                    f"{self.dest_location}/add1/",
-                ],
-                shell=True,
-                executable="/usr/bin/rsync",
-                capture_output=False,
-            ),
-            call.mockContainer1_start(),
+        call_names = [c[0] for c in parent_mock.mock_calls]
+
+        # This just checks the order of the calls
+        assert call_names == [
+            "mockContainer1_stop",
+            "mock_subprocess_run",  # Container 1
+            "mock_subprocess_run",  # Additional folder
+            "mockContainer1_start",
         ]
-        assert parent_mock.mock_calls == expected_calls
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1137,7 +1126,7 @@ class TestBackup:
         mock_container1: MagicMock,
         monkeypatch: pytest.MonkeyPatch,
     ):
-        """Test backing up additional folders 'during' the container backup"""
+        """Test curl commands set by enviornment variables"""
 
         monkeypatch.setenv("PRE_BACKUP_CURL", "curl -X GET 'google.com'")
         monkeypatch.setenv("POST_BACKUP_CURL", "curl -X GET 'bing.com'")
@@ -1177,7 +1166,7 @@ class TestBackup:
         mock_docker_client: MagicMock,
         mock_container1: MagicMock,
     ):
-        """Test backing up additional folders 'during' the container backup"""
+        """Test curl commands by labels"""
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
@@ -1193,6 +1182,128 @@ class TestBackup:
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
         assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
 
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.lifecycle.before": "echo test1",
+                    "nautical-backup.lifecycle.before.timeout": "420s",
+                    "nautical-backup.lifecycle.after": "echo test2",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [
+            {
+                "name": "container2",
+                "id": "101112231415",
+                "labels": {
+                    "nautical-backup.lifecycle.before": "/bin/sh ./script.sh",
+                    "nautical-backup.lifecycle.before.timeout": "0",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_lifecycle_hools(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+    ):
+        """Test lifecycle hooks"""
 
-# TODO: test_lifecycle_hooks
-# TODO: TEST grouping
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        exepected1 = [call("timeout 420s echo test1"), call("timeout 60 echo test2")]
+        assert mock_container1.exec_run.call_args_list == exepected1
+
+        exepected2 = [call("timeout 0 /bin/sh ./script.sh")]
+        assert mock_container2.exec_run.call_args_list == exepected2
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.group": "services",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [
+            {
+                "name": "container2",
+                "id": "101112231415",
+                "labels": {
+                    "nautical-backup.group": "services",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container3",
+        [
+            {
+                "name": "container3",
+                "id": "09129213232",
+            }
+        ],
+        indirect=True,
+    )
+    def test_grouping(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+    ):
+        """Test lifecycle hooks"""
+
+        # You can check the order of calls to mockContainer1.stop and subprocess.run
+        parent_mock = MagicMock()
+        parent_mock.attach_mock(mock_container1.stop, "mockContainer1_stop")
+        parent_mock.attach_mock(mock_container2.stop, "mockContainer2_stop")
+        parent_mock.attach_mock(mock_container3.stop, "mockContainer3_stop")
+
+        parent_mock.attach_mock(mock_container1.start, "mockContainer1_start")
+        parent_mock.attach_mock(mock_container2.start, "mockContainer2_start")
+        parent_mock.attach_mock(mock_container3.start, "mockContainer3_start")
+
+        parent_mock.attach_mock(mock_subprocess_run, "mock_subprocess_run")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        call_names = [c[0] for c in parent_mock.mock_calls]
+
+        assert call_names == [
+            "mockContainer1_stop",
+            "mockContainer2_stop",
+            "mock_subprocess_run",
+            "mock_subprocess_run",
+            "mockContainer1_start",
+            "mockContainer2_start",
+            # Group "services"
+            "mockContainer3_stop",
+            "mock_subprocess_run",
+            "mockContainer3_start",
+        ]

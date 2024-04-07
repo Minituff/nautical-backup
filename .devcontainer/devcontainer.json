@@ -48,7 +48,8 @@
 				"rangav.vscode-thunder-client",
 				"ms-azuretools.vscode-docker",
 				"bungcip.better-toml",
-				"littlefoxteam.vscode-python-test-adapter"
+				"littlefoxteam.vscode-python-test-adapter",
+				"ms-vscode.live-server"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
