@@ -49,7 +49,8 @@ initialize_logThis() {
     fi
 }
 
-initialize_nautical_old() {
+# Unusesd
+initialize_nautical_bash() {
     if [ ! -f "/usr/local/bin/nautical" ]; then
         logThis "Installing nautical backup script..." "DEBUG" "init"
         # Allows the nautical backup script to be run using `bash nautical`

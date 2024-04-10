@@ -90,11 +90,13 @@ services:
     # labels:
     #   - "nautical-backup.curl.before=curl -o google google.com"
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination 
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config 
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8069:8069
-    environment: # Optional variables
+    environment:
       - TZ=America/Los_Angeles
       - LOG_LEVEL=TRACE
       - BACKUP_ON_START=true

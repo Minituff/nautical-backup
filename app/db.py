@@ -95,3 +95,8 @@ class DB:
 
     def dump_json(self):
         return self._read_db()
+
+
+if __name__ == "__main__":
+    print("PYTHON SEED DB")
+    db = DB()
