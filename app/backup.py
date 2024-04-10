@@ -49,10 +49,10 @@ class NauticalBackup:
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", "init")
         if not os.path.isdir(src_dir):
             self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", "init")
-            sys.exit(1)
+            raise FileNotFoundError(f"Source directory '{src_dir}' does not exist.")
         elif not os.access(src_dir, os.R_OK):
             self.log_this(f"No read access to source directory '{src_dir}'.", "ERROR", "init")
-            sys.exit(1)
+            raise PermissionError(f"No read access to source directory '{src_dir}'")
 
         self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", "init")
 
@@ -60,13 +60,13 @@ class NauticalBackup:
         self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", "init")
         if not os.path.isdir(dest_dir):
             self.log_this(f"Destination directory '{dest_dir}' does not exist.", "ERROR", "init")
-            sys.exit(1)
+            raise FileNotFoundError(f"Destination directory '{dest_dir}' does not exist.")
         elif not os.access(dest_dir, os.R_OK):
             self.log_this(f"No read access to destination directory '{dest_dir}'.", "ERROR", "init")
-            sys.exit(1)
+            raise PermissionError(f"No read access to destination directory '{dest_dir}'")
         elif not os.access(dest_dir, os.W_OK):
             self.log_this(f"No write access to destination directory '{dest_dir}'.", "ERROR", "init")
-            sys.exit(1)
+            raise PermissionError(f"No write access to destination directory '{dest_dir}'")
 
         self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE", "init")
 

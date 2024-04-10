@@ -1379,3 +1379,89 @@ class TestBackup:
             "mock_subprocess_run",
             "mockContainer3_start",
         ]
+
+    def test_exception_on_no_src_dir(
+        self,
+        mock_docker_client: MagicMock,
+    ):
+        """Assert exception is raised on no source directory"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        rm_tree(Path(nautical_env.SOURCE_LOCATION))
+
+        with pytest.raises(FileNotFoundError) as err:
+            nb = NauticalBackup(mock_docker_client)
+
+        assert "Source directory" in str(err.value)
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_exception_on_no_dest_dir(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Assert exception is raised on no dest directory"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        rm_tree(Path(nautical_env.DEST_LOCATION))
+
+        with pytest.raises(FileNotFoundError) as err:
+            nb = NauticalBackup(mock_docker_client)
+
+        assert "Destination directory" in str(err.value)
+
+    @mock.patch("os.access", side_effect=[False, True, True])
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_exception_on_no_access_to_src_dir(
+        self,
+        mock_os_access: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Assert exception is raised on no dest directory"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+
+        with pytest.raises(PermissionError) as err:
+            nb = NauticalBackup(mock_docker_client)
+
+        assert "No read access to source directory" in str(err.value)
+
+    @mock.patch("os.access", side_effect=[True, False, True])
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_exception_on_no_read_access_to_dest_dir(
+        self,
+        mock_os_access: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Assert exception is raised on no dest directory"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+
+        with pytest.raises(PermissionError) as err:
+            nb = NauticalBackup(mock_docker_client)
+
+        assert "No read access to destination directory" in str(err.value)
+
+    @mock.patch("os.access", side_effect=[True, True, False])
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_exception_on_no_write_access_to_dest_dir(
+        self,
+        mock_os_access: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Assert exception is raised on no dest directory"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+
+        with pytest.raises(PermissionError) as err:
+            nb = NauticalBackup(mock_docker_client)
+
+        assert "No write access to destination directory" in str(err.value)
