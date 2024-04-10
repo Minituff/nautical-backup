@@ -4,6 +4,15 @@
     
 A simple Docker volume backup tool.
 
+
+# TODO
+* Add "groups" to docs
+* Add python integration tests
+    * Test this against removing PIP from container--this should cause it to fail
+* Test report file
+* Test LogThis
+* Test LogThisReportFile
+
 ---
 
 <br>

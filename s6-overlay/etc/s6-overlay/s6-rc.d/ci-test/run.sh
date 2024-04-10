@@ -26,6 +26,7 @@ if [ "$TEST_MODE" != "-1" ]; then
         cd /tests       # The .simplecov must be detected in the directory from where the bashcov command is run from
         rm -rf /coverage/* # Remove the coverage (if it exists)
         # with-contenv bashcov /tests/_tests.sh
+        # TODO: Add python integration tests
         exit_code=$?
     else
         echo "UNKNOWN TEST MODE: ${TEST_MODE}"

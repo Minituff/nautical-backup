@@ -38,6 +38,9 @@ class NauticalBackup:
         self.docker = docker_client
         self.default_group_pfx_sfx = "&"  # The prefix and suffix used to define this group
 
+        self.containers_completed = 0
+        self.containers_skipped = 0
+
         self.verify_source_location(self.env.SOURCE_LOCATION)
         self.verify_destination_location(self.env.DEST_LOCATION)
 
@@ -133,7 +136,9 @@ class NauticalBackup:
 
         for c in containers:
             if self._should_skip_container(c) == True:
+                self.containers_completed += 1
                 continue  # Skip this container
+
             # Create a default group, so ungrouped items are not grouped together
             default_group = f"{self.default_group_pfx_sfx}{str(c.id)[0:12]}{self.default_group_pfx_sfx}"
             group = str(c.labels.get("nautical-backup.group", default_group))
@@ -511,11 +516,19 @@ class NauticalBackup:
                 if additional_folders_when == "after":
                     self._backup_additional_folders(c)
 
+                self.containers_completed += 1
                 self.log_this(f"Backup of {c.name} complete!", "INFO")
 
         self._backup_additional_folders_standalone(BeforeOrAfter.AFTER)
         self._run_curl(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
+
         self.db.put("backup_running", False)
+        self.db.put("containers_completed", self.containers_completed)
+        self.db.put("containers_skipped", self.containers_skipped)
+
+        self.log_this(
+            f"Success. {self.containers_completed} containers backed up! {self.containers_skipped} skipped.", "INFO"
+        )
 
 
 if __name__ == "__main__":

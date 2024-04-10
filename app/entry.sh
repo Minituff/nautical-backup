@@ -3,7 +3,6 @@
 source /app/logger.sh # Use the logger script
 source /app/utils.sh
 
-# TODO: Make this call python file
 install_cron(){
     # Echo the CRON schedule for logging/debugging
     logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG" "init"
