@@ -89,6 +89,9 @@ class NauticalBackup:
             nautical_backup_enable = None
 
         if c.id == SELF_CONTAINER_ID:
+            self.log_this(f"Skipping {c.name} {c.id} because it's ID is the same as Nautical", "TRACE")
+            return True
+        if c.name == SELF_CONTAINER_ID:
             self.log_this(f"Skipping {c.name} because it's ID is the same as Nautical", "TRACE")
             return True
 
@@ -102,11 +105,11 @@ class NauticalBackup:
             )
             return True
 
-        if c.id in skip_containers_set:
+        if c.name in skip_containers_set:
             self.log_this(f"Skipping {c.name} based on name", "DEBUG")
             return True
 
-        if c.name in skip_containers_set:
+        if c.id in skip_containers_set:
             self.log_this(f"Skipping {c.name} based on ID {c.id}", "DEBUG")
             return True
 

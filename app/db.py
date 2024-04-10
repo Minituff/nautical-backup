@@ -3,6 +3,7 @@ import json
 from typing import Any, Optional, Union
 from pathlib import Path
 from app.logger import Logger
+from datetime import datetime
 
 
 class DB:
@@ -39,7 +40,13 @@ class DB:
             if not os.path.isfile(self.db_path):
                 self.log_this(f"Creating Database at path: '{self.db_path}'...", "INFO")
                 with open(self.db_path, "w") as db_file:
-                    json.dump({}, db_file)
+                    current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    json.dump(
+                        {
+                            "created_at": f"{current_date}",
+                        },
+                        db_file,
+                    )
 
                 self.log_this(f"Database initialized at '{self.db_path}'...", "INFO")
 

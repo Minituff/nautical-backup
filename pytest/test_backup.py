@@ -246,6 +246,46 @@ class TestBackup:
         mock_subprocess_run.assert_not_called()
 
     @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "nautical-backup", "id": "123456789"}], indirect=True)
+    def test_skip_self_by_name(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that Nautical skips itself"""
+
+        monkeypatch.setenv("SELF_CONTAINER_ID", "nautical-backup")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Rsync should only be called once
+        mock_subprocess_run.assert_not_called()
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_skip_self_by_id(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test that Nautical skips itself"""
+
+        monkeypatch.setenv("SELF_CONTAINER_ID", "123456789")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Rsync should only be called once
+        mock_subprocess_run.assert_not_called()
+
+    @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     def test_rsync_commands(
         self,
