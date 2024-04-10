@@ -74,7 +74,6 @@ ENV S6_VERBOSITY=1
 RUN \
     echo "**** Install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
-    py3-pip="${PIP_VERSION}" \
     dos2unix="${DOS2UNIX_VERSION}" && \
     echo "**** Install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
@@ -83,7 +82,8 @@ RUN \
     tzdata="${TZ_DATA_VERSION}" \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
-    python3="${PYTHON_VERSION}"  && \
+    python3="${PYTHON_VERSION}" \
+    py3-pip="${PIP_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
@@ -98,8 +98,7 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
       echo "=== TEST MODE ENABLED ===" && \
       echo "**** Installing TEST packages ****" && \
       apk add --no-cache \
-      ruby-full="${RUBY_VERSION}" \
-      py3-pip="${PIP_VERSION}" && \
+      ruby-full="${RUBY_VERSION}" && \
       echo "**** Installing ruby packages (for tests) ****" && \
       gem install bashcov simplecov-cobertura simplecov-html; \
     fi
