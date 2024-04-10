@@ -39,7 +39,7 @@ jobs:
         pip install -r requirements-dev.txt
 
     - name: Run Black format
-      run: python3 -m black --verbose --check --line-length 120 api
+      run: python3 -m black --verbose --check --line-length 120 app
 
     - name: Prepare enviornment variables
       run: |
