@@ -92,9 +92,12 @@ services:
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app
       - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8069:8069
     environment: # Optional variables
       - TZ=America/Los_Angeles
       - LOG_LEVEL=TRACE
+      - BACKUP_ON_START=true
       - CRON_SCHEDULE=0 4 * * *
-      - SKIP_CONTAINERS=lucid_galois,example2,example3
       - REQUIRE_LABEL=true
+      - HTTP_REST_API_ENABLED=true

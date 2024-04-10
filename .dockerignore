@@ -6,10 +6,10 @@
 # Files/Folders we need
 !Dockerfile
 !.dockerignore
-!api/**
 !app/**
 !s6-overlay/**
-!pytest/requirements.txt
+!requirements-dev.txt
+!requirements.txt
 
 
 # Ignore unnecessary files inside allowed directories

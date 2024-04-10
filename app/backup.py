@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# Or whatever path to your python interpreter
-
 import os
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
@@ -14,8 +12,8 @@ import docker
 from docker.models.containers import Container
 from docker.errors import APIError
 
-from api.db import DB
-from api.config import Settings
+from app.db import DB
+from app.api.config import Settings
 from app.logger import Logger
 from app.nautical_env import NauticalEnv
 
@@ -47,7 +45,7 @@ class NauticalBackup:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, message_type)
 
-    def verify_source_location(self, src_dir):
+    def verify_source_location(self, src_dir: str):
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", "init")
         if not os.path.isdir(src_dir):
             self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", "init")
@@ -56,9 +54,9 @@ class NauticalBackup:
             self.log_this(f"No read access to source directory '{src_dir}'.", "ERROR", "init")
             sys.exit(1)
 
-        self.log_this("Source directory '{src_dir}' access verified", "TRACE", "init")
+        self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", "init")
 
-    def verify_destination_location(self, dest_dir):
+    def verify_destination_location(self, dest_dir: str):
         self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", "init")
         if not os.path.isdir(dest_dir):
             self.log_this(f"Destination directory '{dest_dir}' does not exist.", "ERROR", "init")
@@ -70,7 +68,7 @@ class NauticalBackup:
             self.log_this(f"No write access to destination directory '{dest_dir}'.", "ERROR", "init")
             sys.exit(1)
 
-        self.log_this("Destination directory '{dest_dir}' access verified", "TRACE", "init")
+        self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE", "init")
 
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
@@ -119,8 +117,14 @@ class NauticalBackup:
         containers: List[Container] = self.docker.containers.list()  # type: ignore
         starting_container_amt = len(containers)
         self.log_this(f"Processing {starting_container_amt} containers...", "INFO")
-        self.log_this(f"Containers: {containers}", "DEBUG")
+
         self.db.put("number_of_containers", starting_container_amt)
+
+        output = ""
+        for container in containers:
+            output += str(container.name) + ", "
+        output = output[:-2]
+        self.log_this(f"Containers: {output}", "DEBUG")
 
         containers_by_group: Dict[str, List[Container]] = {}
 
@@ -462,9 +466,9 @@ class NauticalBackup:
                 if not src_dir.exists():
                     src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
                     if src_dir_required == "false":
-                        self.log_this(f"{c.name} - Source directory $src_dir does, but that's okay", "DEBUG")
+                        self.log_this(f"{c.name} - Source directory '{src_dir}' does, but that's okay", "DEBUG")
 
-                    self.log_this(f"{c.name} - Source directory $src_dir does not exist. Skipping", "DEBUG")
+                    self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
                     continue
 
                 stop_result = self._stop_container(c)  # Stop containers

@@ -15,7 +15,7 @@ install_cron(){
     sed -i '/nautical/d' tempcron
 
     # Add the new cron job to the file
-    echo "$CRON_SCHEDULE with-contenv bash nautical" >>tempcron
+    echo "$CRON_SCHEDULE with-contenv nautical" >>tempcron
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron

@@ -2,6 +2,7 @@ import os
 import json
 from typing import Any, Optional, Union
 from pathlib import Path
+from app.logger import Logger
 
 
 class DB:
@@ -11,6 +12,7 @@ class DB:
             NAUTICAL_DB_PATH = os.getenv("NAUTICAL_DB_PATH", "/config")
             NAUTICAL_DB_NAME = os.getenv("NAUTICAL_DB_NAME", "nautical-db.json")
             self.db_path = f"{NAUTICAL_DB_PATH}/{NAUTICAL_DB_NAME}"
+        self.logger = Logger()
 
         if os.path.exists(self.db_path) and not os.path.isfile(self.db_path):
             # If db_path is a folder (not a file), just make it a file
@@ -22,20 +24,24 @@ class DB:
     def __repr__(self) -> str:
         return str({"db_path": self.db_path, "db": dict(self._read_db())})
 
+    def log_this(self, log_message, log_priority="INFO", message_type="default") -> None:
+        """Wrapper for log this"""
+        return self.logger.log_this(log_message, log_priority, message_type)
+
     def _initialize_db(self):
         """Initialize the database if it doesn't exist."""
         if os.path.isfile(self.db_path):
-            print(f"Connected to database at '{self.db_path}'")
+            self.log_this(f"Connected to database at '{self.db_path}'", "INFO")
         else:
-            print(f"Initializing database at '{self.db_path}'...")
+            self.log_this(f"Initializing database at '{self.db_path}'...", "INFO")
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
             if not os.path.isfile(self.db_path):
-                print(f"Creating Database at path: '{self.db_path}'...")
+                self.log_this(f"Creating Database at path: '{self.db_path}'...", "INFO")
                 with open(self.db_path, "w") as db_file:
                     json.dump({}, db_file)
 
-                print(f"Database initialized at '{self.db_path}'...")
+                self.log_this(f"Database initialized at '{self.db_path}'...", "INFO")
 
     def _seed_db(self):
         """Seed the database with default values."""

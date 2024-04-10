@@ -95,7 +95,7 @@ execute_command() {
         cd $APP_HOME
         cecho CYAN "Running Nautical API locally..."
         cecho GREEN "Viewable at http://localhost:8069/docs"
-        python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8069 --use-colors --reload
+        python3 -m uvicorn app.api.main:app --host 0.0.0.0 --port 8069 --lifespan on --use-colors --reload
         ;;
     pytest)
         cd $APP_HOME

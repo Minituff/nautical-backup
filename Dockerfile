@@ -43,9 +43,7 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
 # Copy all necessary files into the container (from /app in the repository to /app in the container)
 COPY app app
-
-# Copy the api folder from the git repo into the container
-COPY api api
+COPY requirements.txt app/requirements.txt
 
 # Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.18&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
@@ -91,7 +89,7 @@ RUN \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
     echo "**** Install Python packages ****" && \
-    python3 -m pip install --no-cache-dir --upgrade -r /api/requirements.txt && \
+    python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
     echo "**** Cleanup ****" && \
     apk del --purge build-dependencies
 

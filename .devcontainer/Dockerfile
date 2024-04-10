@@ -2,13 +2,13 @@
 FROM mcr.microsoft.com/devcontainers/python:3.10
 
 # These files must be ignored in the docker ignore
-COPY api/requirements.txt /tmp/nautical/api-requirements.txt
-COPY pytest/requirements.txt /tmp/nautical/pytest-requirements.txt
+COPY requirements.txt /tmp/nautical/requirements.txt
+COPY requirements-dev.txt /tmp/nautical/requirements-dev.txt
 
 RUN echo "Installing python packages (for api)..." && \
-    python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/api-requirements.txt && \
-    echo "Installing python packages (for api tests)..." && \
-    python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/pytest-requirements.txt
+    # This will also install everything in requirements.txt file
+    python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/requirements-dev.txt && \
+    echo "Installation complete."
 
-# For development, prevents Nautical from stopping VSCode DevContainer
+# For development, prevents Nautical from stopping VSCode DevContainer itself
 LABEL nautical-backup.enable=false

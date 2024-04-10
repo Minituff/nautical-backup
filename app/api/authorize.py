@@ -3,13 +3,12 @@ from fastapi import HTTPException, Depends, status, Security
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import PlainTextResponse, JSONResponse
 from typing import Annotated
-import os
 import secrets
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 
-from api.config import Settings
+from app.api.config import Settings
 
 
 @lru_cache
