@@ -77,7 +77,7 @@ jobs:
 
   test_docker_architecture:
     name: Validate Docker Architecture
-    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -90,7 +90,7 @@ jobs:
 
   bash_unit_test_and_coverage:
     name: Integration tests 
-    if: contains(github.event.head_commit.message, '[ci]') #! TODO: REMOVE
+    # if: contains(github.event.head_commit.message, '[ci]')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -99,7 +99,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build and export Docker image
-      uses: docker/build-push-action@v5.1.0
+      uses: docker/build-push-action@v5.3.0
       with:
         context: .
         load: true # Do not push this image
