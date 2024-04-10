@@ -98,5 +98,4 @@ class DB:
 
 
 if __name__ == "__main__":
-    print("PYTHON SEED DB")
-    db = DB()
+    db = DB()  # This will seed and create the database if necessary (run at startup)

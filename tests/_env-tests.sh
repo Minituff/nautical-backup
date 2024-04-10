@@ -38,10 +38,10 @@ test_docker() {
 
 test_cron() {
     # Expected output
-    EXPECTED_OUTPUT="$CRON_SCHEDULE with-contenv bash nautical"
+    EXPECTED_OUTPUT="$CRON_SCHEDULE with-contenv nautical"
 
     # Run the command and capture its output
-    ACTUAL_OUTPUT=$(crontab -l | grep bash)
+    ACTUAL_OUTPUT=$(crontab -l | grep contenv)
 
     if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
         echo "FAIL: CRON output does not match expected output."
