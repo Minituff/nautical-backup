@@ -90,9 +90,11 @@ services:
     # labels:
     #   - "nautical-backup.curl.before=curl -o google google.com"
     volumes:
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app
+      - /var/run/docker.sock:/var/run/docker.sock
     environment: # Optional variables
       - TZ=America/Los_Angeles
+      - LOG_LEVEL=TRACE
       - CRON_SCHEDULE=0 4 * * *
-      - SKIP_CONTAINERS=example1,example2,example3
+      - SKIP_CONTAINERS=lucid_galois,example2,example3
       - REQUIRE_LABEL=true

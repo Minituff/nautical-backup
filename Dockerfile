@@ -76,8 +76,7 @@ ENV S6_VERBOSITY=1
 RUN \
     echo "**** Install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
-    dos2unix="${DOS2UNIX_VERSION}" \
-    py3-pip="${PIP_VERSION}" && \
+    dos2unix="${DOS2UNIX_VERSION}" && \
     echo "**** Install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
     bash="${BASH_VERSION}" \
@@ -85,7 +84,8 @@ RUN \
     tzdata="${TZ_DATA_VERSION}" \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
-    python3="${PYTHON_VERSION}" && \
+    python3="${PYTHON_VERSION}" \
+    py3-pip="${PIP_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \

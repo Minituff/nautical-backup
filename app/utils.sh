@@ -64,6 +64,7 @@ initialize_nautical() {
         # Allows the nautical backup script to be run using `bash nautical`
         ln -s /app/backup.py /usr/local/bin/nautical
         chmod +x /usr/local/bin/nautical
+        logThis "ln -s /app/backup.py /usr/local/bin/nautical" "TRACE" "init"
     fi
 }
 
