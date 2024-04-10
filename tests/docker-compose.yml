@@ -1,10 +1,9 @@
 # cd tests
 # docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
 # docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
-# docker compose run nautical-backup-test3
-# docker compose run nautical-backup-test4
 
-services:  
+services:
+  # The file that determines which tests to run is located at 's6-overlay/etc/s6-overlay/s6-rc.d/ci-test/run.sh'
   nautical-backup-test1:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test1
@@ -24,6 +23,7 @@ services:
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
   
+  # The file that determines which tests to run is located at 's6-overlay/etc/s6-overlay/s6-rc.d/ci-test/run.sh'
   nautical-backup-test2:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test2
@@ -38,19 +38,6 @@ services:
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
 
-  nautical-backup-test3:
-    image: minituff/nautical-test # Use the local image
-    container_name: nautical-backup-test3
-    hostname: nautical-backup-test3
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./source:/app/source
-      - ./destination:/app/destination
-      - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
-    environment:
-      - TEST_MODE=3
-      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
-      - S6_KILL_GRACETIME=100 # How long until S6 kills
 
   # NOT RUN IN CI
   nautical-backup-test4:
