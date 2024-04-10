@@ -112,17 +112,17 @@ jobs:
         docker compose run nautical-backup-test1
         docker compose run nautical-backup-test2
 
-    - name: Upload reports to Codecov
-      uses: codecov/codecov-action@v4
-      env: 
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
-      with:
-        fail_ci_if_error: true
-        files: tests/coverage/coverage.xml # The json file will not work here
+    # - name: Upload reports to Codecov
+    #   uses: codecov/codecov-action@v4
+    #   env: 
+    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
+    #   with:
+    #     fail_ci_if_error: true
+    #     files: tests/coverage/coverage.xml # The json file will not work here
     
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v4
-      with:
-        name: bash-code-coverage
-        path: tests/coverage/
-        retention-days: 5
+    # - name: Archive code coverage results
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: bash-code-coverage
+    #     path: tests/coverage/
+    #     retention-days: 5
