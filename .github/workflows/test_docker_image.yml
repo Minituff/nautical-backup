@@ -114,7 +114,7 @@ jobs:
         docker compose run nautical-backup-test3
 
     - name: Upload reports to Codecov
-      uses: codecov/codecov-action@v4-beta
+      uses: codecov/codecov-action@v4
       env: 
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
