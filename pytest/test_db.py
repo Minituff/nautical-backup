@@ -1,5 +1,5 @@
 import os
-from api.db import DB
+from app.db import DB
 import pytest
 from pathlib import Path
 

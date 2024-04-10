@@ -4,7 +4,7 @@ from pathlib import Path
 from mock import mock, MagicMock, patch
 import datetime
 
-from api.utils import next_cron_occurrences
+from app.api.utils import next_cron_occurrences
 
 
 class TestUtils:

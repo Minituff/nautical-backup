@@ -36,8 +36,7 @@ jobs:
     - name: Install dependencies
       run: |
         echo "Installing python requirements"
-        pip install -r api/requirements.txt
-        pip install -r pytest/requirements.txt
+        pip install -r requirements-dev.txt
 
     - name: Run Black format
       run: python3 -m black --verbose --check --line-length 120 api
@@ -58,7 +57,7 @@ jobs:
     - name: Run tests and collect coverage
       run: |
         echo "NAUTICAL_DB_PATH: ${NAUTICAL_DB_PATH}" 
-        python3 -m pytest --cov api --cov app --cov-report html --cov-report term --cov-report xml
+        python3 -m pytest --cov app --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
       uses: codecov/codecov-action@v4-beta

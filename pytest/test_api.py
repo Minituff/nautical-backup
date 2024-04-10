@@ -5,11 +5,11 @@ from mock import mock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from api.db import DB
-from api.utils import next_cron_occurrences
-from api.config import Settings
-from api.main import app
-from api.authorize import get_settings
+from app.db import DB
+from app.api.utils import next_cron_occurrences
+from app.api.config import Settings
+from app.api.main import app
+from app.api.authorize import get_settings
 
 client = TestClient(app)
 

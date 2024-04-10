@@ -101,7 +101,7 @@ execute_command() {
         cd $APP_HOME
         clear
         cecho CYAN "Running Pytest..."
-        python3 -m pytest --cov api --cov app --cov-report html --cov-report term
+        python3 -m pytest --cov app --cov-report html --cov-report term
         ;;
     docs)
         cd $APP_HOME
