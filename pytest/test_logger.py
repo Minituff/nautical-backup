@@ -61,6 +61,46 @@ class TestLogger:
         # Check that the message was written to the report file
         mock_open.assert_called_once_with(str(mock_path), "a")
 
+    def test_delete_report_files(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("LOG_LEVEL", "TRACE")
+        monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "TRACE")
+
+        report_file = f"Backup Report - {datetime.now().strftime('%Y-%m-%d')}.txt"
+        # Create fake files in tmp_path
+        (tmp_path / "Backup Report - 2024-01-01.txt").touch()
+        (tmp_path / "Backup Report - 2025-01-01.txt").touch()
+        (tmp_path / f"{report_file}").touch()
+
+        logger = Logger()
+        logger.dest_location = tmp_path
+        logger.report_file_on_backup_only = False
+
+        logger._delete_old_report_files()
+
+        # List files in tmp_path
+        files = [f.name for f in tmp_path.iterdir()]
+        assert files[0] == report_file
+        assert len(files) == 1
+
+    def test_create_new_report_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("LOG_LEVEL", "TRACE")
+        monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "TRACE")
+
+        report_file = f"Backup Report - {datetime.now().strftime('%Y-%m-%d')}.txt"
+        logger = Logger()
+        logger.dest_location = tmp_path
+        logger.report_file_on_backup_only = False
+
+        logger._create_new_report_file()
+
+        # List files in tmp_path
+        files = [f.name for f in tmp_path.iterdir()]
+        assert files[0] == report_file
+        assert len(files) == 1
+
+        logger._create_new_report_file()
+        assert len(files) == 1
+
     @patch("builtins.open", new_callable=MagicMock)
     @patch("builtins.print")
     def test_log_level_trace(

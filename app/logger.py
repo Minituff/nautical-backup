@@ -57,17 +57,22 @@ class Logger:
             return LogLevel.ERROR
         return None
 
-    def delete_report_file(self):
+    def _delete_old_report_files(self):
+        """Only completed on Nautical init"""
         for file in os.listdir(self.dest_location):
+            file.strip()
             if file.startswith("Backup Report -") and file.endswith(".txt"):
-                os.remove(os.path.join(self.dest_location, file))
+                if file != self.report_file:
+                    # Don't delete today's report file
+                    os.remove(os.path.join(self.dest_location, file))
 
-    def create_new_report_file(self):
-        if self.report_file_on_backup_only == True:
-            self.delete_report_file()
-            # Initialize the current report file with a header
-            with open(os.path.join(self.dest_location, self.report_file), "w") as f:
-                f.write(f"Backup Report - {datetime.datetime.now()}\n")
+    def _create_new_report_file(self):
+        """Only completed on Nautical init"""
+        self._delete_old_report_files()
+
+        # Initialize the current report file with a header
+        with open(os.path.join(self.dest_location, self.report_file), "w+") as f:
+            f.write(f"Backup Report - {datetime.datetime.now()}\n")
 
     def log_this(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO, log_type=LogType.DEFAULT):
         # Check if level exists

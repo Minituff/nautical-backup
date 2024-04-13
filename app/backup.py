@@ -14,7 +14,7 @@ from docker.errors import APIError
 
 from app.db import DB
 from app.api.config import Settings
-from app.logger import Logger
+from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
 
 
@@ -41,37 +41,40 @@ class NauticalBackup:
         self.containers_completed = 0
         self.containers_skipped = 0
 
+        if self.env.REPORT_FILE == True and self.env.REPORT_FILE_ON_BACKUP_ONLY == False:
+            self.logger._create_new_report_file()
+
         self.verify_source_location(self.env.SOURCE_LOCATION)
         self.verify_destination_location(self.env.DEST_LOCATION)
 
-    def log_this(self, log_message, log_priority="INFO", message_type="default") -> None:
+    def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
-        return self.logger.log_this(log_message, log_priority, message_type)
+        return self.logger.log_this(log_message, log_priority, log_type)
 
     def verify_source_location(self, src_dir: str):
-        self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", "init")
+        self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", LogType.INIT)
         if not os.path.isdir(src_dir):
-            self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", "init")
+            self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", LogType.INIT)
             raise FileNotFoundError(f"Source directory '{src_dir}' does not exist.")
         elif not os.access(src_dir, os.R_OK):
-            self.log_this(f"No read access to source directory '{src_dir}'.", "ERROR", "init")
+            self.log_this(f"No read access to source directory '{src_dir}'.", "ERROR", LogType.INIT)
             raise PermissionError(f"No read access to source directory '{src_dir}'")
 
-        self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", "init")
+        self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", LogType.INIT)
 
     def verify_destination_location(self, dest_dir: str):
-        self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", "init")
+        self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
         if not os.path.isdir(dest_dir):
-            self.log_this(f"Destination directory '{dest_dir}' does not exist.", "ERROR", "init")
+            self.log_this(f"Destination directory '{dest_dir}' does not exist.", "ERROR", LogType.INIT)
             raise FileNotFoundError(f"Destination directory '{dest_dir}' does not exist.")
         elif not os.access(dest_dir, os.R_OK):
-            self.log_this(f"No read access to destination directory '{dest_dir}'.", "ERROR", "init")
+            self.log_this(f"No read access to destination directory '{dest_dir}'.", "ERROR", LogType.INIT)
             raise PermissionError(f"No read access to destination directory '{dest_dir}'")
         elif not os.access(dest_dir, os.W_OK):
-            self.log_this(f"No write access to destination directory '{dest_dir}'.", "ERROR", "init")
+            self.log_this(f"No write access to destination directory '{dest_dir}'.", "ERROR", LogType.INIT)
             raise PermissionError(f"No write access to destination directory '{dest_dir}'")
 
-        self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE", "init")
+        self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE", LogType.INIT)
 
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
@@ -450,6 +453,9 @@ class NauticalBackup:
         return f"{default_rsync_args} {custom_rsync_args}"
 
     def backup(self):
+        if self.env.REPORT_FILE == True:
+            self.logger._create_new_report_file()
+
         self.db.put("backup_running", True)
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 
