@@ -106,11 +106,25 @@ jobs:
         tags: minituff/nautical-test
         build-args: TEST_MODE=0
   
-    - name: Run integration tests against Docker image
+    - name: Run built image against Docker image
       run: |
         cd tests
         docker compose run nautical-backup-test1
         docker compose run nautical-backup-test2
+
+    - name: Run integration tests against Docker image
+      run: |
+        cd tests
+        
+        rm -rf source destination config
+        mkdir -p source/watchtower-test
+        echo "This is a test file" >> source/watchtower-test/test-file.txt
+        
+        docker compose -f watchtower.yml up -d
+        docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3
+        docker compose -f watchtower.yml down
+
+        ./_validate_rsync.sh
 
     # - name: Upload reports to Codecov
     #   uses: codecov/codecov-action@v4
