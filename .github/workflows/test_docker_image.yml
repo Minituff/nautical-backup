@@ -113,6 +113,7 @@ jobs:
         docker compose run nautical-backup-test2
 
     - name: Run integration tests against Docker image
+      timeout: 3
       run: |
         cd tests
         

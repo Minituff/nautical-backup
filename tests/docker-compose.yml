@@ -13,8 +13,8 @@ services:
     hostname: nautical-backup-test1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./source:/app/source
-      - ./destination:/app/destination
+      # - ./source:/app/source
+      # - ./destination:/app/destination
       - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
     environment:
       - TZ=America/Phoenix # Must not observe DST
@@ -35,8 +35,8 @@ services:
     hostname: nautical-backup-test2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./source:/app/source
-      - ./destination:/app/destination
+      # - ./source:/app/source
+      # - ./destination:/app/destination
       - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
     environment:
       - TEST_MODE=2
