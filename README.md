@@ -6,10 +6,6 @@ A simple Docker volume backup tool.
 
 
 # TODO
-[x] Allow 1 container to be apart of multiple groups
-[x] Add "groups" to docs
-[ ] Add python integration tests
-    [ ] Test this against removing PIP from container--this should cause it to fail
 [ ] Test report file
 [ ] Test LogThis
 [ ] Test LogThisReportFile
@@ -37,7 +33,7 @@ Docker Compose
 version: '3'
 services:
   nautical-backup:
-    image: minituff/nautical-backup:1 
+    image: minituff/nautical-backup:2 
     container_name: nautical-backup
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -58,5 +54,5 @@ docker run -d \
   -e TZ="America/Los_Angeles" \
   -e CRON_SCHEDULE="0 4 * * *" \
   -e SKIP_CONTAINERS="example1,example2,example3" \
-  minituff/nautical-backup:1  
+  minituff/nautical-backup:2  
 ```

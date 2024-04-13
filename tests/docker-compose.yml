@@ -5,6 +5,8 @@
 # docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
 # docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3
 
+# TODO: The $PWD mounts do not work on Windows. Only in Github runners. Need to find a solution for this.
+
 services:
   # The file that determines which tests to run is located at 's6-overlay/etc/s6-overlay/s6-rc.d/ci-test/run.sh'
   nautical-backup-test1:
