@@ -91,7 +91,7 @@ execute_command() {
 
         cecho CYAN "Running integration test #3"
         docker compose -f watchtower.yml up -d
-        docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3
+        docker compose run nautical-backup-test3
         docker compose -f watchtower.yml down
 
         cecho CYAN "Validating Nautical completed a successful backup..."

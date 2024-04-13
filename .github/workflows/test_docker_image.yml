@@ -121,7 +121,7 @@ jobs:
         echo "This is a test file" >> source/watchtower-test/test-file.txt
         
         docker compose -f watchtower.yml up -d
-        docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3
+        docker compose run nautical-backup-test3
         docker compose -f watchtower.yml down
 
         ./_validate_rsync.sh
