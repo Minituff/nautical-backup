@@ -52,9 +52,9 @@ services:
     hostname: nautical-backup-test3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
-      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\destination:/app/destination
-      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\config:/config
+      - $PWD/source:/app/source
+      - $PWD/destination:/app/destination
+      - $PWD/config:/config
     environment:
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
