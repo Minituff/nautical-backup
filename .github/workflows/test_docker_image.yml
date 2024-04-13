@@ -116,7 +116,7 @@ jobs:
       run: |
         cd tests
         
-        rm -rf source destination config
+        rm -rf source config
         mkdir -p source/watchtower-test
         echo "This is a test file" >> source/watchtower-test/test-file.txt
         

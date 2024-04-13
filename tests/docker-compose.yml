@@ -41,11 +41,11 @@ services:
     environment:
       - TEST_MODE=2
       - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
-      - REPORT_FILE=false
+      - REPORT_FILE=true
       - S6_KILL_GRACETIME=100 # How long until S6 kills
     labels:
       - "nautical-backup.enable=false"
-        
+
   nautical-backup-test3:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test3
