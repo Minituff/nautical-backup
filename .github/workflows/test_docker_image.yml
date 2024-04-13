@@ -124,7 +124,7 @@ jobs:
         docker compose run nautical-backup-test3
         docker compose -f watchtower.yml down
 
-        ./_validate_rsync.sh
+        bash ./_validate_rsync.sh
 
     # - name: Upload reports to Codecov
     #   uses: codecov/codecov-action@v4
