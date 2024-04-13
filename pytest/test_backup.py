@@ -1350,6 +1350,92 @@ class TestBackup:
                 "name": "container1",
                 "id": "123456789",
                 "labels": {
+                    "nautical-backup.group": "authentic",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [
+            {
+                "name": "container2",
+                "id": "101112231415",
+                "labels": {
+                    "nautical-backup.group": "authentic,paperless",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container3",
+        [
+            {
+                "name": "container3",
+                "id": "09129213232",
+                "labels": {
+                    "nautical-backup.group": "paperless",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_grouping_with_overlap(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+    ):
+        """Test groups with overlaps"""
+
+        # You can check the order of calls to mockContainer1.stop and subprocess.run
+        parent_mock = MagicMock()
+        parent_mock.attach_mock(mock_container1.stop, "mockContainer1_stop")
+        parent_mock.attach_mock(mock_container2.stop, "mockContainer2_stop")
+        parent_mock.attach_mock(mock_container3.stop, "mockContainer3_stop")
+
+        parent_mock.attach_mock(mock_container1.start, "mockContainer1_start")
+        parent_mock.attach_mock(mock_container2.start, "mockContainer2_start")
+        parent_mock.attach_mock(mock_container3.start, "mockContainer3_start")
+
+        parent_mock.attach_mock(mock_subprocess_run, "mock_subprocess_run")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        call_names = [c[0] for c in parent_mock.mock_calls]
+
+        excepted = [
+            # Group authentic
+            "mockContainer1_stop",
+            "mockContainer2_stop",
+            "mock_subprocess_run",
+            "mock_subprocess_run",
+            "mockContainer1_start",
+            "mockContainer2_start",
+            # Group paperless
+            "mockContainer2_stop",
+            "mockContainer3_stop",
+            "mock_subprocess_run",
+            "mock_subprocess_run",
+            "mockContainer2_start",
+            "mockContainer3_start",
+        ]
+        assert call_names == excepted
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
                     "nautical-backup.group": "services",
                 },
             }
@@ -1387,7 +1473,7 @@ class TestBackup:
         mock_container2: MagicMock,
         mock_container3: MagicMock,
     ):
-        """Test lifecycle hooks"""
+        """Test groups"""
 
         # You can check the order of calls to mockContainer1.stop and subprocess.run
         parent_mock = MagicMock()
@@ -1406,7 +1492,6 @@ class TestBackup:
         nb.backup()
 
         call_names = [c[0] for c in parent_mock.mock_calls]
-
         assert call_names == [
             "mockContainer1_stop",
             "mockContainer2_stop",
@@ -1419,6 +1504,60 @@ class TestBackup:
             "mock_subprocess_run",
             "mockContainer3_start",
         ]
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.group": "authentic",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [
+            {
+                "name": "container2",
+                "id": "101112231415",
+                "labels": {
+                    "nautical-backup.group": "authentic,paperless",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container3",
+        [
+            {
+                "name": "container3",
+                "id": "09129213232",
+                "labels": {
+                    "nautical-backup.group": "paperless",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_grouping_function(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+    ):
+        """Test container group function"""
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        groups = nb.group_containers()
+
+        assert groups["authentic"] == [mock_container1, mock_container2]
+        assert groups["paperless"] == [mock_container2, mock_container3]
 
     def test_exception_on_no_src_dir(
         self,

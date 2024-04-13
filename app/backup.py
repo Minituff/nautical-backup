@@ -145,10 +145,13 @@ class NauticalBackup:
             if not group or group == "":
                 group = default_group
 
-            if group not in containers_by_group:
-                containers_by_group[group] = [c]
-            else:
-                containers_by_group[group].append(c)
+            # Split the group string into a list of groups by comma
+            groups = group.split(",")
+            for g in groups:
+                if g not in containers_by_group:
+                    containers_by_group[g] = [c]
+                else:
+                    containers_by_group[g].append(c)
 
         return containers_by_group
 
