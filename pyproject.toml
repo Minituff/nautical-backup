@@ -18,6 +18,7 @@ markers = [
 filterwarnings = [
     'ignore',
 ]
+tmpdir_keep=0
 
 [tool.coverage]
     [tool.coverage.run]
