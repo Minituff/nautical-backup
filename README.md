@@ -6,12 +6,13 @@ A simple Docker volume backup tool.
 
 
 # TODO
-* Add "groups" to docs
-* Add python integration tests
-    * Test this against removing PIP from container--this should cause it to fail
-* Test report file
-* Test LogThis
-* Test LogThisReportFile
+[ ] Allow 1 container to be apart of multiple groups
+[ ] Add "groups" to docs
+[ ] Add python integration tests
+    [ ] Test this against removing PIP from container--this should cause it to fail
+[ ] Test report file
+[ ] Test LogThis
+[ ] Test LogThisReportFile
 
 ---
 
