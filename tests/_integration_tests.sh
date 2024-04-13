@@ -329,6 +329,10 @@ elif [ "$1" == "test2" ]; then
     source /app/entry.sh
     echo "Testing default enviornment variables..."
     test_env_vars expected_env_vars
+
+elif [ "$1" == "test3" ]; then
+    # Complete integration tests
+    exit 0
 else
     echo "Invalid argument. Use either 'test1' or 'test2'."
     exit 1

@@ -136,7 +136,7 @@ class NauticalBackup:
 
         for c in containers:
             if self._should_skip_container(c) == True:
-                self.containers_completed += 1
+                self.containers_skipped += 1
                 continue  # Skip this container
 
             # Create a default group, so ungrouped items are not grouped together
@@ -501,6 +501,7 @@ class NauticalBackup:
 
                     if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
                         self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
+                        self.containers_skipped += 1
                         continue
 
                 self._backup_container_foldes(c)
@@ -532,6 +533,11 @@ class NauticalBackup:
         self.log_this(
             f"Success. {self.containers_completed} containers backed up! {self.containers_skipped} skipped.", "INFO"
         )
+
+        if self.env.RUN_ONCE == True:
+            self.log_this("RUN_ONCE is true. Exiting...", "INFO")
+            subprocess.run("kill -SIGTERM 1", shell=True)  # Quit the container
+            sys.exit(0)
 
 
 if __name__ == "__main__":

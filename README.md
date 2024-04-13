@@ -6,8 +6,8 @@ A simple Docker volume backup tool.
 
 
 # TODO
-[ ] Allow 1 container to be apart of multiple groups
-[ ] Add "groups" to docs
+[x] Allow 1 container to be apart of multiple groups
+[x] Add "groups" to docs
 [ ] Add python integration tests
     [ ] Test this against removing PIP from container--this should cause it to fail
 [ ] Test report file

@@ -3,6 +3,7 @@
 # cd tests
 # docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
 # docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+# docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3
 
 services:
   # The file that determines which tests to run is located at 's6-overlay/etc/s6-overlay/s6-rc.d/ci-test/run.sh'
@@ -22,8 +23,10 @@ services:
       - CRON_SCHEDULE=0 8 * * *
       - REPORT_FILE=false
       - TEST_MODE=1
-      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
+    labels:
+      - "nautical-backup.enable=false"
   
   # The file that determines which tests to run is located at 's6-overlay/etc/s6-overlay/s6-rc.d/ci-test/run.sh'
   nautical-backup-test2:
@@ -37,14 +40,45 @@ services:
       - $PWD:/tests # This file will be run from the /tests directory, therefore it will be /tests:/tests
     environment:
       - TEST_MODE=2
-      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
+    labels:
+      - "nautical-backup.enable=false"
+  
+  nautical-backup-test3:
+    image: minituff/nautical-test # Use the local image
+    container_name: nautical-backup-test3
+    hostname: nautical-backup-test3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}\tests\config:/config
+    environment:
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
+      - S6_KILL_GRACETIME=100 # How long until S6 kills
+      - BACKUP_ON_START=true
+      - RUN_ONCE=true
+      - LOG_LEVEL=TRACE
+    labels:
+      - "nautical-backup.enable=false"
 
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
+    labels:
+      - "nautical-backup.enable=true"
 
   # NOT RUN IN CI
   nautical-backup-test4:
     image: minituff/nautical-test # Use the local image
     container_name: nautical-backup-test4
+    hostname: nautical-backup-test4
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${LOCAL_WORKSPACE_FOLDER-./}\tests\source:/app/source
@@ -55,7 +89,7 @@ services:
       - "8069:8069/tcp"
     environment:
       - TEST_MODE=4 # Do not run coverage, but run all unit tests
-      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
   
   # NOT RUN IN CI
@@ -75,7 +109,7 @@ services:
     environment:
       # - TEST_MODE=-1 # Do not run coverage, but run all unit tests
       - BACKUP_ON_START=true
-      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since teh tests take so long
+      - S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 # Required since the tests take so long
       - S6_KILL_GRACETIME=100 # How long until S6 kills
       - OVERRIDE_SOURCE_DIR=example1:example1-new-source-data,ctr2:ctr2-new-source
       - OVERRIDE_DEST_DIR=Pi.Alert:pialert

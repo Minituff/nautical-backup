@@ -37,6 +37,10 @@ class NauticalEnv:
         self.PRE_BACKUP_CURL = os.environ.get("PRE_BACKUP_CURL", "")
         self.POST_BACKUP_CURL = os.environ.get("POST_BACKUP_CURL", "")
 
+        self.RUN_ONCE = False
+        if os.environ.get("RUN_ONCE", "False").lower() == "true":
+            self.RUN_ONCE = True
+
     @staticmethod
     def _populate_override_dirs(env_name: str) -> Dict[str, str]:
         """Translate the Enviornment variable from single string to Python Dict.

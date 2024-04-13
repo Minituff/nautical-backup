@@ -71,20 +71,42 @@ execute_command() {
         nb build-test
         ;;
     test)
-        cecho CYAN "Running Nautical container tests..."
+        cecho CYAN "Running Nautical integration tests..."
         cd $APP_HOME
         
         ./tests/_validate_dockerfile.sh
         
         cd $APP_HOME/tests
 
+        cecho CYAN "Running integration test #1"
         docker compose run nautical-backup-test1 --exit-code-from nautical-backup-test1
+        
+        cecho CYAN "Running integration test #2"
         docker compose run nautical-backup-test2 --exit-code-from nautical-backup-test2
+        
+        # Staging integration test #3
+        rm -rf source destination config
+        mkdir -p source/watchtower-test
+        echo "This is a test file" >> source/watchtower-test/test-file.txt
 
-        NAME=$(docker-compose run -d nautical-backup-test3)
-        echo Started container: $NAME
-        docker logs $NAME -f 
-        docker stop $NAME
+        cecho CYAN "Running integration test #3"
+        docker compose -f watchtower.yml up -d
+        docker compose run nautical-backup-test3 --exit-code-from nautical-backup-test3
+        docker compose -f watchtower.yml down
+
+        cecho CYAN "Validating Nautical completed a successful backup..."
+
+        ./_validate_rsync.sh
+        exit_code=$?
+
+        if [ $exit_code -eq 0 ]; then
+            cecho GREEN "All tests passed!"
+        else
+            cecho RED "One or more tests failed!"
+        fi
+
+        rm -rf source destination config
+
         ;;
     build-test-run)
         nb build-test
