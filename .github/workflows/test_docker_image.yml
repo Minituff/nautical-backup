@@ -13,9 +13,9 @@ on:
     branches: # Target
       - 'main'
       - 'dev'
-  push:
-    branches:
-      - 'group-updates'  #! TODO: REMOVE
+  # push:
+  #   branches:
+  #     - 'group-updates'
     # tags:
     #   - 'v*'
 
