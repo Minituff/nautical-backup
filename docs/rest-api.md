@@ -1,38 +1,29 @@
 ## Enable The API
-The API is ^^disabled by default^^, but turning it on is simple. Follow these 3 steps:
+The API is ^^enabled internally by default^^, but you still must open the port for external access. Follow these steps:
 
-### 1. Set the environment variable
+!!! abstract "Why is the REST API on internally?"
+    The REST API is used internally for Docker [Healthchecks](https://docs.docker.com/reference/dockerfile). 
+    However, you do not open the port, then all the endpoints will remain unreachable.
 
-See the [variables section](./arguments.md#http-rest-api) for more information.
-
-```properties
-HTTP_REST_API_ENABLED=true
-```
-
-Once enabled, you will see the following message after starting the Nautical container logs.
-> INFO: API listening on port 8069...
-
-### 2. Map the port
-Next, you need to ensure you map the port from the Nautical container. See the ==highlighted== sections of this example Nautical config:
+### 1. Map the port
+You need to ensure the port is opened by Docker for the Nautical container. See the ==highlighted== sections of this example Nautical config:
 
 === "Docker Compose"
-    ```yaml hl_lines="11 13"
+    ```yaml hl_lines="11 12 13"
     ------8<------ "docker-compose-example-no-tooltips.yml:0:11"
-          - HTTP_REST_API_ENABLED=true
         ports:
           - "8069:8069/tcp"
     ```
     
 === "Docker Cli"
 
-    ```bash hl_lines="6 7"
+    ```bash hl_lines="6 6"
     ------8<------ "docker-run-example-no-tooltips.sh::6"
-      -e HTTP_REST_API_ENABLED="true" \
       -p 8069:8069/tcp \
     ------8<------ "docker-run-example-no-tooltips.sh:10:"
     ```
 
-### 3. Verify it works
+### 2. Verify it works
 To view the API, go to http://localhost:8069/docs in your browser.
 
 ## Authentication

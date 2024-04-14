@@ -144,6 +144,62 @@ nautical-backup.stop-before-backup=false
 
 <small>🔄 This is a similar action to the [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable, but applied only to this container.</small>
 
+## Groups
+Use this label to have multiple containers stopped, backed up, and restarted at the same time.
+
+This is useful for services that require multiple containers.
+
+> **Default If Missing**: *none* <small> (no groups, will be handed independently)</small>
+
+> **Format**: `<string>`  <small>(comma separated for multiple items)</small>
+
+```properties
+nautical-backup.group=group_name
+```
+=== "Example 1"
+    !!! example ""
+        
+        In this example, we define two groups: `paperless` and `authentic`. 
+        The `redis` container is shared between two groups and will be backed up both times.
+        
+        ```yaml
+        paerless-ngx:
+          labels:
+            - "nautical-backup.group=paperless"
+        ```
+        ```yaml
+        redis:
+          labels:
+            - "nautical-backup.group=paperless,authentic"
+        
+        ```
+        ```yaml
+        authentic-worker:
+          labels:
+            - "nautical-backup.group=authentic"
+        
+        ```
+        
+=== "Example 2"
+    !!! example ""
+
+        In this example, the `authentic` folder is defined for all the containers used by Authentic.
+
+        They do *not* need to be part of the same docker-compose file.
+
+        ```yaml
+        services:
+          authentik-worker-1:
+            labels:
+              - "nautical-backup.group=authentic"
+          authentik-postgresql-1:
+            labels:
+              - "nautical-backup.group=authentic"
+          authentik-redis-1:
+            labels:
+              - "nautical-backup.group=authentic"
+        ```
+
 ## Additional Folders
 Use this label to backup more folders associated with the container.
 

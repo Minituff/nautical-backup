@@ -1,5 +1,6 @@
 import os
-from api.db import DB
+import shutil
+from app.db import DB
 import pytest
 from pathlib import Path
 
@@ -11,6 +12,15 @@ class TestADB:
         Runs 1 time before all tests in this class
         """
         pass
+
+    @classmethod
+    def teardown_class(cls):
+        """
+        Runs 1 time after all tests in this class
+        """
+        # Remove the folders created by `tmp_path`
+        shutil.rmtree("fake-path", ignore_errors=True)
+        shutil.rmtree("fake-path2", ignore_errors=True)
 
     def test_read_invalid_db(self, tmp_path: Path):
         db = DB(tmp_path)  # This is a folder, so it is invalid

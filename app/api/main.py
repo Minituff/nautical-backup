@@ -6,10 +6,23 @@ from typing import Annotated
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from functools import lru_cache
+from contextlib import asynccontextmanager
 
-from api.config import Settings
-from api.authorize import authorize
-import api.nautical_router as nautical_router
+from app.api.config import Settings
+from app.api.authorize import authorize
+import app.api.nautical_router as nautical_router
+from app.logger import Logger
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger = Logger()
+    # Steps that will be performed on startup events only once.
+    logger.log_this("Starting API on port 8069...", "INFO")
+    yield
+    # Steps that will happen on shutdown event
+    logger = Logger()
+    logger.log_this("Shutting down API...", "INFO")
 
 
 @lru_cache
@@ -25,6 +38,7 @@ app = FastAPI(
     title="Nautical Backup",
     summary="A simple Docker volume backup tool 🚀",
     version=get_settings().NAUTICAL_VERSION,
+    lifespan=lifespan,
 )
 
 security = HTTPBasic()
@@ -38,6 +52,11 @@ app.mount("/static", StaticFiles(directory=static_abs_file_path, html=True), nam
 @app.get("/")
 async def read_index():
     return FileResponse(f"{static_abs_file_path}/index.html")
+
+
+@app.get("/health-check")
+async def health_check():
+    return {"status": "healthy"}
 
 
 @app.get("/auth")

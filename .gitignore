@@ -1,4 +1,7 @@
-/dev
+/dev/config
+/dev/source
+/dev/destination
+/dev/*.json
 coverage
 .vscode
 __pycache__
@@ -7,3 +10,5 @@ pytest_cache
 htmlcov
 coverage.xml
 /tests/destination
+fake-path/
+fake-path2/

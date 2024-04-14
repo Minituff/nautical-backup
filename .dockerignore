@@ -1,24 +1,21 @@
-.git
-.github
-.gitattributes
-.gitignore
-.devcontainer
-.coverage
-dev
-docs
-snippets
-tests
-.vscode
-htmlcov
-mkdocs.yml
-pytest
-.pytest_cache
-README.md
-LICENSE
+# This dockerignore is being used as a whitelist.
+
+# Ignore everything
+*
 
 # Files/Folders we need
-# api
-# Dockerfile
-# .dockerignore
-# pkg
-# s6-overlay
+!Dockerfile
+!.dockerignore
+!app/**
+!s6-overlay/**
+!requirements-dev.txt
+!requirements.txt
+
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db
+**/__pycache__

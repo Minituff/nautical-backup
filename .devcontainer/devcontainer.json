@@ -2,25 +2,37 @@
 {
 	"name": "Nautical",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+	// "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
-			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions fast-syntax-highlighting zsh-autocomplete",
+			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions fast-syntax-highlighting",
 			"omzPlugins": "https://github.com/zdharma-continuum/fast-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions https://github.com/marlonrichert/zsh-autocomplete"
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
 		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "nano,curl,jq,python3,python3-pip"
+			"packages": "nano,curl,jq"
 		}
 	},
 	"containerEnv": {
-		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev",
+		"PYTHONPATH": ".", // Required for python to work
+		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev/config",
 		"NAUTICAL_DB_NAME": "nautical-db.json",
-		"PYTHONPATH": "." // Required for python to work
+		"DEST_LOCATION": "/workspaces/nautical-backup/dev/destination",
+		"SOURCE_LOCATION": "/workspaces/nautical-backup/dev/source",
+		"LOG_LEVEL": "DEBUG"
+	},
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
 	"customizations": {
 		"vscode": {
+			"http.proxyStrictSSL": false,
+			"extensions.verifySignature": false,
 			"extensions": [
 				"mhutchie.git-graph",
 				"foxundermoon.shell-format",
@@ -33,7 +45,10 @@
 				"ms-python.python",
 				"ms-python.black-formatter",
 				"njpwerner.autodocstring",
-				"rangav.vscode-thunder-client"
+				"rangav.vscode-thunder-client",
+				"ms-azuretools.vscode-docker",
+				"bungcip.better-toml",
+				"littlefoxteam.vscode-python-test-adapter"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
@@ -79,5 +94,5 @@
 		}
 	},
 	"remoteUser": "root",
-	"postCreateCommand": "./.devcontainer/scripts/postCreateCommand.sh",
+	"postCreateCommand": "chmod +x .devcontainer/scripts/postCreateCommand.sh && ./.devcontainer/scripts/postCreateCommand.sh"
 }

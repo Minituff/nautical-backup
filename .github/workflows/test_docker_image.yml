@@ -13,10 +13,9 @@ on:
     branches: # Target
       - 'main'
       - 'dev'
-  push:
-    branches:
-      - 'api'  #! TODO: REMOVE
-      # - 'codecov'
+  # push:
+  #   branches:
+  #     - 'group-updates'
     # tags:
     #   - 'v*'
 
@@ -37,17 +36,31 @@ jobs:
     - name: Install dependencies
       run: |
         echo "Installing python requirements"
-        pip install -r api/requirements.txt
-        pip install -r pytest/requirements.txt
+        pip install -r requirements-dev.txt
 
     - name: Run Black format
-      run: python3 -m black --verbose --check --line-length 120 api
+      run: python3 -m black --verbose --check --line-length 120 app
+
+    - name: Prepare enviornment variables
+      run: |
+        echo "NAUTICAL_DB_PATH=${GITHUB_WORKSPACE}/dev/config" >> "$GITHUB_ENV"
+        echo "SOURCE_LOCATION=${GITHUB_WORKSPACE}/dev/source" >> "$GITHUB_ENV"
+        echo "DEST_LOCATION=${GITHUB_WORKSPACE}/dev/destination" >> "$GITHUB_ENV"
+        echo "LOG_LEVEL=DEBUG" >> "$GITHUB_ENV"
+    
+    - name: Create necessary folders
+      run: |
+        mkdir -p $NAUTICAL_DB_PATH
+        mkdir -p $SOURCE_LOCATION
+        mkdir -p $DEST_LOCATION
 
     - name: Run tests and collect coverage
-      run: python3 -m pytest --cov api --cov-report html --cov-report term --cov-report xml
+      run: |
+        echo "NAUTICAL_DB_PATH: ${NAUTICAL_DB_PATH}" 
+        python3 -m pytest --cov app --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
-      uses: codecov/codecov-action@v4-beta
+      uses: codecov/codecov-action@v4
       env: 
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
@@ -86,31 +99,45 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build and export Docker image
-      uses: docker/build-push-action@v5.1.0
+      uses: docker/build-push-action@v5.3.0
       with:
         context: .
         load: true # Do not push this image
         tags: minituff/nautical-test
         build-args: TEST_MODE=0
   
-    - name: Run integration tests against Docker image
+    - name: Run built image against Docker image
       run: |
         cd tests
         docker compose run nautical-backup-test1
         docker compose run nautical-backup-test2
-        docker compose run nautical-backup-test3
 
-    - name: Upload reports to Codecov
-      uses: codecov/codecov-action@v4-beta
-      env: 
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
-      with:
-        fail_ci_if_error: true
-        files: tests/coverage/coverage.xml # The json file will not work here
+    - name: Run integration tests against Docker image
+      timeout-minutes: 3
+      run: |
+        cd tests
+        
+        rm -rf source config
+        mkdir -p source/watchtower-test
+        echo "This is a test file" >> source/watchtower-test/test-file.txt
+        
+        docker compose -f watchtower.yml up -d
+        docker compose run nautical-backup-test3
+        docker compose -f watchtower.yml down
+
+        bash ./_validate_rsync.sh
+
+    # - name: Upload reports to Codecov
+    #   uses: codecov/codecov-action@v4
+    #   env: 
+    #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
+    #   with:
+    #     fail_ci_if_error: true
+    #     files: tests/coverage/coverage.xml # The json file will not work here
     
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v4
-      with:
-        name: bash-code-coverage
-        path: tests/coverage/
-        retention-days: 5
+    # - name: Archive code coverage results
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: bash-code-coverage
+    #     path: tests/coverage/
+    #     retention-days: 5

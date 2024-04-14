@@ -41,11 +41,9 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
-# Copy all necessary files into the container (from /pkg in the repository to /app in the container)
-COPY pkg app
-
-# Copy the api folder from the git repo into the container
-COPY api api
+# Copy all necessary files into the container (from /app in the repository to /app in the container)
+COPY app app
+COPY requirements.txt app/requirements.txt
 
 # Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.18&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
@@ -76,8 +74,7 @@ ENV S6_VERBOSITY=1
 RUN \
     echo "**** Install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
-    dos2unix="${DOS2UNIX_VERSION}" \
-    py3-pip="${PIP_VERSION}" && \
+    dos2unix="${DOS2UNIX_VERSION}" && \
     echo "**** Install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
     bash="${BASH_VERSION}" \
@@ -85,13 +82,14 @@ RUN \
     tzdata="${TZ_DATA_VERSION}" \
     jq="${JQ_VERSION}" \ 
     curl="${CURL_VERSION}" \
-    python3="${PYTHON_VERSION}" && \
+    python3="${PYTHON_VERSION}" \
+    py3-pip="${PIP_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
     echo "**** Install Python packages ****" && \
-    python3 -m pip install --no-cache-dir --upgrade -r /api/requirements.txt && \
+    python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
     echo "**** Cleanup ****" && \
     apk del --purge build-dependencies
 
@@ -100,11 +98,13 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
       echo "=== TEST MODE ENABLED ===" && \
       echo "**** Installing TEST packages ****" && \
       apk add --no-cache \
-      ruby-full="${RUBY_VERSION}" \
-      py3-pip="${PIP_VERSION}" && \
+      ruby-full="${RUBY_VERSION}" && \
       echo "**** Installing ruby packages (for tests) ****" && \
       gem install bashcov simplecov-cobertura simplecov-html; \
     fi
+
+# Required for Python imports to work
+ENV PYTHONPATH="."
 
 # Add S6 files
 COPY --chmod=755 s6-overlay/ /
@@ -115,8 +115,11 @@ VOLUME [ "/app/destination" ]
 # Only should be exposed when running in test mode
 VOLUME [ "/tests" ]
 
-# Only used with the HTTP API is enabled
+# Publish this port to enable the HTTP endpoints
 EXPOSE 8069
+
+# Hit the healthcheck endpoint to ensure the container is healthy every 30 seconds
+HEALTHCHECK --start-period=10s --interval=20s --timeout=10s CMD curl --fail http://localhost:8069 || exit 1   
 
 # Run the entry script and pass all variables to it
 ENTRYPOINT ["/init"]

@@ -53,14 +53,14 @@ jobs:
           type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
 
     - name: Log in to Docker Hub
-      uses: docker/login-action@v3.0.0
+      uses: docker/login-action@v3.1.0
       with:
         # This is your Docker Hub username and password.
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
       
     - name: Log in to the GitHub Container registry
-      uses: docker/login-action@v3.0.0
+      uses: docker/login-action@v3.1.0
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
@@ -71,7 +71,7 @@ jobs:
     # For more information, see "Usage" in the README of the docker/build-push-action repository. https://github.com/docker/build-push-action#usage
     # It uses the tags and labels parameters to tag and label the image with the output from the "meta" step.
     - name: Build and push Docker images
-      uses: docker/build-push-action@v5.1.0
+      uses: docker/build-push-action@v5.3.0
       with:
         context: .
         push: true

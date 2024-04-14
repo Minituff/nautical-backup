@@ -312,11 +312,18 @@ KEEP_SRC_DIR_NAME=false
 ## HTTP REST API
 Enable or disable the [Nautical API](./rest-api.md).
 
-> **Default**: false
+> **Default**: true
 
 ```properties
-HTTP_REST_API_ENABLED=true
+HTTP_REST_API_ENABLED=false
 ```
+
+!!! tip "A quick note"
+    A `false` value doesn't completely disable the REST API service--it will only disable the logs stating the API starting.
+    
+    The REST API is used internally for Docker [Healthchecks](https://docs.docker.com/reference/dockerfile). 
+    However, you do not open the port, then all the endpoints will remain unreachable.
+    See the [Nautical API](./rest-api.md) section for more information.
 
 ### API Username and Password
 See [API Section](./rest-api.md) for examples how authenticating to the API.

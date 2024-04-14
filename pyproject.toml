@@ -1,0 +1,36 @@
+[tool.black]
+line-length = 120
+
+
+ 
+
+[tool.pytest.ini_options]
+python_files = "test_*.py *_test.py"
+addopts = "--ignore-glob=notebooks/*  --strict-markers"
+required_plugins = "pytest-cov"
+pythonpath = ".."
+markers = [
+    "it: name an test",
+    "description: descption of a test",
+    "integration: name an integration test (deselect with '-m \"not integration\"')",
+
+]
+filterwarnings = [
+    'ignore',
+]
+tmpdir_keep=0
+
+[tool.coverage]
+    [tool.coverage.run]
+    omit = [
+        # omit anything in a .local directory anywhere
+        '*/.local/*',
+        '__init__.py',
+        'tests/*',
+        '*/tests/*',
+        # omit anything in a .venv directory anywhere
+        '.venv/*'
+    ]
+
+    [tool.coverage.report]
+    skip_empty = true

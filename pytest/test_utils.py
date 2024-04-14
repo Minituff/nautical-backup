@@ -4,7 +4,7 @@ from pathlib import Path
 from mock import mock, MagicMock, patch
 import datetime
 
-from api.utils import next_cron_occurrences
+from app.api.utils import next_cron_occurrences
 
 
 class TestUtils:
@@ -25,7 +25,7 @@ class TestUtils:
             "tz": "Etc/UTC",
             "1": ["Sunday, January 02, 2022 at 04:00 AM", "01/02/22 04:00"],
         }
-        
+
         monkeypatch.setenv("CRON_SCHEDULE", "0 4 * * *")
         monkeypatch.setenv("TZ", "Etc/UTC")
         assert next_cron_occurrences(1, faked_now) == {
@@ -43,7 +43,7 @@ class TestUtils:
             "1": ["Thursday, November 02, 2023 at 08:00 AM", "11/02/23 08:00"],
             "2": ["Friday, November 03, 2023 at 08:00 AM", "11/03/23 08:00"],
         }
-        
+
         assert next_cron_occurrences(-10, faked_now) == {
             "cron": "0 8 * * *",
             "tz": "America/Phoenix",

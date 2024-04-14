@@ -14,7 +14,7 @@ install_cron(){
     sed -i '/nautical/d' tempcron
 
     # Add the new cron job to the file
-    echo "$CRON_SCHEDULE with-contenv bash nautical" >>tempcron
+    echo "$CRON_SCHEDULE with-contenv nautical" >>tempcron
 
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
@@ -25,8 +25,15 @@ install_cron
 verify_source_location $SOURCE_LOCATION
 verify_destination_location $DEST_LOCATION
 
-initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
-seed_db
+#? Old bash methods
+# initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
+# seed_db
+
+# The script must be run from the root directory
+cd /
+with-contenv python3 /app/db.py
+
+# Simlinks the nautical command to the backup script (python)
 initialize_nautical
 
 

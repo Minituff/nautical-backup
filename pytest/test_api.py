@@ -5,11 +5,11 @@ from mock import mock, MagicMock, patch
 
 from fastapi.testclient import TestClient
 
-from api.db import DB
-from api.utils import next_cron_occurrences
-from api.config import Settings
-from api.main import app
-from api.authorize import get_settings
+from app.db import DB
+from app.api.utils import next_cron_occurrences
+from app.api.config import Settings
+from app.api.main import app
+from app.api.authorize import get_settings
 
 client = TestClient(app)
 
@@ -26,7 +26,8 @@ def get_settings_disable() -> Settings:
         HTTP_REST_API_USERNAME="",
         HTTP_REST_API_PASSWORD="",
     )
-    
+
+
 def reset_settings_override() -> Settings:
     return Settings(
         HTTP_REST_API_USERNAME="admin",
@@ -61,10 +62,9 @@ class TestAPI:
 
         response = client.get("/auth", auth=("", ""))
         assert response.status_code == 200
-        
+
         app.dependency_overrides[get_settings] = reset_settings_override
 
-        
     def test_login_on_with_env(self, monkeypatch: pytest.MonkeyPatch):
         # Apply the environment variable override
         app.dependency_overrides[get_settings] = get_settings_override
@@ -87,9 +87,8 @@ class TestAPI:
         db = DB()
         response = client.get("/api/v1/nautical/dashboard", auth=("admin", "password"))
         assert response.status_code == 200
-        
-        
-        assert response.json()["backup_running"] == db.get("backup_running", "false")
+
+        assert response.json()["backup_running"] == db.get("backup_running", False)
         assert response.json()["errors"] == db.get("errors", 0)
         assert response.json()["skipped"] == db.get("containers_skipped", 0)
         assert response.json()["completed"] == db.get("containers_completed", 0)
@@ -97,8 +96,7 @@ class TestAPI:
         assert response.json()["last_cron"] == db.get("last_cron", "None")
         assert len(response.json()["next_cron"]) == 7
         assert set(response.json()["next_cron"]) == set(next_cron_occurrences(5))
-        
-        
+
     @patch("subprocess.run")
     def test_start_backup(self, patched_subprocess_run):
         response = client.post("/api/v1/nautical/start_backup", auth=("admin", "password"))

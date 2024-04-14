@@ -38,10 +38,10 @@ test_docker() {
 
 test_cron() {
     # Expected output
-    EXPECTED_OUTPUT="$CRON_SCHEDULE with-contenv bash nautical"
+    EXPECTED_OUTPUT="$CRON_SCHEDULE with-contenv nautical"
 
     # Run the command and capture its output
-    ACTUAL_OUTPUT=$(crontab -l | grep bash)
+    ACTUAL_OUTPUT=$(crontab -l | grep contenv)
 
     if [ "$ACTUAL_OUTPUT" != "$EXPECTED_OUTPUT" ]; then
         echo "FAIL: CRON output does not match expected output."
@@ -300,7 +300,7 @@ declare -A expected_env_vars=(
     ["ADDITIONAL_FOLDERS_WHEN"]="before"
     ["PRE_BACKUP_CURL"]=""
     ["POST_BACKUP_CURL"]=""
-    ["HTTP_REST_API_ENABLED"]="false"
+    ["HTTP_REST_API_ENABLED"]="true"
     ["HTTP_REST_API_USERNAME"]="admin"
     ["HTTP_REST_API_PASSWORD"]="password"
     
@@ -329,6 +329,10 @@ elif [ "$1" == "test2" ]; then
     source /app/entry.sh
     echo "Testing default enviornment variables..."
     test_env_vars expected_env_vars
+
+elif [ "$1" == "test3" ]; then
+    # Complete integration tests
+    exit 0
 else
     echo "Invalid argument. Use either 'test1' or 'test2'."
     exit 1

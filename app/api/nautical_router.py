@@ -5,9 +5,9 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from typing import Annotated
 
-from api.authorize import authorize
-from api.utils import next_cron_occurrences
-from api.db import DB
+from app.api.authorize import authorize
+from app.api.utils import next_cron_occurrences
+from app.db import DB
 
 # All routes in this file start with /nautical
 router = APIRouter(prefix="/api/v1/nautical", tags=["nautical"])
