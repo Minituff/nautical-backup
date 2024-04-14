@@ -59,13 +59,24 @@ initialize_nautical_bash() {
     fi
 }
 
-initialize_nautical() {
+# Unusesd
+initialize_nautical_python() {
     if [ ! -f "/usr/local/bin/nautical" ]; then
         logThis "Installing nautical backup script..." "DEBUG" "init"
         # Allows the nautical backup script to be run using `bash nautical`
         ln -s /app/backup.py /usr/local/bin/nautical
         chmod +x /usr/local/bin/nautical
         logThis "ln -s /app/backup.py /usr/local/bin/nautical" "TRACE" "init"
+    fi
+}
+
+initialize_nautical() {
+    if [ ! -f "/usr/local/bin/nautical" ]; then
+        logThis "Installing nautical backup script..." "DEBUG" "init"
+        # Allows the nautical backup script to be run using `bash nautical`
+        ln -s /app/nautical.sh /usr/local/bin/nautical
+        chmod +x /usr/local/bin/nautical
+        logThis "ln -s /app/backup.sh /usr/local/bin/nautical" "TRACE" "init"
     fi
 }
 
