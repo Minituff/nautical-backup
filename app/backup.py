@@ -456,6 +456,8 @@ class NauticalBackup:
         if self.env.REPORT_FILE == True:
             self.logger._create_new_report_file()
 
+        self.log_this("Starting backup...", "INFO")
+
         self.db.put("backup_running", True)
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 

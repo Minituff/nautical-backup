@@ -3,13 +3,11 @@
 
 source /app/logger.sh # Use the logger script
 
-if [ "$HTTP_REST_API_ENABLED" == "false" ]; then
-    logThis "Not starting REST API because HTTP_REST_API_ENABLED=false" "DEBUG" "init"
-    exec sleep infinity
+
+if [ "$HTTP_REST_API_ENABLED" == "true" ]; then
+    logThis "API listening on port 8069..." "INFO" "init"
 fi
 
-
-logThis "API listening on port 8069..." "INFO" "init"
 
 logThis "Running: exec with-contenv python3 -m uvicorn app.api.main:app --host 0.0.0.0 --port 8069 --lifespan on --use-colors --log-level 'warning'" "TRACE" "init"
 

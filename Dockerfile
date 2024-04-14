@@ -118,5 +118,8 @@ VOLUME [ "/tests" ]
 # Only used with the HTTP API is enabled
 EXPOSE 8069
 
+# Hit the healthcheck endpoint to ensure the container is healthy every 30 seconds
+HEALTHCHECK CMD curl --fail http://localhost:8069 || exit 1   
+
 # Run the entry script and pass all variables to it
 ENTRYPOINT ["/init"]

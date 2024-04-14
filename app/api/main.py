@@ -54,6 +54,11 @@ async def read_index():
     return FileResponse(f"{static_abs_file_path}/index.html")
 
 
+@app.get("/health-check")
+async def health_check():
+    return {"status": "healthy"}
+
+
 @app.get("/auth")
 def auth(username: Annotated[str, Depends(authorize)]):
     return {"username": username}
