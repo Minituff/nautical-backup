@@ -38,8 +38,8 @@ class NauticalBackup:
         self.docker = docker_client
         self.default_group_pfx_sfx = "&"  # The prefix and suffix used to define this group
 
-        self.containers_completed = 0
-        self.containers_skipped = 0
+        self.containers_completed = set()
+        self.containers_skipped = set()
 
         if self.env.REPORT_FILE == True and self.env.REPORT_FILE_ON_BACKUP_ONLY == False:
             self.logger._create_new_report_file()
@@ -139,7 +139,7 @@ class NauticalBackup:
 
         for c in containers:
             if self._should_skip_container(c) == True:
-                self.containers_skipped += 1
+                self.containers_skipped.add(c.name)
                 continue  # Skip this container
 
             # Create a default group, so ungrouped items are not grouped together
@@ -488,6 +488,7 @@ class NauticalBackup:
                         self.log_this(f"{c.name} - Source directory '{src_dir}' does, but that's okay", "DEBUG")
 
                     self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
+                    self.containers_skipped.add(c.name)
                     continue
 
                 stop_result = self._stop_container(c)  # Stop containers
@@ -509,7 +510,7 @@ class NauticalBackup:
 
                     if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
                         self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
-                        self.containers_skipped += 1
+                        self.containers_skipped.add(c.name)
                         continue
 
                 self._backup_container_foldes(c)
@@ -528,18 +529,23 @@ class NauticalBackup:
                 if additional_folders_when == "after":
                     self._backup_additional_folders(c)
 
-                self.containers_completed += 1
-                self.log_this(f"Backup of {c.name} complete!", "INFO")
+                if c.name not in self.containers_skipped:
+                    self.containers_completed.add(c.name)
+                    self.log_this(f"Backup of {c.name} complete!", "INFO")
 
         self._backup_additional_folders_standalone(BeforeOrAfter.AFTER)
         self._run_curl(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
         self.db.put("backup_running", False)
-        self.db.put("containers_completed", self.containers_completed)
-        self.db.put("containers_skipped", self.containers_skipped)
+        self.db.put("containers_completed", len(self.containers_completed))
+        self.db.put("containers_skipped", len(self.containers_skipped))
+
+        self.log_this("Containers completed: " + str(self.containers_completed), "DEBUG")
+        self.log_this("Containers skipped: " + str(self.containers_skipped), "DEBUG")
 
         self.log_this(
-            f"Success. {self.containers_completed} containers backed up! {self.containers_skipped} skipped.", "INFO"
+            f"Success. {len(self.containers_completed)} containers backed up! {len(self.containers_skipped)} skipped.",
+            "INFO",
         )
 
         if self.env.RUN_ONCE == True:
