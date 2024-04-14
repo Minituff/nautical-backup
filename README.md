@@ -4,12 +4,6 @@
     
 A simple Docker volume backup tool.
 
-
-# TODO
-[ ] Test report file
-[ ] Test LogThis
-[ ] Test LogThisReportFile
-
 ---
 
 <br>
