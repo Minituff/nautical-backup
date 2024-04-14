@@ -115,11 +115,11 @@ VOLUME [ "/app/destination" ]
 # Only should be exposed when running in test mode
 VOLUME [ "/tests" ]
 
-# Only used with the HTTP API is enabled
+# Publish this port to enable the HTTP endpoints
 EXPOSE 8069
 
 # Hit the healthcheck endpoint to ensure the container is healthy every 30 seconds
-HEALTHCHECK CMD curl --fail http://localhost:8069 || exit 1   
+HEALTHCHECK --start-period=10s --interval=20s --timeout=10s CMD curl --fail http://localhost:8069 || exit 1   
 
 # Run the entry script and pass all variables to it
 ENTRYPOINT ["/init"]
