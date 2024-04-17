@@ -2,7 +2,7 @@ import os
 import json
 from typing import Any, Optional, Union
 from pathlib import Path
-from app.logger import Logger
+from app.logger import Logger, LogType
 from datetime import datetime
 
 
@@ -25,7 +25,7 @@ class DB:
     def __repr__(self) -> str:
         return str({"db_path": self.db_path, "db": dict(self._read_db())})
 
-    def log_this(self, log_message, log_priority="INFO", message_type="default") -> None:
+    def log_this(self, log_message, log_priority="INFO", message_type: LogType = LogType.DEFAULT) -> None:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, message_type)
 

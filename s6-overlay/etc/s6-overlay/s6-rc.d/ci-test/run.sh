@@ -39,6 +39,6 @@ if [ "$TEST_MODE" != "-1" ]; then
 
 else
     if [ "$LOG_LEVEL" == "TRACE" ]; then
-        echo "TRACE - TEST_MODE: ${TEST_MODE}"
+        echo "TRACE: TEST_MODE: ${TEST_MODE}"
     fi
 fi
