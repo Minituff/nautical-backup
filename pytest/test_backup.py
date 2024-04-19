@@ -1559,6 +1559,8 @@ class TestBackup:
         assert groups["authentic"] == [mock_container1, mock_container2]
         assert groups["paperless"] == [mock_container2, mock_container3]
 
+    # TODO: Test Sort the containers within each group by priority
+
     def test_exception_on_no_src_dir(
         self,
         mock_docker_client: MagicMock,

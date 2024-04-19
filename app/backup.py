@@ -156,6 +156,7 @@ class NauticalBackup:
                 else:
                     containers_by_group[g].append(c)
 
+        # TODO: Sort the containers within each group by priority
         return containers_by_group
 
     def _run_curl(
@@ -509,7 +510,8 @@ class NauticalBackup:
                         stop_before_backup_env = False
 
                     if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
-                        self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
+                        if c.name not in self.containers_skipped:
+                            self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         self.containers_skipped.add(c.name)
                         continue
 
@@ -540,8 +542,8 @@ class NauticalBackup:
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
 
-        self.log_this("Containers completed: " + str(self.containers_completed), "DEBUG")
-        self.log_this("Containers skipped: " + str(self.containers_skipped), "DEBUG")
+        self.log_this("Containers completed: " + self.logger.set_to_string(self.containers_completed), "DEBUG")
+        self.log_this("Containers skipped: " + self.logger.set_to_string(self.containers_skipped), "DEBUG")
 
         self.log_this(
             f"Success. {len(self.containers_completed)} containers backed up! {len(self.containers_skipped)} skipped.",

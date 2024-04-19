@@ -43,6 +43,11 @@ class Logger:
         self.report_file = f"Backup Report - {datetime.datetime.now().strftime('%Y-%m-%d')}.txt"
 
     @staticmethod
+    def set_to_string(input: set) -> str:
+        """Converts a set to a string with comma separated values."""
+        return ", ".join(str(i) for i in input)
+
+    @staticmethod
     def _parse_log_level(log_level: str) -> Optional[LogLevel]:
         # Override the defaults with environment variables if they exist
         if log_level.lower() == "trace":

@@ -45,7 +45,7 @@ services:
     environment:
       - TZ=America/Los_Angeles
       - LOG_LEVEL=TRACE
-      - BACKUP_ON_START=false
+      - BACKUP_ON_START=true
       - CRON_SCHEDULE=0 4 * * *
       - REQUIRE_LABEL=true
       - HTTP_REST_API_ENABLED=true
