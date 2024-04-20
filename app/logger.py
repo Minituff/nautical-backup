@@ -64,6 +64,9 @@ class Logger:
 
     def _delete_old_report_files(self):
         """Only completed on Nautical init"""
+        if not os.path.exists(self.dest_location):
+            return
+
         for file in os.listdir(self.dest_location):
             file.strip()
             if file.startswith("Backup Report -") and file.endswith(".txt"):
@@ -74,6 +77,9 @@ class Logger:
     def _create_new_report_file(self):
         """Only completed on Nautical init"""
         self._delete_old_report_files()
+
+        if not os.path.exists(self.dest_location):
+            raise FileNotFoundError(f"Destination location {self.dest_location} does not exist.")
 
         # Initialize the current report file with a header
         with open(os.path.join(self.dest_location, self.report_file), "w+") as f:
@@ -92,5 +98,7 @@ class Logger:
         # Check if level is enough for report file logging
         if self.levels[log_level] >= self.levels[self.report_file_logging_level]:
             if self.report_file_on_backup_only == False or log_type == LogType.DEFAULT:
+                if not os.path.exists(os.path.join(self.dest_location, self.report_file)):
+                    self._create_new_report_file()
                 with open(os.path.join(self.dest_location, self.report_file), "a") as f:
                     f.write(f"{datetime.datetime.now()} - {str(log_level)[9:]}: {log_message}\n")
