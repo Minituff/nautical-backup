@@ -7,4 +7,4 @@ docker run -d \
   -e TZ="America/Los_Angeles" \
   -e CRON_SCHEDULE="0 4 * * *" \
   -e SKIP_CONTAINERS="example1,example2,example3" \
-  minituff/nautical-backup:2.0
+  minituff/nautical-backup:2.1
