@@ -48,7 +48,10 @@ class Logger:
         return ", ".join(str(i) for i in input)
 
     @staticmethod
-    def _parse_log_level(log_level: str) -> Optional[LogLevel]:
+    def _parse_log_level(log_level: Union[str, LogLevel]) -> Optional[LogLevel]:
+        if isinstance(log_level, LogLevel):
+            return log_level
+
         # Override the defaults with environment variables if they exist
         if log_level.lower() == "trace":
             return LogLevel.TRACE
@@ -86,19 +89,17 @@ class Logger:
             f.write(f"Backup Report - {datetime.datetime.now()}\n")
 
     def log_this(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO, log_type=LogType.DEFAULT):
-        # Check if level exists
-        log_level = self._parse_log_level(str(log_level)) or log_level
-        if log_level not in self.levels:
-            return
+
+        level = self._parse_log_level(log_level)
+        if level not in self.levels:
+            return  # Check if level exists
 
         # Check if level is enough for console logging
-        if self.levels[log_level] >= self.levels[self.script_logging_level]:
-            print(f"{str(log_level)[9:]}: {log_message}")
+        if self.levels[level] >= self.levels[self.script_logging_level]:
+            print(f"{str(level)[9:]}: {log_message}")
 
         # Check if level is enough for report file logging
-        if self.levels[log_level] >= self.levels[self.report_file_logging_level]:
-            if self.report_file_on_backup_only == False or log_type == LogType.DEFAULT:
-                if not os.path.exists(os.path.join(self.dest_location, self.report_file)):
-                    self._create_new_report_file()
+        if self.levels[level] >= self.levels[self.report_file_logging_level]:
+            if self.report_file_on_backup_only == True and log_type == LogType.DEFAULT:
                 with open(os.path.join(self.dest_location, self.report_file), "a") as f:
-                    f.write(f"{datetime.datetime.now()} - {str(log_level)[9:]}: {log_message}\n")
+                    f.write(f"{datetime.datetime.now()} - {str(level)[9:]}: {log_message}\n")

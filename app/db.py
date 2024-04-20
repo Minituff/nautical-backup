@@ -2,7 +2,7 @@ import os
 import json
 from typing import Any, Optional, Union
 from pathlib import Path
-from app.logger import Logger, LogType
+from app.logger import Logger, LogType, LogLevel
 from datetime import datetime
 
 
@@ -25,20 +25,20 @@ class DB:
     def __repr__(self) -> str:
         return str({"db_path": self.db_path, "db": dict(self._read_db())})
 
-    def log_this(self, log_message, log_priority="INFO", message_type: LogType = LogType.DEFAULT) -> None:
+    def log_this(self, log_message, log_level=LogLevel.INFO, log_type: LogType = LogType.DEFAULT) -> None:
         """Wrapper for log this"""
-        return self.logger.log_this(log_message, log_priority, message_type)
+        return self.logger.log_this(log_message, log_level, log_type)  # TODO: Fix
 
     def _initialize_db(self):
         """Initialize the database if it doesn't exist."""
         if os.path.isfile(self.db_path):
-            self.log_this(f"Connected to database at '{self.db_path}'", "INFO")
+            self.log_this(f"Connected to database at '{self.db_path}'", log_type=LogType.INIT)
         else:
-            self.log_this(f"Initializing database at '{self.db_path}'...", "INFO")
+            self.log_this(f"Initializing database at '{self.db_path}'...", log_type=LogType.INIT)
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
 
             if not os.path.isfile(self.db_path):
-                self.log_this(f"Creating Database at path: '{self.db_path}'...", "INFO")
+                self.log_this(f"Creating Database at path: '{self.db_path}'...", log_type=LogType.INIT)
                 with open(self.db_path, "w") as db_file:
                     current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     json.dump(
@@ -48,7 +48,7 @@ class DB:
                         db_file,
                     )
 
-                self.log_this(f"Database initialized at '{self.db_path}'...", "INFO")
+                self.log_this(f"Database initialized at '{self.db_path}'...", log_type=LogType.INIT)
 
     def _seed_db(self):
         """Seed the database with default values."""
