@@ -1412,20 +1412,21 @@ class TestBackup:
 
         excepted = [
             # Group authentic
+            "mockContainer2_stop",
             "mockContainer1_stop",
-            "mockContainer2_stop",
             "mock_subprocess_run",
             "mock_subprocess_run",
+            "mockContainer2_start",
             "mockContainer1_start",
-            "mockContainer2_start",
             # Group paperless
-            "mockContainer2_stop",
             "mockContainer3_stop",
+            "mockContainer2_stop",
             "mock_subprocess_run",
             "mock_subprocess_run",
-            "mockContainer2_start",
             "mockContainer3_start",
+            "mockContainer2_start",
         ]
+
         assert call_names == excepted
 
     @mock.patch("subprocess.run")
@@ -1492,13 +1493,14 @@ class TestBackup:
         nb.backup()
 
         call_names = [c[0] for c in parent_mock.mock_calls]
+
         assert call_names == [
-            "mockContainer1_stop",
             "mockContainer2_stop",
+            "mockContainer1_stop",
             "mock_subprocess_run",
             "mock_subprocess_run",
-            "mockContainer1_start",
             "mockContainer2_start",
+            "mockContainer1_start",
             # Group "services"
             "mockContainer3_stop",
             "mock_subprocess_run",
@@ -1556,8 +1558,88 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         groups = nb.group_containers()
 
-        assert groups["authentic"] == [mock_container1, mock_container2]
-        assert groups["paperless"] == [mock_container2, mock_container3]
+        assert groups["authentic"] == [mock_container2, mock_container1]
+        assert groups["paperless"] == [mock_container3, mock_container2]
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.group": "authentic",
+                    "nautical-backup.group.authentic.priority": "90",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [
+            {
+                "name": "container2",
+                "id": "101112231415",
+                "labels": {
+                    "nautical-backup.group": "authentic,paperless",
+                    "nautical-backup.group.authentic.priority": "101",
+                    "nautical-backup.group.paperless.priority": "105",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container3",
+        [
+            {
+                "name": "container3",
+                "id": "09129213232",
+                "labels": {
+                    "nautical-backup.group": "paperless",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container4",
+        [
+            {
+                "name": "container4",
+                "id": "9038383223",
+                "labels": {
+                    "nautical-backup.group": "authentic,paperless",
+                    "nautical-backup.group.authentic.priority": "103",
+                    "nautical-backup.group.paperless.priority": "80",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_grouping_function_with_priority(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        mock_container4: MagicMock,
+    ):
+        """Test container group function with priority"""
+        mock_docker_client.containers.list.return_value = [
+            mock_container1,
+            mock_container2,
+            mock_container3,
+            mock_container4,
+        ]
+        nb = NauticalBackup(mock_docker_client)
+        groups = nb.group_containers()
+
+        # Priority                           103            101              90
+        assert groups["authentic"] == [mock_container4, mock_container2, mock_container1]
+        # Priority                           105            100             80
+        assert groups["paperless"] == [mock_container2, mock_container3, mock_container4]
 
     def test_exception_on_no_src_dir(
         self,

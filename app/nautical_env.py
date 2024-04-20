@@ -41,9 +41,9 @@ class NauticalEnv:
         if os.environ.get("RUN_ONCE", "False").lower() == "true":
             self.RUN_ONCE = True
 
-        self.REPORT_FILE = False
-        if os.environ.get("REPORT_FILE", "False").lower() == "true":
-            self.REPORT_FILE = True
+        self.REPORT_FILE = True
+        if os.environ.get("REPORT_FILE", "True").lower() == "false":
+            self.REPORT_FILE = False
 
     @staticmethod
     def _populate_override_dirs(env_name: str) -> Dict[str, str]:

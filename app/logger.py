@@ -43,7 +43,15 @@ class Logger:
         self.report_file = f"Backup Report - {datetime.datetime.now().strftime('%Y-%m-%d')}.txt"
 
     @staticmethod
-    def _parse_log_level(log_level: str) -> Optional[LogLevel]:
+    def set_to_string(input: set) -> str:
+        """Converts a set to a string with comma separated values."""
+        return ", ".join(str(i) for i in input)
+
+    @staticmethod
+    def _parse_log_level(log_level: Union[str, LogLevel]) -> Optional[LogLevel]:
+        if isinstance(log_level, LogLevel):
+            return log_level
+
         # Override the defaults with environment variables if they exist
         if log_level.lower() == "trace":
             return LogLevel.TRACE
@@ -59,6 +67,9 @@ class Logger:
 
     def _delete_old_report_files(self):
         """Only completed on Nautical init"""
+        if not os.path.exists(self.dest_location):
+            return
+
         for file in os.listdir(self.dest_location):
             file.strip()
             if file.startswith("Backup Report -") and file.endswith(".txt"):
@@ -70,22 +81,43 @@ class Logger:
         """Only completed on Nautical init"""
         self._delete_old_report_files()
 
+        if not os.path.exists(self.dest_location):
+            raise FileNotFoundError(f"Destination location {self.dest_location} does not exist.")
+
         # Initialize the current report file with a header
         with open(os.path.join(self.dest_location, self.report_file), "w+") as f:
             f.write(f"Backup Report - {datetime.datetime.now()}\n")
 
+    def _write_to_report_file(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO):
+        level = self._parse_log_level(log_level)
+        if level not in self.levels:
+            return  # Check if level exists
+
+        # Check if folder exists
+        if not os.path.exists(self.dest_location):
+            raise FileNotFoundError(f"Destination location {self.dest_location} does not exist.")
+
+        with open(os.path.join(self.dest_location, self.report_file), "a") as f:
+            f.write(f"{datetime.datetime.now()} - {str(level)[9:]}: {log_message}\n")
+
     def log_this(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO, log_type=LogType.DEFAULT):
-        # Check if level exists
-        log_level = self._parse_log_level(str(log_level)) or log_level
-        if log_level not in self.levels:
-            return
+
+        level = self._parse_log_level(log_level)
+        if level not in self.levels:
+            return  # Check if level exists
 
         # Check if level is enough for console logging
-        if self.levels[log_level] >= self.levels[self.script_logging_level]:
-            print(f"{str(log_level)[9:]}: {log_message}")
+        if self.levels[level] >= self.levels[self.script_logging_level]:
+            print(f"{str(level)[9:]}: {log_message}")
+
+        if self.env.REPORT_FILE == False:
+            return
 
         # Check if level is enough for report file logging
-        if self.levels[log_level] >= self.levels[self.report_file_logging_level]:
-            if self.report_file_on_backup_only == False or log_type == LogType.DEFAULT:
-                with open(os.path.join(self.dest_location, self.report_file), "a") as f:
-                    f.write(f"{datetime.datetime.now()} - {str(log_level)[9:]}: {log_message}\n")
+        if self.levels[level] >= self.levels[self.report_file_logging_level]:
+            if self.report_file_on_backup_only == True:
+                if log_type != LogType.INIT:
+                    self._write_to_report_file(log_message, log_level)
+            else:
+                # Always write to report file
+                self._write_to_report_file(log_message, log_level)

@@ -184,12 +184,13 @@ Normally, a container is backed to a folder with the ^^same name^^ as the `conta
 
 
 ## Curl Requests
-Send a `CURL` request *before* or *after* backing up the containers. This can be used to alert services before shutdown and/or ensure the services came online correctly.
+Send a `CURL` request *before* or *after* backing up ^^all^^ the containers. This can be used to alert services before shutdown and/or ensure the services came online correctly.
+
+This CURL will run before/after the entire backup process is initiated.
 
 > **Default**: *empty* <small>(nothing will be done)</small>
 
 > **FORMAT**: The entirety of a `curl` request
-
 
 ```properties
 PRE_BACKUP_CURL=curl -X GET 'google.com'
@@ -204,8 +205,9 @@ POST_BACKUP_CURL=curl -d "Backup successful 😀" ntfy.sh/mytopic
     docker exec -it nautical-backup \
       curl -X GET 'google.com'
     ```
+    **Note:** You can only have 1 *before* and 1 *after* Curl Request. This applies to Nautical itself, not to each container.
 
-<small>🔄 This is the same action as the [Curl Requests](./labels.md#curl-requests) label, but applied globally.</small>
+<small>🔄 This is the same action as the [Curl Requests](./labels.md#curl-requests) label, but applied globally (not per container).</small>
 
 ## Report file
 Enable or Disable the automatically generated report file.
@@ -233,13 +235,16 @@ SKIP_STOPPING=example1,example2
 <small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-before-backup) label, but applied globally.</small>
 
 ## Backup on Start
-Will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
+Nautical will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
 
 > **Default**: false
 
 ```properties
 BACKUP_ON_START=true
 ```
+
+!!! info "The console Nautical backup logs will not be avilable until all the containers have been processed."
+    This is due to a [limitation](https://github.com/just-containers/s6-overlay/issues/442#issuecomment-1121687777) in [S6-Overlay](https://github.com/just-containers/s6-overlay).
 
 ## Run Once
 This variable will tell Nautical to immediately quit after the first backup.

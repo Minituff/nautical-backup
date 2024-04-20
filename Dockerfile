@@ -70,6 +70,9 @@ ENV RUBY_VERSION="3.2.2-r0"
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
 ENV S6_VERBOSITY=1
 
+# Set the maximum time to wait for services to be ready (0=forever). Needed for BACKUP_ON_START since it could take time.
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+
 # Install dependencies
 RUN \
     echo "**** Install build packages (will be uninstalled later) ****" && \

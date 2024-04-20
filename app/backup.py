@@ -135,7 +135,7 @@ class NauticalBackup:
         output = output[:-2]
         self.log_this(f"Containers: {output}", "DEBUG")
 
-        containers_by_group: Dict[str, List[Container]] = {}
+        containers_by_group_in_process: Dict[str, List[Tuple[int, Container]]] = {}
 
         for c in containers:
             if self._should_skip_container(c) == True:
@@ -151,10 +151,27 @@ class NauticalBackup:
             # Split the group string into a list of groups by comma
             groups = group.split(",")
             for g in groups:
-                if g not in containers_by_group:
-                    containers_by_group[g] = [c]
+                # Get priority. Default=100
+                priority = int(c.labels.get(f"nautical-backup.group.{g}.priority", 100))
+
+                if g not in containers_by_group_in_process:
+                    containers_by_group_in_process[g] = [(priority, c)]
                 else:
-                    containers_by_group[g].append(c)
+                    containers_by_group_in_process[g].append((priority, c))
+
+        # Create final return dictionary
+        containers_by_group: Dict[str, List[Container]] = {}
+
+        # Sort the groups by priority (highest first)
+        for group, pri_and_cont in containers_by_group_in_process.items():
+            new_pri_and_cont = sorted(pri_and_cont, key=lambda pri: pri[0])
+            new_pri_and_cont.reverse()
+
+            for pri, cont in new_pri_and_cont:
+                if group not in containers_by_group:
+                    containers_by_group[group] = [cont]
+                else:
+                    containers_by_group[group].append(cont)
 
         return containers_by_group
 
@@ -509,7 +526,8 @@ class NauticalBackup:
                         stop_before_backup_env = False
 
                     if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
-                        self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
+                        if c.name not in self.containers_skipped:
+                            self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         self.containers_skipped.add(c.name)
                         continue
 
@@ -540,8 +558,8 @@ class NauticalBackup:
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
 
-        self.log_this("Containers completed: " + str(self.containers_completed), "DEBUG")
-        self.log_this("Containers skipped: " + str(self.containers_skipped), "DEBUG")
+        self.log_this("Containers completed: " + self.logger.set_to_string(self.containers_completed), "DEBUG")
+        self.log_this("Containers skipped: " + self.logger.set_to_string(self.containers_skipped), "DEBUG")
 
         self.log_this(
             f"Success. {len(self.containers_completed)} containers backed up! {len(self.containers_skipped)} skipped.",
