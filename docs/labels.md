@@ -163,7 +163,7 @@ nautical-backup.group=group_name
         The `redis` container is shared between two groups and will be backed up both times.
         
         ```yaml
-        paerless-ngx:
+        paperless-ngx:
           labels:
             - "nautical-backup.group=paperless"
         ```
@@ -198,6 +198,65 @@ nautical-backup.group=group_name
           authentik-redis-1:
             labels:
               - "nautical-backup.group=authentic"
+        ```
+
+
+## Group Priority (Order)
+When using the [Groups](#groups) feature, the Priority will allow you to control the order in which containers are started/stopped.
+
+Containers within a group are backed up with the ==highest priority first==, in descending order.
+
+> **Default If Missing**: *100*
+
+> **Format**: `<integer>`
+
+```properties
+nautical-backup.group.<group_name>.priority=<integer>
+```
+=== "Example 1"
+    !!! example ""
+        * The backup order for the group `paperless` is: *paperless-ngx* <small>(105)</small> --> *redis*  <small>(90)</small>
+        * The backup order for the group `authentic` is: *authentic-worker*  <small>(100/default)</small> --> *redis*  <small>(85)</small>
+        
+        ```yaml
+        paperless-ngx:
+          labels:
+            - "nautical-backup.group=paperless"
+            - "nautical-backup.group.paperless.priority=105"
+        ```
+        ```yaml
+        redis:
+          labels:
+            - "nautical-backup.group=paperless,authentic"
+            - "nautical-backup.group.paperless.priority=90"
+            - "nautical-backup.group.authentic.priority=85"
+        
+        ```
+        ```yaml
+        authentic-worker:
+          labels:
+            - "nautical-backup.group=authentic"
+        
+        ```
+        
+=== "Example 2"
+    !!! example ""
+        * The backup order for the group `authentic` is: *worker*  <small>(110)</small> --> *redis*  <small>(105)</small> --> *postgresql*  <small>(100)</small>
+
+        ```yaml
+        services:
+          authentik-worker-1:
+            labels:
+              - "nautical-backup.group=authentic"
+              - "nautical-backup.group.authentic.priority=110"
+          authentik-postgresql-1:
+            labels:
+              - "nautical-backup.group=authentic"
+              - "nautical-backup.group.authentic.priority=100"
+          authentik-redis-1:
+            labels:
+              - "nautical-backup.group=authentic"
+              - "nautical-backup.group.authentic.priority=105"
         ```
 
 ## Additional Folders
@@ -354,7 +413,7 @@ There are 3 moments when you can run a `curl` request <small>(You can use more t
 <small>🔄 This is the same action as the [Curl Requests](./arguments.md#curl-requests) variable, but applied only to this container.</small>
 
 ## Lifecycle Hooks
-Lifecycle Hooks allow you to run a command *inside* the container that Nautical is backing up.
+Lifecycle Hooks allow you to run a command ==*inside* the container that Nautical is backing up==.
 This can be used to shutdown services and/or test for a successful restart.
 
 > **Default**: *empty* <small>(no hooks)</small>
@@ -373,6 +432,8 @@ nautical-backup.lifecycle.after=/bin/sh ./script.sh
     docker exec -it <container-name> echo 'Hello from the container'
     docker exec -it <container-name> /bin/sh ./script.sh
     ```
+
+    **Remember:** `./script.sh` is inside the container itself, not within Nautical.
 
 ### Lifecycle Hook Timeouts
 
