@@ -7,5 +7,5 @@ if [ "$BACKUP_ON_START" = "true" ]; then
     # The backup script must be run from the root directory
     cd /
     # python3 /app/backup.py
-    exec nautical
+    nautical
 fi
