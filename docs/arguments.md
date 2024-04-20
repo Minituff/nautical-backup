@@ -235,13 +235,16 @@ SKIP_STOPPING=example1,example2
 <small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-before-backup) label, but applied globally.</small>
 
 ## Backup on Start
-Will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
+Nautical will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
 
 > **Default**: false
 
 ```properties
 BACKUP_ON_START=true
 ```
+
+!!! info "The console Nautical backup logs will not be avilable until all the containers have been processed."
+    This is due to a [limitation](https://github.com/just-containers/s6-overlay/issues/442#issuecomment-1121687777) in [S6-Overlay](https://github.com/just-containers/s6-overlay).
 
 ## Run Once
 This variable will tell Nautical to immediately quit after the first backup.
