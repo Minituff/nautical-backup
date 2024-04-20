@@ -1412,20 +1412,21 @@ class TestBackup:
 
         excepted = [
             # Group authentic
+            "mockContainer2_stop",
             "mockContainer1_stop",
-            "mockContainer2_stop",
             "mock_subprocess_run",
             "mock_subprocess_run",
+            "mockContainer2_start",
             "mockContainer1_start",
-            "mockContainer2_start",
             # Group paperless
-            "mockContainer2_stop",
             "mockContainer3_stop",
+            "mockContainer2_stop",
             "mock_subprocess_run",
             "mock_subprocess_run",
-            "mockContainer2_start",
             "mockContainer3_start",
+            "mockContainer2_start",
         ]
+
         assert call_names == excepted
 
     @mock.patch("subprocess.run")
@@ -1492,13 +1493,14 @@ class TestBackup:
         nb.backup()
 
         call_names = [c[0] for c in parent_mock.mock_calls]
+
         assert call_names == [
-            "mockContainer1_stop",
             "mockContainer2_stop",
+            "mockContainer1_stop",
             "mock_subprocess_run",
             "mock_subprocess_run",
-            "mockContainer1_start",
             "mockContainer2_start",
+            "mockContainer1_start",
             # Group "services"
             "mockContainer3_stop",
             "mock_subprocess_run",
@@ -1556,8 +1558,8 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         groups = nb.group_containers()
 
-        assert groups["authentic"] == [mock_container1, mock_container2]
-        assert groups["paperless"] == [mock_container2, mock_container3]
+        assert groups["authentic"] == [mock_container2, mock_container1]
+        assert groups["paperless"] == [mock_container3, mock_container2]
 
     @pytest.mark.parametrize(
         "mock_container1",
