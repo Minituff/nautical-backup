@@ -88,6 +88,18 @@ class Logger:
         with open(os.path.join(self.dest_location, self.report_file), "w+") as f:
             f.write(f"Backup Report - {datetime.datetime.now()}\n")
 
+    def _write_to_report_file(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO):
+        level = self._parse_log_level(log_level)
+        if level not in self.levels:
+            return  # Check if level exists
+
+        # Check if folder exists
+        if not os.path.exists(self.dest_location):
+            raise FileNotFoundError(f"Destination location {self.dest_location} does not exist.")
+
+        with open(os.path.join(self.dest_location, self.report_file), "a") as f:
+            f.write(f"{datetime.datetime.now()} - {str(level)[9:]}: {log_message}\n")
+
     def log_this(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO, log_type=LogType.DEFAULT):
 
         level = self._parse_log_level(log_level)
@@ -98,8 +110,14 @@ class Logger:
         if self.levels[level] >= self.levels[self.script_logging_level]:
             print(f"{str(level)[9:]}: {log_message}")
 
+        if self.env.REPORT_FILE == False:
+            return
+
         # Check if level is enough for report file logging
         if self.levels[level] >= self.levels[self.report_file_logging_level]:
-            if self.report_file_on_backup_only == True and log_type == LogType.DEFAULT:
-                with open(os.path.join(self.dest_location, self.report_file), "a") as f:
-                    f.write(f"{datetime.datetime.now()} - {str(level)[9:]}: {log_message}\n")
+            if self.report_file_on_backup_only == True:
+                if log_type != LogType.INIT:
+                    self._write_to_report_file(log_message, log_level)
+            else:
+                # Always write to report file
+                self._write_to_report_file(log_message, log_level)
