@@ -41,6 +41,7 @@ nav:
    - Source & Destination Mappings: advanced/advanced.md
    - NFS Shares: advanced/nfs-share.md
    - Remote Backups: advanced/remote-backups.md
+   - Homepage Dashboard: advanced/homepage-dashboard.md
  - Q & A: q-and-a.md
  - Developer Documentation:
    - Dev Container: developers/dev-container.md

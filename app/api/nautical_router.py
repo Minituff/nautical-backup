@@ -20,8 +20,12 @@ def dashboard(username: Annotated[str, Depends(authorize)]) -> JSONResponse:
     """
     This returns a summary of the Nautical container. Useful for 3rd party applications.
     """
+
+    next_crons = next_cron_occurrences(5)
+
     d = {
-        "next_cron": next_cron_occurrences(5),
+        "next_cron": next_crons,
+        "next_run": next_crons.get("1", [None, None])[1],
         "last_cron": db.get("last_cron", "None"),
         "number_of_containers": db.get("number_of_containers", 0),
         "completed": db.get("containers_completed", 0),
