@@ -88,14 +88,17 @@ class TestAPI:
         response = client.get("/api/v1/nautical/dashboard", auth=("admin", "password"))
         assert response.status_code == 200
 
+        next_crons = next_cron_occurrences(5)
+
         assert response.json()["backup_running"] == db.get("backup_running", False)
         assert response.json()["errors"] == db.get("errors", 0)
         assert response.json()["skipped"] == db.get("containers_skipped", 0)
         assert response.json()["completed"] == db.get("containers_completed", 0)
         assert response.json()["number_of_containers"] == db.get("number_of_containers", 0)
         assert response.json()["last_cron"] == db.get("last_cron", "None")
+        assert response.json()["next_run"] == next_crons.get("1", [None, None])[1]
         assert len(response.json()["next_cron"]) == 7
-        assert set(response.json()["next_cron"]) == set(next_cron_occurrences(5))
+        assert set(response.json()["next_cron"]) == set(next_crons)
 
     @patch("subprocess.run")
     def test_start_backup(self, patched_subprocess_run):
