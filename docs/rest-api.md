@@ -72,10 +72,8 @@ This endpoint is the quickest way to get a glimpse into everything Nautical has 
         "cron": "0 4 * * *",
         "tz": "America/Los_Angeles"
       },
-      "last_cron": [
-        "Sunday, November 19, 2023 at 11:24 AM",
-        "11/19/23 11:24"
-      ],
+      "next_run": "11/20/23 04:00",
+      "last_cron": "11/19/23 04:00",
       "number_of_containers": "1",
       "completed": "0",
       "skipped": "1",

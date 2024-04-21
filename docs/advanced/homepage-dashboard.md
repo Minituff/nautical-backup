@@ -48,7 +48,7 @@ Our configuration will look something like this:
 1. Here, you can set an additional property called `format` to one of these options:
     * `relativeDate` example: 10 hours ago
     * `date` removes the exact time and shows the day only
-    
+
     You can also add this to the `next_cron` field.
 
 
@@ -82,6 +82,7 @@ It is recommended that you don't enable **all** the fields. Just comment out the
         "tz": "America/Los_Angeles"
         },
         "last_cron": "04/21/24 05:00",
+        "next_run": "04/22/24 05:00",
         "number_of_containers": 33,
         "completed": 25,
         "skipped": 8,
