@@ -96,9 +96,9 @@ class TestAPI:
         assert response.json()["completed"] == db.get("containers_completed", 0)
         assert response.json()["number_of_containers"] == db.get("number_of_containers", 0)
         assert response.json()["last_cron"] == db.get("last_cron", "None")
-        assert response.json()["next_run"] == next_crons.get("1", [None, None])[1]
+        assert response.json()["next_run"] == next_crons.get("1", [None, None])[1] if next_crons else None
         assert len(response.json()["next_cron"]) == 7
-        assert set(response.json()["next_cron"]) == set(next_crons)
+        assert set(response.json()["next_cron"]) == set(next_crons) if next_crons else None
 
     @patch("subprocess.run")
     def test_start_backup(self, patched_subprocess_run):

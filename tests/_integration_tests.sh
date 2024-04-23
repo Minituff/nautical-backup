@@ -278,6 +278,7 @@ declare -A expected_env_vars=(
     ["TZ"]="Etc/UTC"
     ["TEST_MODE"]="2" # This not actually the default, but the mode that checks this value is #2
     ["CRON_SCHEDULE"]="0 4 * * *"
+    ["CRON_SCHEDULE_ENABLED"]="true"
     ["REPORT_FILE"]="true"
     ["BACKUP_ON_START"]="false"
     ["USE_DEFAULT_RSYNC_ARGS"]="true"

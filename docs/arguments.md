@@ -28,6 +28,17 @@ Allow changing the schedule for when the backup is started.
 CRON_SCHEDULE=0 4 * * *
 ```
 
+## Enable/Disable CRON Schedule
+Completely disable the recurring backup via a CRON scheudle.
+
+This could be useful if you want to run Nautical manually via [Backup On Start](#backup-on-start) or the [Rest API](./rest-api.md).
+
+> **Default**: true <small>(CRON enabled)</small>
+
+```properties
+CRON_SCHEDULE_ENABLED=false
+```
+
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 
