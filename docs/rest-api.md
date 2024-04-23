@@ -112,7 +112,25 @@ Get the next *n* scheduled times Nautical will run.
 > POST
 > /api/v1/nautical/start_backup
 
-Start a backup now. All the [Variables](./arguments.md) and [Labels](./labels.md) are respected.
+Start a backup now. The API will not respond until the backup has completed. 
+
+All the [Variables](./arguments.md) and [Labels](./labels.md) are respected.
+
+???+ example "Example response"
+    ```json
+    {
+      "message": "Nautical Backup completed successfully"
+    }
+    ```
+
+## Kickoff Backup
+
+> POST
+> /api/v1/nautical/kickoff_backup
+
+Start a backup now in the background. The API will respond immediately.
+
+All the [Variables](./arguments.md) and [Labels](./labels.md) are respected.
 
 ???+ example "Example response"
     ```json
