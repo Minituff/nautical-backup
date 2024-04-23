@@ -49,3 +49,11 @@ class TestUtils:
             "tz": "America/Phoenix",
             "1": ["Thursday, November 02, 2023 at 08:00 AM", "11/02/23 08:00"],
         }
+
+    def test_next_cron_occurrences_disabled(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        monkeypatch.setenv("CRON_SCHEDULE_ENABLED", "false")
+        faked_now = datetime.datetime(2022, 1, 1, 14, 0, 0)
+        assert next_cron_occurrences(1, faked_now) == None
