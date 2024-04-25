@@ -359,7 +359,7 @@ class NauticalBackup:
 
         if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
             # Final name of the actual folder
-            time_format = time.strftime(self.env.DEST_DATE_FORMAT)
+            time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
 
             if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
                 dest_dir: Path = base_dest_dir / str(c.name) / time_format

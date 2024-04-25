@@ -25,11 +25,11 @@ services:
     labels:
       - "nautical-backup.enable=true"
       # - "nautical-backup.stop-before-backup=true"
-      - "nautical-backup.override-source-dir=watchtower-data"
+      # - "nautical-backup.override-source-dir=watchtower-data"
       # - "nautical-backup.additional-folders=add1"
       # - "nautical-backup.use-default-rsync-args=false"
-      - "nautical-backup.rsync-custom-args= "
-      - "nautical-backup.group=your-mom"
+      # - "nautical-backup.rsync-custom-args= "
+      # - "nautical-backup.group=your-mom"
 
   nautical-backup:
     # image: minituff/nautical-backup:2.0.0
@@ -46,6 +46,10 @@ services:
       - TZ=America/Los_Angeles
       - LOG_LEVEL=TRACE
       - BACKUP_ON_START=true
+      - REPORT_FILE=false
       - CRON_SCHEDULE=0 4 * * *
-      - REQUIRE_LABEL=true
+      # - REQUIRE_LABEL=true
       - HTTP_REST_API_ENABLED=true
+      - USE_DEST_DATE_FOLDER=true
+      # - DEST_DATE_PATH_FORMAT=container/date
+      # - DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d

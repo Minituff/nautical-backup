@@ -49,7 +49,7 @@ Use the Python [time.strftime()](https://docs.python.org/3/library/time.html#tim
 > **Format**: Python [time.strftime()](https://docs.python.org/3/library/time.html#time.strftime) format
 
 ```properties
-DEST_DATE_PATH_FORMAT=Nautical Backup - %Y-%m-%d
+DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d
 ```
 
 !!! tip "You are allowed to use almost anything in this field"
