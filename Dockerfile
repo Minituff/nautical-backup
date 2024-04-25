@@ -65,7 +65,7 @@ ENV PYTHON_VERSION="3.11.8-r0"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
 ENV PIP_VERSION="23.1.2-r0"
 # renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
-ENV RUBY_VERSION="3.2.2-r0"
+ENV RUBY_VERSION="3.2.4-r0"
 
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
 ENV S6_VERBOSITY=1

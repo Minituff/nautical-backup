@@ -1,4 +1,5 @@
 import os
+import time
 import pytest
 from pathlib import Path
 from mock import PropertyMock, mock, MagicMock, patch
@@ -981,6 +982,163 @@ class TestBackup:
             executable="/usr/bin/rsync",
             capture_output=False,
         )
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_get_dest_dir(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test test_get_dest_dir"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+
+        assert str(dest_name) == f"{self.dest_location}/container1"
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_USE_DEST_DATE_FOLDER(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test test_USE_DEST_DATE_FOLDER"""
+
+        time_format = time.strftime("%Y-%m-%d")
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "false")
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        assert str(dest_name) == f"{self.dest_location}/container1"
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_DEST_DATE_PATH_FORMAT(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test DEST_DATE_PATH_FORMAT"""
+
+        time_format = time.strftime("%Y-%m-%d")
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        mock_docker_client.containers.list.return_value = [mock_container1]
+
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "container/date")
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+
+        assert str(dest_name) == f"{self.dest_location}/container1/{time_format}"
+
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "")
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_DEST_DATE_FORMAT(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test DEST_DATE_FORMAT"""
+
+        time_format = time.strftime("%Y-%m-%d")
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        mock_docker_client.containers.list.return_value = [mock_container1]
+
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+
+        time_format_str = "%b %d %Y %H:%M:%S"
+        time_format = time.strftime(time_format_str)
+        monkeypatch.setenv("DEST_DATE_FORMAT", time_format_str)
+
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+
+        time_format_str = "Prefix %D %T Suffix"
+        time_format = time.strftime(time_format_str)
+        monkeypatch.setenv("DEST_DATE_FORMAT", time_format_str)
+
+        nb = NauticalBackup(mock_docker_client)
+        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_custom_destination_folders_are_used_in_rsync(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test DEST_DATE_FORMAT gets passed to rsync"""
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        mock_docker_client.containers.list.return_value = [mock_container1]
+
+        time_format_str = "%D_%T"
+        time_format = time.strftime(time_format_str)
+        monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
+
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        print(mock_subprocess_run.call_args_list)
+        mock_subprocess_run.assert_any_call(
+            [
+                "-raq",
+                f"{self.src_location}/container1/",
+                f"{self.dest_location}/{time_format}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+        rm_tree(Path(self.dest_location) / time_format / "container1")
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)

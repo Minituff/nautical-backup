@@ -28,6 +28,50 @@ Allow changing the schedule for when the backup is started.
 CRON_SCHEDULE=0 4 * * *
 ```
 
+## Create a Dated Destination Folder
+This option will tell Nautical to create a new destination folder on backup.
+
+For example: `/dest_folder/2024-04-05/contianer`
+
+> **Default**: false
+
+```properties
+USE_DEST_DATE_FOLDER=true
+```
+
+
+### Destination Folder Format
+
+Use the Python [time.strftime()](https://docs.python.org/3/library/time.html#time.strftime) module to format format the destination folder's name.
+
+> **Default**: %Y-%m-%d <small>(2024-04-05 for example)</small>
+
+> **Format**: Python [time.strftime()](https://docs.python.org/3/library/time.html#time.strftime) format
+
+```properties
+DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d
+```
+
+!!! tip "You are allowed to use almost anything in this field"
+    While it may be a intended to use the [date format](https://docs.python.org/3/library/time.html#time.strftime) here, you don't have to.
+    You could set this value to `latest backup` or insert addional text around the date format like this: `Nautical Backup - %Y-%m-%d`.
+    Use this setting to add a *prefix* and/or *suffix* to the dated folder.
+
+
+### Destination Folder Path
+Use this option to designate which path strategy is used when creating a dated destination directory.
+
+* `date/container` = */dest_folder/*`2024-04-05`*/container1*
+* `container/date` = */dest_folder/container1/*`2024-04-05`
+
+> **Default**: date/container
+
+> **Options**: `container/date` or `date/container`
+
+```properties
+DEST_DATE_PATH_FORMAT="date/container"
+```
+
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 

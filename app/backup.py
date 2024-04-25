@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
 import os
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
-import sys
 import subprocess
-from pathlib import Path
+import sys
+import time
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
 
 import docker
-from docker.models.containers import Container
 from docker.errors import APIError
+from docker.models.containers import Container
 
-from app.db import DB
 from app.api.config import Settings
+from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
 
@@ -355,6 +356,18 @@ class NauticalBackup:
         if label_dest and label_dest != "":
             self.log_this(f"Overriding destination directory for {c.name} to '{label_dest}' from label")
             dest_dir = base_dest_dir / label_dest
+
+        if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
+            # Final name of the actual folder
+            time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
+
+            if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
+                dest_dir: Path = base_dest_dir / str(c.name) / time_format
+            elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
+                dest_dir: Path = base_dest_dir / time_format / str(c.name)
+
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir, exist_ok=True)
 
         return dest_dir
 
