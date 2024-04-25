@@ -57,3 +57,12 @@ class TestUtils:
         monkeypatch.setenv("CRON_SCHEDULE_ENABLED", "false")
         faked_now = datetime.datetime(2022, 1, 1, 14, 0, 0)
         assert next_cron_occurrences(1, faked_now) == None
+
+    def test_next_cron_occurrences_with_bad_value(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        monkeypatch.setenv("CRON_SCHEDULE_ENABLED", "oogabooga")
+        faked_now = datetime.datetime(2022, 1, 1, 14, 0, 0)
+        res = next_cron_occurrences(1, faked_now)
+        assert res and res["cron"] == "0 4 * * *"
