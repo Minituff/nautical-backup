@@ -31,10 +31,10 @@ class NauticalEnv:
         self.NAUTICAL_DB_PATH = os.environ.get("NAUTICAL_DB_PATH", "")
 
         self.USE_DEST_DATE_FOLDER = os.environ.get("USE_DEST_DATE_FOLDER", "")
-        self.DEST_DATE_FORMAT = os.environ.get("DEST_DATE_FORMAT ", "")
-        self.DEST_DATE_PATH_FORMAT = os.environ.get("DEST_DATE_PATH_FORMAT ", "")
-        self.DEST_DATE_PATH_PREFIX = os.environ.get("DEST_DATE_PATH_PREFIX ", "")
-        self.DEST_DATE_PATH_SUFFIX = os.environ.get("DEST_DATE_PATH_SUFFIX ", "")
+        self.DEST_DATE_FORMAT = os.environ.get("DEST_DATE_FORMAT", "%Y-%m-%d")
+        self.DEST_DATE_PATH_FORMAT = os.environ.get("DEST_DATE_PATH_FORMAT", "date/container")
+        if self.DEST_DATE_PATH_FORMAT not in ["date/container", "container/date"]:
+            self.DEST_DATE_PATH_FORMAT = "date/container"  # Set default
 
         # Not associated with containers
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
