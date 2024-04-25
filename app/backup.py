@@ -369,19 +369,22 @@ class NauticalBackup:
                 self.log_this(f"{e}", "ERROR")
                 time_format = time.strftime("%Y-%m-%d")
 
+            # Final name of the actual folder
+            dest_date_folder = f"{self.env.DEST_DATE_PATH_PREFIX}{str(time_format)}{self.env.DEST_DATE_PATH_SUFFIX}"
+
             if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
-                dest_dir: Path = base_dest_dir / str(c.name) / str(time_format)
+                dest_dir: Path = base_dest_dir / str(c.name) / dest_date_folder
             elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
-                dest_dir: Path = base_dest_dir / str(time_format) / str(c.name)
+                dest_dir: Path = base_dest_dir / dest_date_folder / str(c.name)
             else:
                 self.log_this(
                     f"Invalid DEST_DATE_PATH_FORMAT: {str(self.env.DEST_DATE_PATH_FORMAT)}. Using default format.",
                     "ERROR",
                 )
-                dest_dir: Path = base_dest_dir / str(time_format) / str(c.name)
+                dest_dir: Path = base_dest_dir / dest_date_folder / str(c.name)
 
             if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir)
+                os.makedirs(dest_dir, exist_ok=True)
 
         return dest_dir
 

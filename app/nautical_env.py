@@ -33,6 +33,8 @@ class NauticalEnv:
         self.USE_DEST_DATE_FOLDER = os.environ.get("USE_DEST_DATE_FOLDER", "")
         self.DEST_DATE_FORMAT = os.environ.get("DEST_DATE_FORMAT ", "")
         self.DEST_DATE_PATH_FORMAT = os.environ.get("DEST_DATE_PATH_FORMAT ", "")
+        self.DEST_DATE_PATH_PREFIX = os.environ.get("DEST_DATE_PATH_PREFIX ", "")
+        self.DEST_DATE_PATH_SUFFIX = os.environ.get("DEST_DATE_PATH_SUFFIX ", "")
 
         # Not associated with containers
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
