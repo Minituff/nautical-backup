@@ -358,7 +358,17 @@ class NauticalBackup:
             dest_dir = base_dest_dir / label_dest
 
         if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
-            dest_dir: Path = base_dest_dir / str(c.name) / str(time.strftime("%Y-%m-%d"))
+            try:
+                time_format = time.strftime(str(self.env.DEST_DATE_FORMAT))
+            # TODO: use exact exception
+            except Exception as e:
+                self.log_this(
+                    f"Error formatting date: {str(self.env.DEST_DATE_FORMAT)} is not a valid time format. Using default format.{e}",
+                    "ERROR",
+                )
+                self.log_this(f"{e}", "ERROR")
+                time_format = time.strftime("%Y-%m-%d")
+            dest_dir: Path = base_dest_dir / str(c.name) / str(time_format)
             if not os.path.exists(dest_dir):
                 os.makedirs(dest_dir)
 
