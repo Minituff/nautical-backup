@@ -358,14 +358,13 @@ class NauticalBackup:
             dest_dir = base_dest_dir / label_dest
 
         if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
-            time_format = time.strftime(str(self.env.DEST_DATE_FORMAT))
             # Final name of the actual folder
-            dest_date_folder = f"{str(time_format)}"
+            time_format = time.strftime(self.env.DEST_DATE_FORMAT)
 
             if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
-                dest_dir: Path = base_dest_dir / str(c.name) / dest_date_folder
+                dest_dir: Path = base_dest_dir / str(c.name) / time_format
             elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
-                dest_dir: Path = base_dest_dir / dest_date_folder / str(c.name)
+                dest_dir: Path = base_dest_dir / time_format / str(c.name)
 
             if not os.path.exists(dest_dir):
                 os.makedirs(dest_dir, exist_ok=True)

@@ -1103,6 +1103,44 @@ class TestBackup:
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
 
     @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_custom_destination_folders_are_used_in_rsync(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test DEST_DATE_FORMAT gets passed to rsync"""
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        mock_docker_client.containers.list.return_value = [mock_container1]
+
+        time_format_str = "%D_%T"
+        time_format = time.strftime(time_format_str)
+        monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
+
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        print(mock_subprocess_run.call_args_list)
+        mock_subprocess_run.assert_any_call(
+            [
+                "-raq",
+                f"{self.src_location}/container1/",
+                f"{self.dest_location}/{time_format}/container1/",
+            ],
+            shell=True,
+            executable="/usr/bin/rsync",
+            capture_output=False,
+        )
+        rm_tree(Path(self.dest_location) / time_format / "container1")
+
+    @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     def test_additional_folders_env_before(
         self,
