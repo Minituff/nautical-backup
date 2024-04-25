@@ -19,7 +19,12 @@ install_cron(){
     # Install the new cron jobs and remove the tempcron file
     crontab tempcron && rm tempcron
 }
-install_cron
+
+if [ "$CRON_SCHEDULE_ENABLED" = "true" ]; then
+    install_cron
+else
+    logThis "Skipping CRON installation since CRON_SCHEDULE_ENABLED=false" "INFO" "init"
+fi
 
 # Verify the source and destination locations
 verify_source_location $SOURCE_LOCATION

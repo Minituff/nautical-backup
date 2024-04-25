@@ -28,6 +28,18 @@ Allow changing the schedule for when the backup is started.
 CRON_SCHEDULE=0 4 * * *
 ```
 
+## Enable/Disable CRON Schedule
+Completely disable the recurring backup via a CRON scheudle.
+
+This could be useful if you want to run Nautical manually via [Backup On Start](#backup-on-start) or the [Rest API](./rest-api.md).
+
+> **Default**: true <small>(CRON enabled)</small>
+
+```properties
+CRON_SCHEDULE_ENABLED=false
+```
+
+
 ## Create a Dated Destination Folder
 This option will tell Nautical to create a new destination folder on backup.
 
@@ -38,7 +50,6 @@ For example: `/dest_folder/2024-04-05/contianer`
 ```properties
 USE_DEST_DATE_FOLDER=true
 ```
-
 
 ### Destination Folder Format
 
@@ -56,7 +67,6 @@ DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d
     While it may be a intended to use the [date format](https://docs.python.org/3/library/time.html#time.strftime) here, you don't have to.
     You could set this value to `latest backup` or insert addional text around the date format like this: `Nautical Backup - %Y-%m-%d`.
     Use this setting to add a *prefix* and/or *suffix* to the dated folder.
-
 
 ### Destination Folder Path
 Use this option to designate which path strategy is used when creating a dated destination directory.
