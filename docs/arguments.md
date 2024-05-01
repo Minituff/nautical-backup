@@ -60,13 +60,15 @@ Use the Python [time.strftime()](https://docs.python.org/3/library/time.html#tim
 > **Format**: Python [time.strftime()](https://docs.python.org/3/library/time.html#time.strftime) format
 
 ```properties
-DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d
+DEST_DATE_FORMAT=Nautical_Backup-%Y-%m-%d
 ```
 
 !!! tip "You are allowed to use almost anything in this field"
     While it may be a intended to use the [date format](https://docs.python.org/3/library/time.html#time.strftime) here, you don't have to.
     You could set this value to `latest backup` or insert addional text around the date format like this: `Nautical Backup - %Y-%m-%d`.
     Use this setting to add a *prefix* and/or *suffix* to the dated folder.
+
+    **NOTE:** Some linux machines may have issues with *spaces* in this field. It is recommended you use *uderscores* `_` instead of *spaces* when possible.
 
 ### Destination Folder Path
 Use this option to designate which path strategy is used when creating a dated destination directory.
