@@ -79,10 +79,22 @@ class NauticalBackup:
 
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
+
+        # Skip self
+        SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID
+        if "minituff/nautical-backup" in str(c.image):
+            self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'minituff/nautical-backup'.", "TRACE")
+        if c.labels.get("org.opencontainers.image.title") == "nautical-backup":
+            self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'nautical-backup'.", "TRACE")
+        if c.id == SELF_CONTAINER_ID:
+            self.log_this(f"Skipping {c.name} {c.id} because it's ID is the same as Nautical", "TRACE")
+            return True
+        if c.name == SELF_CONTAINER_ID:
+            self.log_this(f"Skipping {c.name} because it's ID is the same as Nautical", "TRACE")
+            return True
+
         # Read the environment variables
         SKIP_CONTAINERS = self.env.SKIP_CONTAINERS
-
-        SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID
 
         # Convert the strings into lists
         skip_containers_set = set(SKIP_CONTAINERS.split(","))
@@ -94,13 +106,6 @@ class NauticalBackup:
             nautical_backup_enable = True
         else:
             nautical_backup_enable = None
-
-        if c.id == SELF_CONTAINER_ID:
-            self.log_this(f"Skipping {c.name} {c.id} because it's ID is the same as Nautical", "TRACE")
-            return True
-        if c.name == SELF_CONTAINER_ID:
-            self.log_this(f"Skipping {c.name} because it's ID is the same as Nautical", "TRACE")
-            return True
 
         if nautical_backup_enable == False:
             self.log_this(f"Skipping {c.name} based on label", "DEBUG")
