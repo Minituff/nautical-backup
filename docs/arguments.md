@@ -29,7 +29,7 @@ CRON_SCHEDULE=0 4 * * *
 ```
 
 ## Enable/Disable CRON Schedule
-Completely disable the recurring backup via a CRON scheudle.
+Completely disable the recurring backup via a CRON schedule.
 
 This could be useful if you want to run Nautical manually via [Backup On Start](#backup-on-start) or the [Rest API](./rest-api.md).
 
@@ -68,7 +68,7 @@ DEST_DATE_FORMAT=Nautical_Backup-%Y-%m-%d
     You could set this value to `latest backup` or insert addional text around the date format like this: `Nautical Backup - %Y-%m-%d`.
     Use this setting to add a *prefix* and/or *suffix* to the dated folder.
 
-    **NOTE:** Some linux machines may have issues with *spaces* in this field. It is recommended you use *uderscores* `_` instead of *spaces* when possible.
+    **NOTE:** Some linux machines may have issues with *spaces* in this field. It is recommended you use *underscores* `_` instead of *spaces* when possible.
 
 ### Destination Folder Path
 Use this option to designate which path strategy is used when creating a dated destination directory.
@@ -81,7 +81,7 @@ Use this option to designate which path strategy is used when creating a dated d
 > **Options**: `container/date` or `date/container`
 
 ```properties
-DEST_DATE_PATH_FORMAT="date/container"
+DEST_DATE_PATH_FORMAT=date/container
 ```
 
 ## Additional Folders
