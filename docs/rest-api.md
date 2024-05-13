@@ -3,7 +3,7 @@ The API is ^^enabled internally by default^^, but you still must open the port f
 
 !!! abstract "Why is the REST API on internally?"
     The REST API is used internally for Docker [Healthchecks](https://docs.docker.com/reference/dockerfile). 
-    However, you do not open the port, then all the endpoints will remain unreachable.
+    However, if do not open the port via Docker, then all the endpoints will remain unreachable.
 
 ### 1. Map the port
 You need to ensure the port is opened by Docker for the Nautical container. See the ==highlighted== sections of this example Nautical config:
