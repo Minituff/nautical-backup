@@ -22,6 +22,8 @@ for file in ~/.zshrc ~/.bashrc; do
     echo "alias cls=\"clear\"" >> "$file"
 done
 
+echo 'DISABLE_UPDATE_PROMPT=true  # Auto update ohmyzsh and dont ask' >> ~/.zshrc
+
 # cecho CYAN "Installing python packages (for docs)..."
 # python3 -m pip install -r /workspaces/nautical-backup/docs/requirements.txt
 
