@@ -771,6 +771,39 @@ class TestBackup:
                 "id": "123456789",
                 "labels": {
                     "nautical-backup.use-default-rsync-args": "false",
+                    "nautical-backup.rsync-custom-args": "--exclude=AsdF",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_custom_rsync_args_label_case_sensitivity(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test custom rsync args with label and that it keeps case sensitivity"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_args_list[0][0][0] == [
+            "--exclude=AsdF",
+            "/workspaces/nautical-backup/dev/source/container1/",
+            "/workspaces/nautical-backup/dev/destination/container1/",
+        ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.use-default-rsync-args": "false",
                     "nautical-backup.rsync-custom-args": "-aq",
                 },
             }
