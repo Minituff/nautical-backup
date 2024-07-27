@@ -1102,6 +1102,43 @@ class TestBackup:
         dest_name = nb._get_dest_dir(mock_container1, "container1")
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
 
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.override-source-dir": "ctr1-src",
+                    "nautical-backup.override-destination-dir": "ctr1-dest",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_DEST_DATE_FORMAT_with_overrides(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test DEST_DATE_FORMAT with overrides"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "ctr1-src", and_file=True)
+
+        time_format = time.strftime("%Y-%m-%d")
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        mock_docker_client.containers.list.return_value = [mock_container1]
+
+        nb = NauticalBackup(mock_docker_client)
+        src_pth, src_name = nb._get_src_dir(mock_container1)
+        dest_name = nb._get_dest_dir(mock_container1, src_name)
+
+        assert str(src_pth) == f"{self.src_location}/ctr1-src"
+        assert str(dest_name) == f"{self.dest_location}/{time_format}/ctr1-dest"
+
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
         "mock_container1",
