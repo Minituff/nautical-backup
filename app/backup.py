@@ -420,6 +420,18 @@ class NauticalBackup:
 
             src_dir = base_src_dir / folder
             dest_dir = base_dest_dir / folder
+
+            if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
+                time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
+
+                if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
+                    dest_dir: Path = base_dest_dir / folder / time_format
+                elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
+                    dest_dir: Path = base_dest_dir / time_format / folder
+
+                if not os.path.exists(dest_dir):
+                    os.makedirs(dest_dir, exist_ok=True)
+
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
