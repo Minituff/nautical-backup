@@ -490,7 +490,7 @@ class NauticalBackup:
             used_default_args = False
 
         if c:
-            custom_rsync_args_label = str(c.labels.get("nautical-backup.rsync-custom-args", "")).lower()
+            custom_rsync_args_label = str(c.labels.get("nautical-backup.rsync-custom-args", ""))
             if custom_rsync_args_label != "":
                 if log == True:
                     self.log_this(f"Setting custom rsync args from label ({custom_rsync_args_label})", "DEBUG")

@@ -771,6 +771,39 @@ class TestBackup:
                 "id": "123456789",
                 "labels": {
                     "nautical-backup.use-default-rsync-args": "false",
+                    "nautical-backup.rsync-custom-args": "--exclude=AsdF",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_custom_rsync_args_label_case_sensitivity(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test custom rsync args with label and that it keeps case sensitivity"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_args_list[0][0][0] == [
+            "--exclude=AsdF",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.use-default-rsync-args": "false",
                     "nautical-backup.rsync-custom-args": "-aq",
                 },
             }
@@ -1246,7 +1279,7 @@ class TestBackup:
         create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
 
         time_format = time.strftime("%Y-%m-%d")
-        time_format_str = "%D_%T"
+        time_format_str = "%D_%d"
         time_format = time.strftime(time_format_str)
         monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
         monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
@@ -1322,7 +1355,7 @@ class TestBackup:
         monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
         mock_docker_client.containers.list.return_value = [mock_container1]
 
-        time_format_str = "%D_%T"
+        time_format_str = "%D_%d"
         time_format = time.strftime(time_format_str)
         monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
 
