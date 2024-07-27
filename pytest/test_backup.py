@@ -1279,7 +1279,7 @@ class TestBackup:
         create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
 
         time_format = time.strftime("%Y-%m-%d")
-        time_format_str = "%D_%T"
+        time_format_str = "%D_%d"
         time_format = time.strftime(time_format_str)
         monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
         monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
@@ -1355,7 +1355,7 @@ class TestBackup:
         monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
         mock_docker_client.containers.list.return_value = [mock_container1]
 
-        time_format_str = "%D_%T"
+        time_format_str = "%D_%d"
         time_format = time.strftime(time_format_str)
         monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
 
