@@ -791,8 +791,8 @@ class TestBackup:
 
         assert mock_subprocess_run.call_args_list[0][0][0] == [
             "--exclude=AsdF",
-            "/workspaces/nautical-backup/dev/source/container1/",
-            "/workspaces/nautical-backup/dev/destination/container1/",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
         ]
 
     @mock.patch("subprocess.run")
