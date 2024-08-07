@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'Dockerfile'  # If file has changed
-      - 'api/requirements.txt'
+    paths: # Only if any of these files has changed
+      - 'Dockerfile'
+      - 'requirements.txt'
 
 jobs:
   build:
