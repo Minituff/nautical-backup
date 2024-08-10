@@ -181,11 +181,28 @@ class NauticalBackup:
 
         return containers_by_group
 
+    def _set_exec_enviornment_variables(self, vars: Dict[str, str]):
+        """Set the environment variables for the exec command"""
+        for k, v in vars.items():  # Loop through all the variables in the class
+            self.log_this(f"Setting environment variable {k} to {v}", "TRACE")
+            os.environ[k] = v  # Set the environment variable
+
     def _run_curl(
-        self, c: Optional[Container], when: BeforeAfterorDuring, attached_to_container=False
+        self,
+        c: Optional[Container],
+        when: BeforeAfterorDuring,
+        attached_to_container=False,
     ) -> Optional[subprocess.CompletedProcess[bytes]]:
         """Runs a curl command from the Nautical Container itself."""
         command = ""  # Curl command
+
+        vars: Dict[str, str] = {
+            "NB_EXEC_ATTACHED_TO_CONTAINER": str(attached_to_container),
+            "NB_EXEC_CONTAINER_NAME": str(c.name) if c else "None",
+            "NB_EXEC_CONTAINER_ID": str(c.id) if c else "None",
+            "NB_EXEC_BEFORE_DURING_OR_AFTER": str(when),
+        }
+        self._set_exec_enviornment_variables(vars)
 
         if attached_to_container == True and c:
             if when == BeforeAfterorDuring.BEFORE:
