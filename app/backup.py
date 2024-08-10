@@ -238,7 +238,12 @@ class NauticalBackup:
             return None
 
         self.log_this(f"Running CURL command: {command}")
-        out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=False)
+        out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True)
+
+        if out.stderr:
+            self.log_this(f"Exec command error: {out.stderr}", "WARN")
+        self.log_this(f"Exec command output: {out.stdout}", "DEBUG")
+
         return out
 
     def _run_lifecyle_hook(self, c: Container, when: BeforeOrAfter):

@@ -1687,6 +1687,42 @@ class TestBackup:
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
         assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
 
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.curl.before": "This will be set later, in the function",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_exec_variables_label(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test curl commands by labels"""
+        container_name = "cont1"
+        container_id = "9839343"
+
+        # Set mock attributes
+        mock_container1.__setattr__("name", container_name)
+        mock_container1.__setattr__("id", container_id)
+        mock_container1.__setattr__(
+            "labels",
+            {
+                "nautical-backup.curl.before": "echo container_id: $NB_EXEC_CONTAINER_NAME container_id: $NB_EXEC_CONTAINER_ID",
+            },
+        )
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
         "mock_container1",
