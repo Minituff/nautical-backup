@@ -87,6 +87,7 @@ class NauticalBackup:
         try:
             name = c.name
             c_id = c.id
+            c_image = c.image
         except ImageNotFound as e:
             self.log_this(f"Skipping container because it's image was not found.", "TRACE")
             return True
