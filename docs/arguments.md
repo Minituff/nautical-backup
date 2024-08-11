@@ -256,6 +256,11 @@ POST_BACKUP_EXEC=curl -d "Backup successful 😀" ntfy.sh/mytopic
 
 ------8<------ "exec_request_example.md"
 
+    Add your script to the enviornment variable
+    ```properties
+    PRE_BACKUP_EXEC=/config/script.sh
+    ```
+
 <small>🔄 This is the same action as the [Execute Commands](./labels.md#execute-commands) label, but applied globally (not per container).</small>
 
 ## Report file

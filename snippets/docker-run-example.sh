@@ -2,7 +2,7 @@
 docker run -d \
   --name nautical-backup \
   -v /var/run/docker.sock:/var/run/docker.sock \ #(1)!
-  -v /cofig:/config \ #(9)!
+  -v /config:/config \ #(9)!
   -v /source:/app/source \ #(2)!
   -v /destination:/app/destination \ #(3)!
   -e TZ="America/Los_Angeles" \ #(8)!

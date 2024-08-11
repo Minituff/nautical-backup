@@ -8,6 +8,28 @@
     ```
     **Note:** You can only have 1 *before* and 1 *after* Curl Request. This applies to Nautical itself, not to each container.
 
+??? quote "Available Enviornment Variables"
+
+    | Method                           | Description                                                                             |
+    |:---------------------------------|:----------------------------------------------------------------------------------------|
+    | `NB_EXEC_CONTAINER_NAME`         | The container name*                                                                     |
+    | `NB_EXEC_CONTAINER_ID`           | The contianer ID*                                                                       |
+    | `NB_EXEC_BEFORE_DURING_OR_AFTER` | When is this command being. [Options](./arguments.md#when-to-backup-additional-folders) |
+    | `NB_EXEC_COMMAND`                | The exact command exectuted                                                             |
+    | `NB_EXEC_ATTACHED_TO_CONTAINER`  | Is this exec command attached to a container                                            |
+
+    <small> *Require access to a container. Eg. When `NB_EXEC_ATTACHED_TO_CONTAINER=true`</small> 
+
+    💰 **Tip:** To use the enviornment variables in a docker-compose file, you will need to escape them with a double `$`:
+    ```yaml
+    labels:
+      - "nautical-backup.curl.before=echo name: $$NB_EXEC_CONTAINER_NAME" # (1)!
+    ```
+
+    1. Notice the double `$$`
+
+    🛎️ Want any additional enviornment variables? Submit an [issue](https://github.com/Minituff/nautical-backup/issues/new).
+
 
 ??? abstract "Executing a script"
     If you need to run more than a simple one-liner, we can run an entire script instead.
@@ -37,24 +59,3 @@
       /bin/bash /config/script.sh
     ```
 
-??? quote "Available Enviornment Variables"
-
-    | Method                           | Description                                                                             |
-    |:---------------------------------|:----------------------------------------------------------------------------------------|
-    | `NB_EXEC_CONTAINER_NAME`         | The container name*                                                                     |
-    | `NB_EXEC_CONTAINER_ID`           | The contianer ID*                                                                       |
-    | `NB_EXEC_BEFORE_DURING_OR_AFTER` | When is this command being. [Options](./arguments.md#when-to-backup-additional-folders) |
-    | `NB_EXEC_COMMAND`                | The exact command exectuted                                                             |
-    | `NB_EXEC_ATTACHED_TO_CONTAINER`  | Is this exec command attached to a container                                            |
-
-    <small> *Require access to a container. Eg. When `NB_EXEC_ATTACHED_TO_CONTAINER=true`</small> 
-
-    💰 **Tip:** To use the enviornment variables in a docker-compose file, you will need to escape them with a double `$`:
-    ```yaml
-    labels:
-      - "nautical-backup.curl.before=echo name: $$NB_EXEC_CONTAINER_NAME" # (1)!
-    ```
-
-    1. Notice the double `$$`
-
-    🛎️ Want any additional enviornment variables? Submit an [issue](https://github.com/Minituff/nautical-backup/issues/new).

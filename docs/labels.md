@@ -406,6 +406,11 @@ There are 3 moments when you can run a *command* <small>(You can use more than 1
 
 ------8<------ "exec_request_example.md"
 
+    Add your script to the label of your container's config
+    ```properties
+    nautical-backup.exec.before=/config/script.sh
+    ```
+    
 <small>🔄 This is the same action as the [Execute Commands](./arguments.md#execute-commands-before-or-after-backup) variable, but applied only to this container.</small>
 
 ## Lifecycle Hooks
