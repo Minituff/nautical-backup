@@ -81,15 +81,13 @@ class NauticalBackup:
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
 
-        # Skip self
-        SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID
+        SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID  # Used to skip self
 
         try:
-            name = c.name
-            c_id = c.id
-            c_image = c.image
+            # Attempt to pull info from container. Skip if not found
+            info = str(c.name) + " " + str(c.id) + " " + str(c.image) + " " + str(c.labels)
         except ImageNotFound as e:
-            self.log_this(f"Skipping container because it's image was not found.", "TRACE")
+            self.log_this(f"Skipping container because it's info was not found.", "TRACE")
             return True
 
         if "minituff/nautical-backup" in str(c.image):
