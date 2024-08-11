@@ -4,13 +4,14 @@ import os
 import subprocess
 import sys
 import time
+import codecs
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import docker
-from docker.errors import APIError
+from docker.errors import APIError, ImageNotFound
 from docker.models.containers import Container
 
 from app.api.config import Settings
@@ -80,8 +81,15 @@ class NauticalBackup:
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
 
-        # Skip self
-        SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID
+        SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID  # Used to skip self
+
+        try:
+            # Attempt to pull info from container. Skip if not found
+            info = str(c.name) + " " + str(c.id) + " " + str(c.image) + " " + str(c.labels)
+        except ImageNotFound as e:
+            self.log_this(f"Skipping container because it's info was not found.", "TRACE")
+            return True
+
         if "minituff/nautical-backup" in str(c.image):
             self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'minituff/nautical-backup'.", "TRACE")
         if c.labels.get("org.opencontainers.image.title") == "nautical-backup":
@@ -181,38 +189,75 @@ class NauticalBackup:
 
         return containers_by_group
 
-    def _run_curl(
-        self, c: Optional[Container], when: BeforeAfterorDuring, attached_to_container=False
+    def _set_exec_enviornment_variables(self, vars: Dict[str, str]):
+        """Set the environment variables for the exec command"""
+        for k, v in vars.items():  # Loop through all the variables in the class
+            self.log_this(f"Setting environment variable {k} to {v}", "TRACE")
+            os.environ[k] = v  # Set the environment variable
+
+    def _run_exec(
+        self,
+        c: Optional[Container],
+        when: BeforeAfterorDuring,
+        attached_to_container=False,
     ) -> Optional[subprocess.CompletedProcess[bytes]]:
-        """Runs a curl command from the Nautical Container itself."""
+        """Runs a exec command from the Nautical Container itself."""
         command = ""  # Curl command
 
         if attached_to_container == True and c:
             if when == BeforeAfterorDuring.BEFORE:
-                command = str(c.labels.get("nautical-backup.curl.before", ""))
+                curl_command = str(c.labels.get("nautical-backup.curl.before", ""))
+                command = str(c.labels.get("nautical-backup.exec.before", curl_command))
+
+                if curl_command and curl_command != "":
+                    self.log_this(
+                        "Deprecated: 'nautical-backup.curl.before' has been moved to 'nautical-backup.exec.before'",
+                        "WARN",
+                    )
                 if command and command != "":
-                    self.log_this("Running PRE-backup curl command for $name", "DEBUG")
+                    self.log_this("Running PRE-backup exec command for $name", "DEBUG")
             elif when == BeforeAfterorDuring.DURING:
-                command = str(c.labels.get("nautical-backup.curl.during", ""))
+                curl_command = str(c.labels.get("nautical-backup.curl.during", ""))
+                command = str(c.labels.get("nautical-backup.exec.during", curl_command))
+
+                if curl_command and curl_command != "":
+                    self.log_this(
+                        "Deprecated: 'nautical-backup.curl.during' has been moved to 'nautical-backup.exec.during'",
+                        "WARN",
+                    )
                 if command and command != "":
-                    self.log_this("Running DURING-backup curl command for $name", "DEBUG")
+                    self.log_this("Running DURING-backup exec command for $name", "DEBUG")
             elif when == BeforeAfterorDuring.AFTER:
-                command = str(c.labels.get("nautical-backup.curl.after", ""))
+                curl_command = str(c.labels.get("nautical-backup.curl.after", ""))
+                command = str(c.labels.get("nautical-backup.exec.after", curl_command))
+                if curl_command and curl_command != "":
+                    self.log_this(
+                        "Deprecated: 'nautical-backup.curl.after' has been moved to 'nautical-backup.exec.after'",
+                        "WARN",
+                    )
                 if command and command != "":
-                    self.log_this("Running AFTER-backup curl command for $name", "DEBUG")
+                    self.log_this("Running AFTER-backup exec command for $name", "DEBUG")
             else:
                 return None
         else:
             nautical_env = NauticalEnv()
 
             if when == BeforeAfterorDuring.BEFORE:
-                command = str(nautical_env.PRE_BACKUP_CURL)
+                curl_command = str(nautical_env._PRE_BACKUP_CURL)
+                if curl_command and curl_command != "":
+                    self.log_this("Deprecated: PRE_BACKUP_CURL has been moved to PRE_BACKUP_EXEC", "WARN")
+
+                command = str(nautical_env.PRE_BACKUP_EXEC)
                 if command and command != "":
-                    self.log_this("Running PRE_BACKUP_CURL", "DEBUG")
+                    self.log_this("Running PRE_BACKUP_EXEC", "DEBUG")
             elif when == BeforeAfterorDuring.AFTER:
-                command = str(nautical_env.POST_BACKUP_CURL)
+                curl_command = str(nautical_env._POST_BACKUP_CURL)
+                if curl_command and curl_command != "":
+                    self.log_this("Deprecated: POST_BACKUP_CURL has been moved to POST_BACKUP_EXEC", "WARN")
+
+                command = str(nautical_env.POST_BACKUP_EXEC)
                 if command and command != "":
-                    self.log_this("Running POST_BACKUP_CURL", "DEBUG")
+                    self.log_this("Running POST_BACKUP_EXEC", "DEBUG")
             else:
                 return None
 
@@ -220,8 +265,24 @@ class NauticalBackup:
         if not str(command) or str(command) == "" or str(command) == "None":
             return None
 
-        self.log_this(f"Running CURL command: {command}")
-        out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=False)
+        vars: Dict[str, str] = {
+            "NB_EXEC_COMMAND": str(command),
+            "NB_EXEC_ATTACHED_TO_CONTAINER": str(attached_to_container),
+            "NB_EXEC_CONTAINER_NAME": str(c.name) if c else "None",
+            "NB_EXEC_CONTAINER_ID": str(c.id) if c else "None",
+            "NB_EXEC_BEFORE_DURING_OR_AFTER": str(when.name),
+        }
+        self._set_exec_enviornment_variables(vars)
+
+        self.log_this(f"Running EXEC command: {command}")
+        out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True)
+
+        if out.stderr and isinstance(out.stderr, bytes) or isinstance(out.stderr, str):
+            self.log_this(f"Exec command error: {codecs.decode(out.stderr, 'utf-8').strip()}", "WARN")
+
+        if out.stdout and isinstance(out.stdout, bytes) or isinstance(out.stdout, str):
+            self.log_this(f"Exec command output: {codecs.decode(out.stdout, 'utf-8').strip()}", "DEBUG")
+
         return out
 
     def _run_lifecyle_hook(self, c: Container, when: BeforeOrAfter):
@@ -514,7 +575,7 @@ class NauticalBackup:
         self.db.put("backup_running", True)
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 
-        self._run_curl(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
+        self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
         self._backup_additional_folders_standalone(BeforeOrAfter.BEFORE)
 
         containers_by_group = self.group_containers()
@@ -527,7 +588,7 @@ class NauticalBackup:
             # Before backup
             for c in containers:
                 # Run before hooks
-                self._run_curl(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
+                self._run_exec(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
@@ -569,7 +630,7 @@ class NauticalBackup:
 
                 self._backup_container_foldes(c)
 
-                self._run_curl(c, BeforeAfterorDuring.DURING, attached_to_container=True)
+                self._run_exec(c, BeforeAfterorDuring.DURING, attached_to_container=True)
 
             # After backup
             for c in containers:
@@ -577,7 +638,7 @@ class NauticalBackup:
                 start_result = self._start_container(c)  # Start containers
 
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
-                self._run_curl(c, BeforeAfterorDuring.AFTER, attached_to_container=True)
+                self._run_exec(c, BeforeAfterorDuring.AFTER, attached_to_container=True)
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "after":
@@ -588,7 +649,7 @@ class NauticalBackup:
                     self.log_this(f"Backup of {c.name} complete!", "INFO")
 
         self._backup_additional_folders_standalone(BeforeOrAfter.AFTER)
-        self._run_curl(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
+        self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
         self.db.put("backup_running", False)
         self.db.put("containers_completed", len(self.containers_completed))

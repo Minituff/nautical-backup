@@ -23,20 +23,15 @@ services:
       - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
     labels:
       - "nautical-backup.enable=true"
-      # - "nautical-backup.stop-before-backup=true"
-      # - "nautical-backup.override-source-dir=watchtower-data"
-      # - "nautical-backup.additional-folders=add1"
-      # - "nautical-backup.use-default-rsync-args=false"
-      # - "nautical-backup.rsync-custom-args= "
-      # - "nautical-backup.group=your-mom"
+      # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
+      - "nautical-backup.curl.before=/config/script.sh"
 
   nautical-backup:
-    # image: minituff/nautical-backup:2.0.0
     image: nautical-backup:test
     container_name: nautical-backup-test
     volumes:
-      # - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source
-      # - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
       - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app
       - /var/run/docker.sock:/var/run/docker.sock

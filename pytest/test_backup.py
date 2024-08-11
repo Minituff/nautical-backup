@@ -1652,6 +1652,37 @@ class TestBackup:
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
         "mock_container1",
+        [{"name": "container1", "id": "123456789"}],
+        indirect=True,
+    )
+    def test_pre_and_post_backup_exec_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test exec commands set by enviornment variables"""
+
+        monkeypatch.setenv("PRE_BACKUP_EXEC", "curl -X GET 'google.com'")
+        monkeypatch.setenv("POST_BACKUP_EXEC", "curl -X GET 'bing.com'")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 3
+        assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'google.com'"
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'bing.com'"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
         [
             {
                 "name": "container1",
@@ -1686,6 +1717,97 @@ class TestBackup:
         ]
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
         assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.exec.before": "curl -X GET 'aol.com'",
+                    "nautical-backup.exec.during": "curl -X GET 'msn.com'",
+                    "nautical-backup.exec.after": "curl -X GET 'espn.com'",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_exec_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test exec commands by labels"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 4
+        assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'aol.com'"
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
+        assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.curl.before": "This will be set later, in the function",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @patch("codecs.decode")
+    def test_exec_variables_label(
+        self,
+        mock_decode: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test curl commands by labels"""
+        nautical_env = NauticalEnv()
+
+        container_name = "cont1"
+        container_id = "9839343"
+
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / container_name, and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / container_name, and_file=True)
+
+        label = "echo"
+        label += " exec_commmand: $NB_EXEC_COMMAND"
+        label += " container_name: $NB_EXEC_CONTAINER_NAME"
+        label += " container_id: $NB_EXEC_CONTAINER_ID"
+        label += " attached_to_container: $NB_EXEC_ATTACHED_TO_CONTAINER"
+        label += " before_during_or_after: $NB_EXEC_BEFORE_DURING_OR_AFTER"
+
+        # Set mock attributes
+        mock_container1.__setattr__("name", container_name)
+        mock_container1.__setattr__("id", container_id)
+        mock_container1.__setattr__("labels", {"nautical-backup.curl.before": label})
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        decoded = str(mock_decode.call_args_list[0][0][0], encoding="utf-8").strip()
+
+        # Assert all variables are set and accessible
+        assert f"container_name: {container_name}" in decoded
+        assert f"container_id: {container_id}" in decoded
+        assert f"attached_to_container: True" in decoded
+        assert f"before_during_or_after: BEFORE" in decoded
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(

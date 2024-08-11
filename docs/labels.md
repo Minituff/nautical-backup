@@ -302,7 +302,7 @@ nautical-backup.additional-folders.when=after
           labels:
             - "nautical-backup.additional-folders=service-additional"
         
-        ------8<------ "docker-compose-example-no-tooltips.yml:4:10"
+        ------8<------ "docker-compose-example-no-tooltips.yml:4:11"
         ```
         
 === "Example 2"
@@ -320,7 +320,7 @@ nautical-backup.additional-folders.when=after
             - "nautical-backup.additional-folders=service-additional"
             - "nautical-backup.additional-folders.when=after"
         
-        ------8<------ "docker-compose-example-no-tooltips.yml:4:10"
+        ------8<------ "docker-compose-example-no-tooltips.yml:4:11"
               - /mnt/service-additional:/app/source/service-additional #(1)!
         ```
 
@@ -381,36 +381,32 @@ nautical-backup.keep_src_dir_name=false
 <small>🔄 This is the same action as the [Mirror Source Directory Name to Destination](./arguments.md#mirror-source-directory-name-to-destination) variable, but applied only to this container.</small>
 
 
-## Curl Requests
-Send a `CURL` request *before* or *after* backing up the container. This can be used to alert the service before shutdown and/or ensure the service came online correctly.
+## Execute Commands
+Execute a command *before*, *after* or *during* backing up the container. This can be used to alert the service before shutdown and/or ensure the service came online correctly.
 
 > **Default**: *empty* <small>(nothing will be done)</small>
 
-> **FORMAT**: The entirety of a `curl` request
+> **FORMAT**: The entirety of a `command`
 
 
 ```properties
-nautical-backup.curl.before=curl -X GET 'google.com'
-nautical-backup.curl.after=curl -X POST 'http://192.168.1.21.com/do-something'
-nautical-backup.curl.during=curl -X PATCH 'bing.com'
+nautical-backup.exec.before=/config/prepare-for-backup.sh
+nautical-backup.exec.after=curl -X POST 'http://192.168.1.21.com/do-something'
+nautical-backup.exec.during=curl -X PATCH 'bing.com'
 ```
 
-There are 3 moments when you can run a `curl` request <small>(You can use more than 1)</small>:
+!!! tip "Remeber, these commands are exectuted by the Nautical-Backup container, not the child container."
+    If you need to exectute commands inside the continer being backed up, see [lifecycle hooks](#lifecycle-hooks).
 
-- [ ] **Before** - Run the `curl` command *before* the parent container is stopped.
-- [ ] **After** -  Run the `curl` command *after* the parent container is restarted.
-- [ ] **During** - Run the `curl` command while the parent container is stopped <small>(Before it is restarted)</small>.
+There are 3 moments when you can run a *command* <small>(You can use more than 1)</small>:
 
-!!! example "Test your `curl` request"
-    Before setting the environment variable, it is a good idea to ensure it works first. Here is an example.
+- [ ] **Before** - Run the command *before* the parent container is stopped.
+- [ ] **After** -  Run the command *after* the parent container is restarted.
+- [ ] **During** - Run the command while the parent container is stopped <small>(Before it is restarted)</small>.
 
-    Ensure Nautical is running first, then run:
-    ```bash
-    docker exec -it nautical-backup \
-      curl -X GET 'google.com'
-    ```
+------8<------ "exec_request_example.md"
 
-<small>🔄 This is the same action as the [Curl Requests](./arguments.md#curl-requests) variable, but applied only to this container.</small>
+<small>🔄 This is the same action as the [Execute Commands](./arguments.md#execute-commands-before-or-after-backup) variable, but applied only to this container.</small>
 
 ## Lifecycle Hooks
 Lifecycle Hooks allow you to run a command ==*inside* the container that Nautical is backing up==.

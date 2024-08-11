@@ -117,8 +117,8 @@ ADDITIONAL_FOLDERS_WHEN=after
     The `additional2` folder already exists within the `/opt/volume-data` so it does not need a mount point.
 
     ```yaml
-    ------8<------ "docker-compose-example-no-tooltips.yml:3:8"
-          - /opt/volume-data:/app/source
+    ------8<------ "docker-compose-example-no-tooltips.yml:3:9"
+          - /opt/volume-data:/app/source #(4)!
           - /mnt/nfs-share/backups:/app/destination
           - /mnt/additional:/app/source/additional #(1)!
         environment:
@@ -129,7 +129,8 @@ ADDITIONAL_FOLDERS_WHEN=after
     1. Mount `additional` inside the `/app/source` directory in the container
     2. Tell Nautical to process both the `additional` and `additional2` folders
     3. Tell Nautical *when* to backup the additional folders.
-            * `before` is the default 
+            * `before` is the default
+    4. The `additional2` folder already exists within the `/opt/volume-data` so it does not need a mount point.
 
 !!! abstract "If the same folder is named in the [Additional Folders](./labels.md#additional-folders) label and a service env variable--it will be backed up twice."
 
@@ -239,31 +240,23 @@ Normally, a container is backed to a folder with the ^^same name^^ as the `conta
 <small>🔄 This is the same action as the [Override Destination Directory](./labels.md#override-destination-directory-name) label, but applied globally.</small>
 
 
-## Curl Requests
-Send a `CURL` request *before* or *after* backing up ^^all^^ the containers. This can be used to alert services before shutdown and/or ensure the services came online correctly.
+## Execute Commands before or after backup
+Execute a command *before* or *after* backing up ^^all^^ the containers. This can be used to alert services before shutdown and/or ensure the services came online correctly.
 
-This CURL will run before/after the entire backup process is initiated.
+This command will run before/after the entire backup process is initiated.
 
 > **Default**: *empty* <small>(nothing will be done)</small>
 
-> **FORMAT**: The entirety of a `curl` request
+> **FORMAT**: The entirety of a `command`
 
 ```properties
-PRE_BACKUP_CURL=curl -X GET 'google.com'
-POST_BACKUP_CURL=curl -d "Backup successful 😀" ntfy.sh/mytopic
+PRE_BACKUP_EXEC=/config/prepare-for-backup.sh
+POST_BACKUP_EXEC=curl -d "Backup successful 😀" ntfy.sh/mytopic
 ```
 
-!!! example "Test your `curl` request"
-    Before setting the environment variable, it is a good idea to ensure it works first. Here is an example.
+------8<------ "exec_request_example.md"
 
-    Ensure Nautical is running first, then run:
-    ```bash
-    docker exec -it nautical-backup \
-      curl -X GET 'google.com'
-    ```
-    **Note:** You can only have 1 *before* and 1 *after* Curl Request. This applies to Nautical itself, not to each container.
-
-<small>🔄 This is the same action as the [Curl Requests](./labels.md#curl-requests) label, but applied globally (not per container).</small>
+<small>🔄 This is the same action as the [Execute Commands](./labels.md#execute-commands) label, but applied globally (not per container).</small>
 
 ## Report file
 Enable or Disable the automatically generated report file.

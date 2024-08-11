@@ -8,3 +8,4 @@
 7. It is recommended to avoid using the `latest` tag.
     * This project is under active development, using a exact tag can help avoid updates breaking things.
 8. Set the time-zone. See this [Wikipedia page](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for a list of available time-zones.
+9. Configuration folder. This directory will will Nautical's internal database which stores metrics and history.

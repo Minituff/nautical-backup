@@ -30,15 +30,13 @@ This will need to be done each time a new version is released.
 === "Docker Compose"
     ```yaml hl_lines="3"
     ------8<------ "docker-compose-semver-example.yml:3"
-    ------8<------ "docker-compose-example.yml:6:10"
+        # Rest of config...
     ```
-    
-    ------8<------ "docker-example-tooltips.md"
 
 === "Docker Cli"
 
     ```bash hl_lines="6"
-    ------8<------ "docker-run-example.sh::6"
+    ------8<------ "docker-run-example.sh::7"
     ------8<------ "docker-run-semver-example.sh"
 
       # Update the version number in the line above
@@ -58,7 +56,8 @@ While convenient, automatic updates may break things. For this reason we recomme
 
         === "Docker Compose"
             ```yaml hl_lines="3"
-            ------8<------ "docker-compose-example.yml:3:10"
+            ------8<------ "docker-compose-example.yml:3:5"
+                # Rest of config...
               
               watchtower:
                 image: containrrr/watchtower:latest
@@ -74,9 +73,9 @@ While convenient, automatic updates may break things. For this reason we recomme
                 Remove this line to update all containers.
 
         === "Docker Cli"
-            ```bash hl_lines="6"
-            ------8<------ "docker-run-example.sh::6"
-            ------8<------ "docker-run-example.sh:10:"
+            ```bash hl_lines="7"
+            ------8<------ "docker-run-example.sh::7"
+            ------8<------ "docker-run-example.sh:11:"
             
             docker run -d \
               --name watchtower \
@@ -96,8 +95,9 @@ While convenient, automatic updates may break things. For this reason we recomme
 
         === "Docker Compose"
             ```yaml hl_lines="3"
-            ------8<------ "docker-compose-semver-major-example.yml:3:10"
-              
+            ------8<------ "docker-compose-semver-major-example.yml:3:5"
+                # Rest of config...
+
               watchtower:
                 image: containrrr/watchtower:latest
                 container_name: watchtower
@@ -112,8 +112,8 @@ While convenient, automatic updates may break things. For this reason we recomme
                 Remove this line to update all containers.
 
         === "Docker Cli"
-            ```bash  hl_lines="6"
-            ------8<------ "docker-run-example.sh::6"
+            ```bash  hl_lines="7"
+            ------8<------ "docker-run-example.sh::7"
             ------8<------ "docker-run-semver-major-example.sh"
             
             docker run -d \
@@ -142,8 +142,8 @@ While convenient, automatic updates may break things. For this reason we recomme
             ```yaml hl_lines="3"
             ------8<------ "docker-compose-example.yml:3:4"
                 image: minituff/nautical-backup:latest
-            ------8<------ "docker-compose-example.yml:6:10"
-              
+                # Rest of config...
+
               watchtower:
                 image: containrrr/watchtower:latest
                 container_name: watchtower
@@ -158,8 +158,8 @@ While convenient, automatic updates may break things. For this reason we recomme
                 Remove this line to update all containers.
 
         === "Docker Cli"
-            ```bash  hl_lines="6"
-            ------8<------ "docker-run-example.sh::6"
+            ```bash  hl_lines="7"
+            ------8<------ "docker-run-example.sh::7"
               minituff/nautical-backup:latest
             
             docker run -d \

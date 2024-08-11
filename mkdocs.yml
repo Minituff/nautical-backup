@@ -49,7 +49,11 @@ nav:
    - Contributing to the Docs: developers/docs.md
    - Developer Env Variables: developers/env.md
 
-
+watch:
+  - snippets
+  - docs
+  - mkdocs.yml
+  
 extra:
   generator: false  # "false" will Remove the "Made with Material for MkDocs" branding
   # version:
