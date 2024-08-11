@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import time
+import codecs
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -241,8 +242,8 @@ class NauticalBackup:
         out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True)
 
         if out.stderr:
-            self.log_this(f"Exec command error: {out.stderr}", "WARN")
-        self.log_this(f"Exec command output: {out.stdout}", "DEBUG")
+            self.log_this(f"Exec command error: {codecs.decode(out.stderr, 'utf-8').strip()}", "WARN")
+        self.log_this(f"Exec command output: {codecs.decode(out.stdout, 'utf-8').strip()}", "DEBUG")
 
         return out
 

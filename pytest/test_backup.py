@@ -1700,14 +1700,21 @@ class TestBackup:
         ],
         indirect=True,
     )
+    @patch("codecs.decode")
     def test_exec_variables_label(
         self,
+        mock_decode: MagicMock,
         mock_docker_client: MagicMock,
         mock_container1: MagicMock,
     ):
         """Test curl commands by labels"""
+        nautical_env = NauticalEnv()
+
         container_name = "cont1"
         container_id = "9839343"
+
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / container_name, and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / container_name, and_file=True)
 
         # Set mock attributes
         mock_container1.__setattr__("name", container_name)
@@ -1722,6 +1729,11 @@ class TestBackup:
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
+
+        assert mock_decode.call_count == 1
+
+        decoded = str(mock_decode.call_args_list[0][0][0], encoding="utf-8").strip()
+        assert decoded == f"container_id: {container_name} container_id: {container_id}"
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
