@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import docker
-from docker.errors import APIError
+from docker.errors import APIError, ImageNotFound
 from docker.models.containers import Container
 
 from app.api.config import Settings
@@ -83,6 +83,14 @@ class NauticalBackup:
 
         # Skip self
         SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID
+
+        try:
+            name = c.name
+            c_id = c.id
+        except ImageNotFound as e:
+            self.log_this(f"Skipping container because it's image was not found.", "TRACE")
+            return True
+
         if "minituff/nautical-backup" in str(c.image):
             self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'minituff/nautical-backup'.", "TRACE")
         if c.labels.get("org.opencontainers.image.title") == "nautical-backup":
