@@ -197,14 +197,6 @@ class NauticalBackup:
         """Runs a curl command from the Nautical Container itself."""
         command = ""  # Curl command
 
-        vars: Dict[str, str] = {
-            "NB_EXEC_ATTACHED_TO_CONTAINER": str(attached_to_container),
-            "NB_EXEC_CONTAINER_NAME": str(c.name) if c else "None",
-            "NB_EXEC_CONTAINER_ID": str(c.id) if c else "None",
-            "NB_EXEC_BEFORE_DURING_OR_AFTER": str(when),
-        }
-        self._set_exec_enviornment_variables(vars)
-
         if attached_to_container == True and c:
             if when == BeforeAfterorDuring.BEFORE:
                 command = str(c.labels.get("nautical-backup.curl.before", ""))
@@ -237,6 +229,15 @@ class NauticalBackup:
         # Example command "curl -o /app/destination/google google.com"
         if not str(command) or str(command) == "" or str(command) == "None":
             return None
+
+        vars: Dict[str, str] = {
+            "NB_EXEC_COMMAND": str(command),
+            "NB_EXEC_ATTACHED_TO_CONTAINER": str(attached_to_container),
+            "NB_EXEC_CONTAINER_NAME": str(c.name) if c else "None",
+            "NB_EXEC_CONTAINER_ID": str(c.id) if c else "None",
+            "NB_EXEC_BEFORE_DURING_OR_AFTER": str(when.name),
+        }
+        self._set_exec_enviornment_variables(vars)
 
         self.log_this(f"Running CURL command: {command}")
         out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True)

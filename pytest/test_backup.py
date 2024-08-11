@@ -1716,24 +1716,29 @@ class TestBackup:
         create_folder(Path(nautical_env.SOURCE_LOCATION) / container_name, and_file=True)
         create_folder(Path(nautical_env.DEST_LOCATION) / container_name, and_file=True)
 
+        label = "echo"
+        label += " exec_commmand: $NB_EXEC_COMMAND"
+        label += " container_name: $NB_EXEC_CONTAINER_NAME"
+        label += " container_id: $NB_EXEC_CONTAINER_ID"
+        label += " attached_to_container: $NB_EXEC_ATTACHED_TO_CONTAINER"
+        label += " before_during_or_after: $NB_EXEC_BEFORE_DURING_OR_AFTER"
+
         # Set mock attributes
         mock_container1.__setattr__("name", container_name)
         mock_container1.__setattr__("id", container_id)
-        mock_container1.__setattr__(
-            "labels",
-            {
-                "nautical-backup.curl.before": "echo container_id: $NB_EXEC_CONTAINER_NAME container_id: $NB_EXEC_CONTAINER_ID",
-            },
-        )
+        mock_container1.__setattr__("labels", {"nautical-backup.curl.before": label})
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        assert mock_decode.call_count == 1
-
         decoded = str(mock_decode.call_args_list[0][0][0], encoding="utf-8").strip()
-        assert decoded == f"container_id: {container_name} container_id: {container_id}"
+
+        # Assert all variables are set and accessible
+        assert f"container_name: {container_name}" in decoded
+        assert f"container_id: {container_id}" in decoded
+        assert f"attached_to_container: True" in decoded
+        assert f"before_during_or_after: BEFORE" in decoded
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
