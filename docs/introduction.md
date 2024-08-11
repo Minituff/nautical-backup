@@ -26,7 +26,7 @@ Let's take a look at an example:
 !!! example "Here is how Nautical fits into the *Sample Configuration*"
     === "Docker Compose"
         ```yaml
-        ------8<------ "docker-compose-example.yml:3:8"
+        ------8<------ "docker-compose-example.yml:3:9"
               - /opt/docker-volumes:/app/source #(2)!
               - /mnt/nfs-share/backups:/app/destination #(3)!
         ```

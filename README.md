@@ -31,6 +31,7 @@ services:
     container_name: nautical-backup
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /config:/config
       - /source:/app/source
       - /destination:/app/destination
     environment: # Optional variables
@@ -43,6 +44,7 @@ Docker CLI
 docker run -d \
   --name nautical-backup \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /config:/config \
   -v /source:/app/source \
   -v /destination:/app/destination \
   -e TZ="America/Los_Angeles" \

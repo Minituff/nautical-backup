@@ -6,6 +6,7 @@ services:
     container_name: nautical-backup
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - /config:/config
       - /source:/app/source
       - /destination:/app/destination
     environment:

@@ -117,8 +117,8 @@ ADDITIONAL_FOLDERS_WHEN=after
     The `additional2` folder already exists within the `/opt/volume-data` so it does not need a mount point.
 
     ```yaml
-    ------8<------ "docker-compose-example-no-tooltips.yml:3:8"
-          - /opt/volume-data:/app/source
+    ------8<------ "docker-compose-example-no-tooltips.yml:3:9"
+          - /opt/volume-data:/app/source #(4)!
           - /mnt/nfs-share/backups:/app/destination
           - /mnt/additional:/app/source/additional #(1)!
         environment:
@@ -129,7 +129,8 @@ ADDITIONAL_FOLDERS_WHEN=after
     1. Mount `additional` inside the `/app/source` directory in the container
     2. Tell Nautical to process both the `additional` and `additional2` folders
     3. Tell Nautical *when* to backup the additional folders.
-            * `before` is the default 
+            * `before` is the default
+    4. The `additional2` folder already exists within the `/opt/volume-data` so it does not need a mount point.
 
 !!! abstract "If the same folder is named in the [Additional Folders](./labels.md#additional-folders) label and a service env variable--it will be backed up twice."
 
@@ -253,15 +254,7 @@ PRE_BACKUP_CURL=curl -X GET 'google.com'
 POST_BACKUP_CURL=curl -d "Backup successful 😀" ntfy.sh/mytopic
 ```
 
-!!! example "Test your `curl` request"
-    Before setting the environment variable, it is a good idea to ensure it works first. Here is an example.
-
-    Ensure Nautical is running first, then run:
-    ```bash
-    docker exec -it nautical-backup \
-      curl -X GET 'google.com'
-    ```
-    **Note:** You can only have 1 *before* and 1 *after* Curl Request. This applies to Nautical itself, not to each container.
+------8<------ "exec_request_example.md"
 
 <small>🔄 This is the same action as the [Curl Requests](./labels.md#curl-requests) label, but applied globally (not per container).</small>
 

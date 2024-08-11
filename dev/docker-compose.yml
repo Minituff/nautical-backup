@@ -24,7 +24,7 @@ services:
     labels:
       - "nautical-backup.enable=true"
       # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
-      # - "nautical-backup.curl.before=/config/script.sh"
+      - "nautical-backup.curl.before=/config/script.sh"
 
   nautical-backup:
     image: nautical-backup:test
