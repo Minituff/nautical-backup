@@ -40,8 +40,15 @@ class NauticalEnv:
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
         self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")
 
-        self.PRE_BACKUP_CURL = os.environ.get("PRE_BACKUP_CURL", "")
-        self.POST_BACKUP_CURL = os.environ.get("POST_BACKUP_CURL", "")
+        self._PRE_BACKUP_CURL = os.environ.get("PRE_BACKUP_CURL", "")
+        self._POST_BACKUP_CURL = os.environ.get("POST_BACKUP_CURL", "")
+
+        self.PRE_BACKUP_EXEC = os.environ.get(
+            "PRE_BACKUP_EXEC", self._PRE_BACKUP_CURL
+        )  # Temporily use the CURL variable
+        self.POST_BACKUP_EXEC = os.environ.get(
+            "POST_BACKUP_EXEC", self._POST_BACKUP_CURL
+        )  # Temporily use the CURL variable
 
         self.RUN_ONCE = False
         if os.environ.get("RUN_ONCE", "False").lower() == "true":
