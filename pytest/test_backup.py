@@ -1045,7 +1045,7 @@ class TestBackup:
         mock_container1: MagicMock,
         monkeypatch: pytest.MonkeyPatch,
     ):
-        """Test test_USE_DEST_DATE_FOLDER"""
+        """Test test_USE_DEST_DATE_FOLDER format"""
 
         time_format = time.strftime("%Y-%m-%d")
 
