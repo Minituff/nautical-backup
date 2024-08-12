@@ -203,6 +203,18 @@ Normally a container is backed up *only* when the `container-name` is the exact 
         | example1       | `src/example1`       | `src/example1-new-source-data` |
         | ctr2           | `src/ctr2`           | `src/ctr2-new-source`          |
 
+=== "Example 3"
+    !!! note ""
+        We can use a nested folder by simply appending it to the source path
+        ```properties
+        OVERRIDE_SOURCE_DIR=example1:subfolder/example1
+        ```
+        <small> The example above would yield the following results:</small>
+
+        | Container Name | Old Source Directory | New Source Directory              |
+        | -------------- | -------------------- | --------------------------------- |
+        | example1       | `src/example1`       | `src/subfolder/example1`          |
+
 <small>🔄 This is the same action as the [Override Source Directory](./labels.md#override-source-directory-name) label, but applied globally.</small>
 
 ## Override Destination Directory

@@ -349,6 +349,16 @@ By default, Nautical will look for the source directory that is the same name as
     ```properties
     nautical-backup.override-source-dir=pialert
     ```
+=== "Example 3"
+    We can use a nested folder by simply appending it to the source path
+    ```properties
+    nautical-backup.override-source-dir=subfolder/example1
+    ```
+    <small> The example above would yield the following results:</small>
+
+    | Container Name | Old Source Directory | New Source Directory              |
+    | -------------- | -------------------- | --------------------------------- |
+    | example1       | `src/example1`       | `src/subfolder/example1`          |
 
 <small>🔄 This is the same action as the [Override Source Directory](./arguments.md#override-source-directory) variable, but applied only to this container.</small>
 
