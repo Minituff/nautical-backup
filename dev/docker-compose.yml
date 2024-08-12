@@ -25,15 +25,15 @@ services:
       - "nautical-backup.enable=true"
       # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
       - "nautical-backup.curl.before=/config/script.sh"
+      - "nautical-backup.override-source-dir=folder/watchtower"
 
   nautical-backup:
     image: nautical-backup:test
     container_name: nautical-backup-test
     volumes:
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
-      - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 8069:8069
@@ -45,6 +45,7 @@ services:
       - CRON_SCHEDULE=0 4 * * *
       # - REQUIRE_LABEL=true
       - HTTP_REST_API_ENABLED=true
-      - USE_DEST_DATE_FOLDER=true
+      # - RUN_ONCE=true
+      # - USE_DEST_DATE_FOLDER=true
       # - DEST_DATE_PATH_FORMAT=container/date
       # - DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d

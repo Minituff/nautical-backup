@@ -67,7 +67,11 @@ class NauticalBackup:
     def verify_destination_location(self, dest_dir: str):
         self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
         if not os.path.isdir(dest_dir):
-            self.log_this(f"Destination directory '{dest_dir}' does not exist.", "ERROR", LogType.INIT)
+            self.log_this(
+                f"Destination directory '{dest_dir}' does not exist. Please mount it to /app/destination",
+                "ERROR",
+                LogType.INIT,
+            )
             raise FileNotFoundError(f"Destination directory '{dest_dir}' does not exist.")
         elif not os.access(dest_dir, os.R_OK):
             self.log_this(f"No read access to destination directory '{dest_dir}'.", "ERROR", LogType.INIT)
@@ -501,7 +505,11 @@ class NauticalBackup:
 
         dest_dir = self._get_dest_dir(c, src_folder_top)
         if not dest_dir.exists():
-            self.log_this(f"Destination directory '{dest_dir}' does not exit", "DEBUG")
+            os.makedirs(dest_dir, exist_ok=True)  # Create the destination directory if it does not exist
+            self.log_this(f"Destination directory '{dest_dir}' created", "DEBUG")
+
+        if not dest_dir.exists():
+            self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
         if src_dir.exists():
             self.log_this(f"Backing up {c.name}...", "INFO")
