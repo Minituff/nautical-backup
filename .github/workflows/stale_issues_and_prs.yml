@@ -1,5 +1,6 @@
 name: 'Close stale issues and PRs'
 on:
+  workflow_dispatch: # Allow manually running
   schedule:
     - cron: '30 1 * * *'
 
