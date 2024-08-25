@@ -447,7 +447,7 @@ class NauticalBackup:
 
         return dest_dir
 
-    def _backup_additional_folders_standalone(self, when: BeforeOrAfter):
+    def _backup_additional_folders_standalone(self, when: BeforeOrAfter, base_dest_dir: Path):
         """Backup folders that are not associated with a container."""
         additional_folders = str(self.env.ADDITIONAL_FOLDERS)
         additional_folders_when = str(self.env.ADDITIONAL_FOLDERS_WHEN)
@@ -459,7 +459,13 @@ class NauticalBackup:
             return
 
         base_src_dir = Path(self.env.SOURCE_LOCATION)
-        base_dest_dir = Path(self.env.DEST_LOCATION)
+        # base_dest_dir = Path(self.env.DEST_LOCATION)
+
+        if not os.path.exists(base_dest_dir):
+            self.log_this(
+                f"Destination directory '{base_dest_dir}' does not exist during {BeforeOrAfter.BEFORE.name}", "ERROR"
+            )
+            return
 
         rsync_args = self._get_rsync_args(None, log=False)
 
@@ -472,10 +478,9 @@ class NauticalBackup:
             self.log_this(f"Backing up standalone additional folder '{folder}'")
             self._run_rsync(None, rsync_args, src_dir, dest_dir)
 
-    def _backup_additional_folders(self, c: Container):
+    def _backup_additional_folders(self, c: Container, base_dest_dir: Path):
         additional_folders = str(c.labels.get("nautical-backup.additional-folders", ""))
         base_src_dir = Path(self.env.SOURCE_LOCATION)
-        base_dest_dir = Path(self.env.DEST_LOCATION)
 
         rsync_args = self._get_rsync_args(c, log=False)
 
@@ -500,13 +505,13 @@ class NauticalBackup:
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
-    def _backup_container_foldes(self, c: Container):
+    def _backup_container_folders(self, c: Container):
         src_dir, src_folder_top = self._get_src_dir(c, log=False)
 
         dest_dir = self._get_dest_dir(c, src_folder_top)
-        if not dest_dir.exists():
-            os.makedirs(dest_dir, exist_ok=True)  # Create the destination directory if it does not exist
-            self.log_this(f"Destination directory '{dest_dir}' created", "DEBUG")
+        # if not dest_dir.exists():
+        #     os.makedirs(dest_dir, exist_ok=True)  # Create the destination directory if it does not exist
+        #     self.log_this(f"Destination directory '{dest_dir}' created", "DEBUG")
 
         if not dest_dir.exists():
             self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
@@ -521,7 +526,10 @@ class NauticalBackup:
 
         additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
-            self._backup_additional_folders(c)
+            dest_dirs = self.env.SECONDARY_DEST_DIRS
+            # dest_dirs.append(Path(self.env.DEST_LOCATION))
+            for dir in dest_dirs:
+                self._backup_additional_folders(c, dir)
 
     def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
@@ -584,7 +592,14 @@ class NauticalBackup:
         self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
-        self._backup_additional_folders_standalone(BeforeOrAfter.BEFORE)
+
+        dest_dirs = self.env.SECONDARY_DEST_DIRS
+        for dir in dest_dirs:
+            self.log_this(f"Secondary destination directories '{dir.absolute()}'", "DEBUG")
+        dest_dirs.insert(0, Path(self.env.DEST_LOCATION))
+
+        for dir in dest_dirs:
+            self._backup_additional_folders_standalone(BeforeOrAfter.BEFORE, dir)
 
         containers_by_group = self.group_containers()
 
@@ -601,7 +616,8 @@ class NauticalBackup:
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "before":
-                    self._backup_additional_folders(c)
+                    for dir in dest_dirs:
+                        self._backup_additional_folders(c, dir)
 
                 src_dir, src_dir_no_path = self._get_src_dir(c)
                 if not src_dir.exists():
@@ -636,7 +652,7 @@ class NauticalBackup:
                         self.containers_skipped.add(c.name)
                         continue
 
-                self._backup_container_foldes(c)
+                self._backup_container_folders(c)
 
                 self._run_exec(c, BeforeAfterorDuring.DURING, attached_to_container=True)
 
@@ -650,13 +666,15 @@ class NauticalBackup:
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "after":
-                    self._backup_additional_folders(c)
+                    for dir in dest_dirs:
+                        self._backup_additional_folders(c, dir)
 
                 if c.name not in self.containers_skipped:
                     self.containers_completed.add(c.name)
                     self.log_this(f"Backup of {c.name} complete!", "INFO")
 
-        self._backup_additional_folders_standalone(BeforeOrAfter.AFTER)
+        for dir in dest_dirs:
+            self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
         self.db.put("backup_running", False)

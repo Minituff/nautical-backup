@@ -1,5 +1,6 @@
 import os
-from typing import Dict
+from pathlib import Path
+from typing import Dict, List
 
 
 class NauticalEnv:
@@ -40,15 +41,18 @@ class NauticalEnv:
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
         self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")
 
+        self.SECONDARY_DEST_DIRS: List[Path] = []
+        for dir in os.environ.get("SECONDARY_DEST_DIRS", "").split(","):
+            if not dir or dir == "":
+                continue
+            self.SECONDARY_DEST_DIRS.append(Path(dir.strip()))
+
         self._PRE_BACKUP_CURL = os.environ.get("PRE_BACKUP_CURL", "")
         self._POST_BACKUP_CURL = os.environ.get("POST_BACKUP_CURL", "")
 
-        self.PRE_BACKUP_EXEC = os.environ.get(
-            "PRE_BACKUP_EXEC", self._PRE_BACKUP_CURL
-        )  # Temporily use the CURL variable
-        self.POST_BACKUP_EXEC = os.environ.get(
-            "POST_BACKUP_EXEC", self._POST_BACKUP_CURL
-        )  # Temporily use the CURL variable
+        # Temporily use the CURL variable
+        self.PRE_BACKUP_EXEC = os.environ.get("PRE_BACKUP_EXEC", self._PRE_BACKUP_CURL)
+        self.POST_BACKUP_EXEC = os.environ.get("POST_BACKUP_EXEC", self._POST_BACKUP_CURL)
 
         self.RUN_ONCE = False
         if os.environ.get("RUN_ONCE", "False").lower() == "true":

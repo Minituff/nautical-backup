@@ -136,6 +136,41 @@ ADDITIONAL_FOLDERS_WHEN=after
 
 <small>🔄 This is the same action as the [Additional Folders](./labels.md#additional-folders) label, but applied globally.</small>
 
+## Secondary Destination Locations
+Tell Nautical to backup folders to more destination locations--in addition to the normal destination folder <small>(/app/destination)</small>.
+
+This is a path *inside the Nautical* container.
+
+> **Default**: *empty* <small>(no secondary locations)</small>
+
+> **Format**: `<absolute paths>`  <small>(comma separated for multiple items)</small>
+
+```properties
+SECONDARY_DEST_DIRS=/path/one,/path/two
+```
+
+=== "Example 1"
+    !!! note ""
+        Pay attention to the newly added highlighed lines:
+
+        ```yaml hl_lines="10-13"
+        ------8<------ "docker-compose-example-no-tooltips.yml:3:9"
+              - /opt/volume-data:/app/source
+              - /mnt/nfs-share/backups:/app/destination
+              - /mnt/nfs-share/destination1:/nautical/destination1 #(1)!
+              - /another/path:/nautical/destination2 #(2)!
+              environment:
+              - SECONDARY_DEST_DIRS=/nautical/destination1,/nautical/destination2 #(3)!
+        ```
+
+        1. Mount `/nautical/destination1` directory in the container
+        2. Mount `/nautical/destination2` directory in the contianer
+        3. Tell Nautical to copy files to these two locations:
+            * `/nautical/destination1` which actually goes to `/mnt/nfs-share/destination1` on the host machine
+            * `/nautical/destination2` which actually goes to `/another/path` on the host machine
+
+!!! tip "[Additional Folders](#additional-folders) will also be copied to these secondary locations."
+
 ## Skip Containers
 Tell Nautical to skip backup of containers in this list.
 
