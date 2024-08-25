@@ -1464,6 +1464,52 @@ class TestBackup:
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_secondary_dest_dir_env_after(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test secondary dest dir env after"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / "backup", and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / "backup2", and_file=True)
+
+        monkeypatch.setenv("ADDITIONAL_FOLDERS", "add1")
+        monkeypatch.setenv("ADDITIONAL_FOLDERS_WHEN", "after")
+        # The enviorment variable must be a string
+        monkeypatch.setenv(
+            "SECONDARY_DEST_DIRS",
+            nautical_env.DEST_LOCATION + "/backup" + "," + nautical_env.DEST_LOCATION + "/backup2",
+        )
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # 1st call is for container1 to dest dir
+        # 2nd call is for additional folder to dest dir
+        # 3rd call is for additional folder to secondary dest dir #1
+        # 4th call is for additional folder to secondary dest dir #2
+        assert mock_subprocess_run.call_count == 4
+
+        assert mock_subprocess_run.call_args_list[2][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/backup/add1/",
+        ]
+        assert mock_subprocess_run.call_args_list[3][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/backup2/add1/",
+        ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     def test_additional_folders_env_after(
         self,
         mock_subprocess_run: MagicMock,
