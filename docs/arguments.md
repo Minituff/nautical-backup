@@ -137,7 +137,7 @@ ADDITIONAL_FOLDERS_WHEN=after
 <small>🔄 This is the same action as the [Additional Folders](./labels.md#additional-folders) label, but applied globally.</small>
 
 ## Secondary Destination Locations
-Tell Nautical to backup folders to more destination locations--in addition to the normal desitnation folder <small>(/app/destination)</small>.
+Tell Nautical to backup folders to more destination locations--in addition to the normal destination folder <small>(/app/destination)</small>.
 
 This is a path *inside the Nautical* container.
 
