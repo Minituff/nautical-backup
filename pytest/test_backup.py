@@ -28,6 +28,8 @@ def create_folder(pth: Path, and_file: bool = False):
     """Useful for creating folders and files for testing"""
     pth.mkdir(parents=True, exist_ok=True)
 
+    if not pth.is_dir():
+        raise Exception(f"Failed to create folder: {pth}")
     if and_file:
         # Create test files
         test_file = pth / "test_file.txt"
@@ -1412,6 +1414,42 @@ class TestBackup:
             "-raq",
             f"{self.src_location}/container1/",
             f"{self.dest_location}/container1/",
+        ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_secondary_dest_dir_env_before(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test secondary dest dir env before"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / "backup", and_file=True)
+
+        monkeypatch.setenv("ADDITIONAL_FOLDERS", "add1")
+        monkeypatch.setenv("ADDITIONAL_FOLDERS_WHEN", "before")
+        # The enviorment variable must be a string
+        monkeypatch.setenv("SECONDARY_DEST_DIRS", nautical_env.DEST_LOCATION + "/backup")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # 1st call is for additional folder to dest dir
+        # 2nd call is for additional fodler to secondary dest dir
+        # 3rd call is for container1 to dest dir
+        assert mock_subprocess_run.call_count == 3
+
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/backup/add1/",
         ]
 
     @mock.patch("subprocess.run")

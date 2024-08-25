@@ -509,9 +509,9 @@ class NauticalBackup:
         src_dir, src_folder_top = self._get_src_dir(c, log=False)
 
         dest_dir = self._get_dest_dir(c, src_folder_top)
-        if not dest_dir.exists():
-            os.makedirs(dest_dir, exist_ok=True)  # Create the destination directory if it does not exist
-            self.log_this(f"Destination directory '{dest_dir}' created", "DEBUG")
+        # if not dest_dir.exists():
+        #     os.makedirs(dest_dir, exist_ok=True)  # Create the destination directory if it does not exist
+        #     self.log_this(f"Destination directory '{dest_dir}' created", "DEBUG")
 
         if not dest_dir.exists():
             self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
@@ -594,9 +594,11 @@ class NauticalBackup:
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
         dest_dirs = self.env.SECONDARY_DEST_DIRS
+        for dir in dest_dirs:
+            self.log_this(f"Secondary destination directories '{dir.absolute()}'", "DEBUG")
         dest_dirs.append(Path(self.env.DEST_LOCATION))
 
-        for dir in dest_dirs:
+        for dir in dest_dirs[::-1]:
             self._backup_additional_folders_standalone(BeforeOrAfter.BEFORE, dir)
 
         containers_by_group = self.group_containers()
@@ -614,7 +616,7 @@ class NauticalBackup:
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "before":
-                    for dir in dest_dirs:
+                    for dir in dest_dirs[::-1]:
                         self._backup_additional_folders(c, dir)
 
                 src_dir, src_dir_no_path = self._get_src_dir(c)
@@ -664,14 +666,14 @@ class NauticalBackup:
 
                 additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
                 if additional_folders_when == "after":
-                    for dir in dest_dirs:
+                    for dir in dest_dirs[::-1]:
                         self._backup_additional_folders(c, dir)
 
                 if c.name not in self.containers_skipped:
                     self.containers_completed.add(c.name)
                     self.log_this(f"Backup of {c.name} complete!", "INFO")
 
-        for dir in dest_dirs:
+        for dir in dest_dirs[::-1]:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
