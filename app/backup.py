@@ -398,9 +398,10 @@ class NauticalBackup:
 
         return src_dir, src_dir_no_path
 
-    def _get_dest_dir(self, c: Container, src_dir_name: str) -> Path:
+    def _get_dest_dir(self, c: Container, src_dir_name: str) -> Tuple[Path, str]:
         base_dest_dir = Path(self.env.DEST_LOCATION)
-        dest_dir: Path = base_dest_dir / str(c.name)
+        dest_dir_full: Path = base_dest_dir / str(c.name)
+        dest_dir_name = str(c.name)
 
         keep_src_dir_name_label = str(c.labels.get("nautical-backup.keep_src_dir_name", "")).lower()
 
@@ -410,42 +411,46 @@ class NauticalBackup:
             keep_src_dir_name_label = "true"
 
         if str(self.env.KEEP_SRC_DIR_NAME).lower() == "true" and keep_src_dir_name_label != "false":
-            dest_dir: Path = base_dest_dir / src_dir_name
+            dest_dir_full: Path = base_dest_dir / src_dir_name
 
         if keep_src_dir_name_label == "true":
-            dest_dir: Path = base_dest_dir / src_dir_name
+            dest_dir_full: Path = base_dest_dir / src_dir_name
 
         if str(c.name) in self.env.OVERRIDE_DEST_DIR:
             new_dest_dir = self.env.OVERRIDE_DEST_DIR[str(c.name)]
-            dest_dir = base_dest_dir / new_dest_dir
+            dest_dir_full = base_dest_dir / new_dest_dir
+            dest_dir_name = new_dest_dir
             self.log_this(f"Overriding destination directory for {c.name} to '{new_dest_dir}'")
 
         dest_dir_name = str(c.name)
         if str(c.id) in self.env.OVERRIDE_DEST_DIR:
             new_dest_dir = self.env.OVERRIDE_DEST_DIR[str(c.id)]
-            dest_dir = base_dest_dir / new_dest_dir
+            dest_dir_full = base_dest_dir / new_dest_dir
             dest_dir_name = new_dest_dir
             self.log_this(f"Overriding destination directory for {c.id} to '{new_dest_dir}'")
 
         label_dest = str(c.labels.get("nautical-backup.override-destination-dir", ""))
         if label_dest and label_dest != "":
             self.log_this(f"Overriding destination directory for {c.name} to '{label_dest}' from label")
-            dest_dir = base_dest_dir / label_dest
+            dest_dir_full = base_dest_dir / label_dest
             dest_dir_name = label_dest
 
+        dest_dir_no_path = dest_dir_name  # Assigment to userstand they are the same thing
         if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
             # Final name of the actual folder
             time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
 
             if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
-                dest_dir: Path = base_dest_dir / dest_dir_name / time_format
+                dest_dir_no_path = f"{dest_dir_name}/{time_format}"
+                dest_dir_full: Path = base_dest_dir / dest_dir_name / time_format
             elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
-                dest_dir: Path = base_dest_dir / time_format / dest_dir_name
+                dest_dir_full: Path = base_dest_dir / time_format / dest_dir_name
+                dest_dir_no_path = f"{time_format}/{dest_dir_name}"
 
-            if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir, exist_ok=True)
+            if not os.path.exists(dest_dir_full):
+                os.makedirs(dest_dir_full, exist_ok=True)
 
-        return dest_dir
+        return dest_dir_full, dest_dir_no_path
 
     def _backup_additional_folders_standalone(self, when: BeforeOrAfter, base_dest_dir: Path):
         """Backup folders that are not associated with a container."""
@@ -506,12 +511,9 @@ class NauticalBackup:
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
     def _backup_container_folders(self, c: Container):
-        src_dir, src_folder_top = self._get_src_dir(c, log=False)
+        src_dir, src_dir_no_path = self._get_src_dir(c, log=False)
 
-        dest_dir = self._get_dest_dir(c, src_folder_top)
-        # if not dest_dir.exists():
-        #     os.makedirs(dest_dir, exist_ok=True)  # Create the destination directory if it does not exist
-        #     self.log_this(f"Destination directory '{dest_dir}' created", "DEBUG")
+        dest_dir, dest_dir_no_path = self._get_dest_dir(c, src_dir_no_path)
 
         if not dest_dir.exists():
             self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")

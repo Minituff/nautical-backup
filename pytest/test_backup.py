@@ -1055,14 +1055,16 @@ class TestBackup:
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_name_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_name_no_path) == f"{time_format}/container1"
 
         monkeypatch.setenv("USE_DEST_DATE_FOLDER", "false")
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_name_no_path = nb._get_dest_dir(mock_container1, "container1")
         assert str(dest_name) == f"{self.dest_location}/container1"
+        assert str(dest_name_no_path) == "container1"
 
     @pytest.mark.parametrize(
         "mock_container1",
