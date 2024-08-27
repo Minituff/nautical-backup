@@ -1513,7 +1513,6 @@ class TestBackup:
         # 6th call is for container1 to secondary dest dir #2
         assert mock_subprocess_run.call_count == 6
 
-
         assert mock_subprocess_run.call_args_list[1][0][0] == [
             "-raq",
             f"{self.src_location}/add1/",
@@ -1598,19 +1597,6 @@ class TestBackup:
             f"{self.dest_location}/backup/add1/",
         ]
         assert mock_subprocess_run.call_args_list[5][0][0] == [
-        # 1st call is for container1 to dest dir
-        # 2nd call is for additional folder to dest dir
-        # 3rd call is for additional folder to secondary dest dir #1
-        # 4th call is for additional folder to secondary dest dir #2
-        assert mock_subprocess_run.call_count == 4
-
-        assert mock_subprocess_run.call_args_list[2][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/backup/add1/",
-        ]
-        assert mock_subprocess_run.call_args_list[3][0][0] == [
-
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup2/add1/",
