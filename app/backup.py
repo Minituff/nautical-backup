@@ -536,7 +536,6 @@ class NauticalBackup:
         if not additional_folders_when or additional_folders_when == "during":
             self._backup_additional_folders(c, dest_path)
 
-
     def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
         dest_folder = f"{dest_dir.absolute()}/"
