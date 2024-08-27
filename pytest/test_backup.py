@@ -1032,9 +1032,10 @@ class TestBackup:
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/container1"
+        assert str(dest_dir_no_path) == f"container1"
 
     @pytest.mark.parametrize(
         "mock_container1",
@@ -1055,14 +1056,16 @@ class TestBackup:
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_name_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_name_no_path) == f"{time_format}/container1"
 
         monkeypatch.setenv("USE_DEST_DATE_FOLDER", "false")
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_name_no_path = nb._get_dest_dir(mock_container1, "container1")
         assert str(dest_name) == f"{self.dest_location}/container1"
+        assert str(dest_name_no_path) == "container1"
 
     @pytest.mark.parametrize(
         "mock_container1",
@@ -1083,21 +1086,24 @@ class TestBackup:
 
         monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_dir_no_path) == f"{time_format}/container1"
 
         monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "container/date")
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/container1/{time_format}"
+        assert str(dest_dir_no_path) == f"container1/{time_format}"
 
         monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "")
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_dir_no_path) == f"{time_format}/container1"
 
     @pytest.mark.parametrize(
         "mock_container1",
@@ -1117,25 +1123,28 @@ class TestBackup:
         mock_docker_client.containers.list.return_value = [mock_container1]
 
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
 
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_dir_no_path) == f"{time_format}/container1"
 
         time_format_str = "%b %d %Y %H:%M:%S"
         time_format = time.strftime(time_format_str)
         monkeypatch.setenv("DEST_DATE_FORMAT", time_format_str)
 
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_dir_no_path) == f"{time_format}/container1"
 
         time_format_str = "Prefix %D %T Suffix"
         time_format = time.strftime(time_format_str)
         monkeypatch.setenv("DEST_DATE_FORMAT", time_format_str)
 
         nb = NauticalBackup(mock_docker_client)
-        dest_name = nb._get_dest_dir(mock_container1, "container1")
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, "container1")
         assert str(dest_name) == f"{self.dest_location}/{time_format}/container1"
+        assert str(dest_dir_no_path) == f"{time_format}/container1"
 
     @pytest.mark.parametrize(
         "mock_container1",
@@ -1169,10 +1178,11 @@ class TestBackup:
 
         nb = NauticalBackup(mock_docker_client)
         src_pth, src_name = nb._get_src_dir(mock_container1)
-        dest_name = nb._get_dest_dir(mock_container1, src_name)
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, src_name)
 
         assert str(src_pth) == f"{self.src_location}/ctr1-src"
         assert str(dest_name) == f"{self.dest_location}/{time_format}/ctr1-dest"
+        assert str(dest_dir_no_path) == f"{time_format}/ctr1-dest"
 
     @pytest.mark.parametrize(
         "mock_container1",
@@ -1207,10 +1217,11 @@ class TestBackup:
 
         nb = NauticalBackup(mock_docker_client)
         src_pth, src_name = nb._get_src_dir(mock_container1)
-        dest_name = nb._get_dest_dir(mock_container1, src_name)
+        dest_name, dest_dir_no_path = nb._get_dest_dir(mock_container1, src_name)
 
         assert str(src_pth) == f"{self.src_location}/ctr1-src"
         assert str(dest_name) == f"{self.dest_location}/ctr1-dest/{time_format}"
+        assert str(dest_dir_no_path) == f"ctr1-dest/{time_format}"
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1296,6 +1307,55 @@ class TestBackup:
 
         # Dest location
         assert mock_subprocess_run.call_args_list[1][0][0][2] == f"{self.dest_location}/{time_format}/add1/"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.additional-folders": "add1",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_additional_folders_and_USE_DEST_DATE_FOLDER_and_DEST_DATE_FORMAT_and_SECONDARY_LOCATION(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test test_additional_folders_label and DEST_DATE_FORMAT"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / "backup", and_file=True)
+
+        time_format = time.strftime("%Y-%m-%d")
+        time_format_str = "%D_%d"
+        time_format = time.strftime(time_format_str)
+        monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+
+        # The enviorment variable must be a string
+        monkeypatch.setenv("SECONDARY_DEST_DIRS", nautical_env.DEST_LOCATION + "/backup")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 4
+
+        # Destination Location verification
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0][2] == f"{self.dest_location}/backup/{time_format}/container1/"
+        )
+        assert mock_subprocess_run.call_args_list[3][0][0][2] == f"{self.dest_location}/backup/{time_format}/add1/"
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1449,7 +1509,9 @@ class TestBackup:
         # 2nd call is for additional folder to secondary dest dir #1
         # 3th call is for additional folder to secondary dest dir #2
         # 4th call is for container1 to dest dir
-        assert mock_subprocess_run.call_count == 4
+        # 5th call is for container1 to secondary dest dir #1
+        # 6th call is for container1 to secondary dest dir #2
+        assert mock_subprocess_run.call_count == 6
 
         assert mock_subprocess_run.call_args_list[1][0][0] == [
             "-raq",
@@ -1460,6 +1522,19 @@ class TestBackup:
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup2/add1/",
+        ]
+
+        # 3rd call is for container1 to dest dir (tested elsewhere)
+
+        assert mock_subprocess_run.call_args_list[4][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[5][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup2/container1/",
         ]
 
     @mock.patch("subprocess.run")
@@ -1491,18 +1566,37 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        # 1st call is for container1 to dest dir
-        # 2nd call is for additional folder to dest dir
-        # 3rd call is for additional folder to secondary dest dir #1
-        # 4th call is for additional folder to secondary dest dir #2
-        assert mock_subprocess_run.call_count == 4
+        # Call 1 is for container1 to dest dir
+        # Call 2 is for container1 to secondary dest dir #1
+        # Call 3 is for container1 to secondary dest dir #2
+        # Call 4 is for additional folder to dest dir
+        # Call 5 is for additional folder to secondary dest dir #1
+        # Call 6 is for additional folder to secondary dest dir #2
+        assert mock_subprocess_run.call_count == 6
 
+        # 1st call is for container1 to dest dir (tested elsewhere)
+
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup/container1/",
+        ]
         assert mock_subprocess_run.call_args_list[2][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup2/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[3][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/add1/",
+        ]
+        assert mock_subprocess_run.call_args_list[4][0][0] == [
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup/add1/",
         ]
-        assert mock_subprocess_run.call_args_list[3][0][0] == [
+        assert mock_subprocess_run.call_args_list[5][0][0] == [
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup2/add1/",
@@ -1703,6 +1797,8 @@ class TestBackup:
         nb.backup()
 
         call_names = [c[0] for c in parent_mock.mock_calls]
+
+        print(call_names)
 
         # This just checks the order of the calls
         assert call_names == [

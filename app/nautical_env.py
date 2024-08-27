@@ -43,7 +43,7 @@ class NauticalEnv:
 
         self.SECONDARY_DEST_DIRS: List[Path] = []
         for dir in os.environ.get("SECONDARY_DEST_DIRS", "").split(","):
-            if not dir or dir == "":
+            if not dir or dir.strip() == "":
                 continue
             self.SECONDARY_DEST_DIRS.append(Path(dir.strip()))
 
