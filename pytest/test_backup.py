@@ -1460,7 +1460,9 @@ class TestBackup:
         # 2nd call is for additional folder to secondary dest dir #1
         # 3th call is for additional folder to secondary dest dir #2
         # 4th call is for container1 to dest dir
-        assert mock_subprocess_run.call_count == 4
+        # 5th call is for container1 to secondary dest dir #1
+        # 6th call is for container1 to secondary dest dir #2
+        assert mock_subprocess_run.call_count == 6
 
         assert mock_subprocess_run.call_args_list[1][0][0] == [
             "-raq",
@@ -1471,6 +1473,19 @@ class TestBackup:
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup2/add1/",
+        ]
+
+        # 3rd call is for container1 to dest dir (tested elsewhere)
+
+        assert mock_subprocess_run.call_args_list[4][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[5][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup2/container1/",
         ]
 
     @mock.patch("subprocess.run")
@@ -1502,18 +1517,37 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        # 1st call is for container1 to dest dir
-        # 2nd call is for additional folder to dest dir
-        # 3rd call is for additional folder to secondary dest dir #1
-        # 4th call is for additional folder to secondary dest dir #2
-        assert mock_subprocess_run.call_count == 4
+        # Call 1 is for container1 to dest dir
+        # Call 2 is for container1 to secondary dest dir #1
+        # Call 3 is for container1 to secondary dest dir #2
+        # Call 4 is for additional folder to dest dir
+        # Call 5 is for additional folder to secondary dest dir #1
+        # Call 6 is for additional folder to secondary dest dir #2
+        assert mock_subprocess_run.call_count == 6
 
+        # 1st call is for container1 to dest dir (tested elsewhere)
+
+        assert mock_subprocess_run.call_args_list[1][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup/container1/",
+        ]
         assert mock_subprocess_run.call_args_list[2][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1/",
+            f"{self.dest_location}/backup2/container1/",
+        ]
+        assert mock_subprocess_run.call_args_list[3][0][0] == [
+            "-raq",
+            f"{self.src_location}/add1/",
+            f"{self.dest_location}/add1/",
+        ]
+        assert mock_subprocess_run.call_args_list[4][0][0] == [
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup/add1/",
         ]
-        assert mock_subprocess_run.call_args_list[3][0][0] == [
+        assert mock_subprocess_run.call_args_list[5][0][0] == [
             "-raq",
             f"{self.src_location}/add1/",
             f"{self.dest_location}/backup2/add1/",
@@ -1714,6 +1748,8 @@ class TestBackup:
         nb.backup()
 
         call_names = [c[0] for c in parent_mock.mock_calls]
+
+        print(call_names)
 
         # This just checks the order of the calls
         assert call_names == [

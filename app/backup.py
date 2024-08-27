@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import os
 import subprocess
 import sys
@@ -490,7 +491,7 @@ class NauticalBackup:
         rsync_args = self._get_rsync_args(c, log=False)
 
         for folder in additional_folders.split(","):
-            if folder == "":
+            if not folder or folder.strip() == "":
                 continue
 
             src_dir = base_src_dir / folder
@@ -510,10 +511,15 @@ class NauticalBackup:
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
-    def _backup_container_folders(self, c: Container):
+    def _backup_container_folders(self, c: Container, dest_path: Optional[Path] = None):
         src_dir, src_dir_no_path = self._get_src_dir(c, log=False)
 
         dest_dir, dest_dir_no_path = self._get_dest_dir(c, src_dir_no_path)
+
+        if dest_path:  # Secondary dest given
+            dest_dir = dest_path / dest_dir_no_path
+        else:  # Only container given (no secondary dest)
+            dest_path = Path(self.env.DEST_LOCATION)
 
         if not dest_dir.exists():
             self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
@@ -528,10 +534,7 @@ class NauticalBackup:
 
         additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
-            dest_dirs = self.env.SECONDARY_DEST_DIRS
-            # dest_dirs.append(Path(self.env.DEST_LOCATION))
-            for dir in dest_dirs:
-                self._backup_additional_folders(c, dir)
+            self._backup_additional_folders(c, dest_path)
 
     def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
@@ -595,7 +598,7 @@ class NauticalBackup:
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
-        dest_dirs = self.env.SECONDARY_DEST_DIRS
+        dest_dirs = copy.deepcopy(self.env.SECONDARY_DEST_DIRS)
         for dir in dest_dirs:
             self.log_this(f"Secondary destination directories '{dir.absolute()}'", "DEBUG")
         dest_dirs.insert(0, Path(self.env.DEST_LOCATION))
@@ -655,6 +658,10 @@ class NauticalBackup:
                         continue
 
                 self._backup_container_folders(c)
+                secondary_dest_dirs = self.env.SECONDARY_DEST_DIRS
+
+                for dir in secondary_dest_dirs:
+                    self._backup_container_folders(c, dir)
 
                 self._run_exec(c, BeforeAfterorDuring.DURING, attached_to_container=True)
 
