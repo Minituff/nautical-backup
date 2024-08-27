@@ -1322,6 +1322,55 @@ class TestBackup:
         ],
         indirect=True,
     )
+    def test_additional_folders_and_USE_DEST_DATE_FOLDER_and_DEST_DATE_FORMAT_and_SECONDARY_LOCATION(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test test_additional_folders_label and DEST_DATE_FORMAT"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / "backup", and_file=True)
+
+        time_format = time.strftime("%Y-%m-%d")
+        time_format_str = "%D_%d"
+        time_format = time.strftime(time_format_str)
+        monkeypatch.setenv("DEST_DATE_FORMAT", rf"{time_format_str}")
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+
+        # The enviorment variable must be a string
+        monkeypatch.setenv("SECONDARY_DEST_DIRS", nautical_env.DEST_LOCATION + "/backup")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_count == 4
+
+        # Destination Location verification
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0][2] == f"{self.dest_location}/backup/{time_format}/container1/"
+        )
+        assert mock_subprocess_run.call_args_list[3][0][0][2] == f"{self.dest_location}/backup/{time_format}/add1/"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.additional-folders": "add1",
+                },
+            }
+        ],
+        indirect=True,
+    )
     def test_additional_folders_and_DEST_DATE_PATH_FORMAT(
         self,
         mock_subprocess_run: MagicMock,
