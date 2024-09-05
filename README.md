@@ -24,7 +24,6 @@ Full documentation is available at [https://minituff.github.io/nautical-backup](
 
 Docker Compose
 ```yaml
-version: '3'
 services:
   nautical-backup:
     image: minituff/nautical-backup:2 
