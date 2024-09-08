@@ -594,7 +594,7 @@ class NauticalBackup:
         self.log_this("Starting backup...", "INFO")
 
         self.db.put("backup_running", True)
-        self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
+        self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %H:%M"))
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
