@@ -48,7 +48,7 @@ class NauticalBackup:
             self.logger._create_new_report_file()
 
         self.verify_source_location(self.env.SOURCE_LOCATION)
-        self.verify_destination_location(self.env.DEST_LOCATION)
+        self.verify_mounted_destination_location(self.env.DEST_LOCATION, create_if_not_exists=False)
 
     def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
@@ -65,8 +65,12 @@ class NauticalBackup:
 
         self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", LogType.INIT)
 
-    def verify_destination_location(self, dest_dir: str):
+    def verify_mounted_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True):
         self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
+
+        if not os.path.exists(dest_dir) and create_if_not_exists:
+            os.makedirs(dest_dir, exist_ok=True)
+
         if not os.path.isdir(dest_dir):
             self.log_this(
                 f"Destination directory '{dest_dir}' does not exist. Please mount it to /app/destination",
@@ -82,6 +86,28 @@ class NauticalBackup:
             raise PermissionError(f"No write access to destination directory '{dest_dir}'")
 
         self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE", LogType.INIT)
+
+    def verify_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True) -> bool:
+        """Verify the destination location (for containers) exists and is writable"""
+        self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
+
+        if not os.path.exists(dest_dir) and create_if_not_exists:
+            os.makedirs(dest_dir, exist_ok=True)
+
+        if not os.path.isdir(dest_dir):
+            self.log_this(
+                f"Destination directory '{dest_dir}' does not exist. Please mount it to /app/destination", "ERROR"
+            )
+            return False
+        elif not os.access(dest_dir, os.R_OK):
+            self.log_this(f"No read access to destination directory '{dest_dir}'.", "ERROR")
+            return False
+        elif not os.access(dest_dir, os.W_OK):
+            self.log_this(f"No write access to destination directory '{dest_dir}'.", "ERROR")
+            raise PermissionError(f"No write access to destination directory '{dest_dir}'")
+
+        self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE")
+        return True
 
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
@@ -465,8 +491,8 @@ class NauticalBackup:
             return
 
         base_src_dir = Path(self.env.SOURCE_LOCATION)
-        # base_dest_dir = Path(self.env.DEST_LOCATION)
 
+        self.verify_destination_location(base_dest_dir)
         if not os.path.exists(base_dest_dir):
             self.log_this(
                 f"Destination directory '{base_dest_dir}' does not exist during {BeforeOrAfter.BEFORE.name}", "ERROR"
@@ -508,6 +534,7 @@ class NauticalBackup:
                 if not os.path.exists(dest_dir):
                     os.makedirs(dest_dir, exist_ok=True)
 
+            self.verify_destination_location(dest_dir)
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
@@ -521,6 +548,7 @@ class NauticalBackup:
         else:  # Only container given (no secondary dest)
             dest_path = Path(self.env.DEST_LOCATION)
 
+        self.verify_destination_location(dest_path)
         if not dest_dir.exists():
             self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
