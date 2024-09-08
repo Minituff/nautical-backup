@@ -78,6 +78,7 @@ This endpoint is the quickest way to get a glimpse into everything Nautical has 
       "completed": "0",
       "skipped": "1",
       "errors": "0",
+      "last_backup_seconds_taken": "15",
       "backup_running": "false"
     }
     ```
