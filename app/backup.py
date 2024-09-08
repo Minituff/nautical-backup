@@ -587,14 +587,26 @@ class NauticalBackup:
 
         return f"{default_rsync_args} {custom_rsync_args}"
 
+    def reset_db(self) -> None:
+        """Reset the database values to their defaults"""
+        self.db.put("containers_completed", 0)
+        self.db.put("containers_skipped", 0)
+        self.db.put("last_backup_seconds_taken", 0)
+        self.db.put("last_cron", "None")
+        self.db.put("completed", "0")
+        self.db.put("backup_running", False)
+
     def backup(self):
         if self.env.REPORT_FILE == True:
             self.logger._create_new_report_file()
 
         self.log_this("Starting backup...", "INFO")
 
+        self.reset_db()
         self.db.put("backup_running", True)
-        self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %H:%M"))
+
+        start_time = datetime.now()
+        self.db.put("last_cron", start_time.strftime("%m/%d/%y %H:%M"))
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
@@ -686,12 +698,18 @@ class NauticalBackup:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
+        end_time = datetime.now()
+        exeuction_time = end_time - start_time
+        duration = datetime.fromtimestamp(exeuction_time.total_seconds())
+
         self.db.put("backup_running", False)
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
+        self.db.put("last_backup_seconds_taken", round(exeuction_time.total_seconds()))
 
         self.log_this("Containers completed: " + self.logger.set_to_string(self.containers_completed), "DEBUG")
         self.log_this("Containers skipped: " + self.logger.set_to_string(self.containers_skipped), "DEBUG")
+        self.log_this(f"Completed in {duration.strftime('%Mm %Ss')}", "INFO")
 
         self.log_this(
             f"Success. {len(self.containers_completed)} containers backed up! {len(self.containers_skipped)} skipped.",
