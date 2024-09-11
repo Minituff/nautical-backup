@@ -47,14 +47,14 @@ class NauticalBackup:
         if self.env.REPORT_FILE == True and self.env.REPORT_FILE_ON_BACKUP_ONLY == False:
             self.logger._create_new_report_file()
 
-        self.verify_source_location(self.env.SOURCE_LOCATION)
-        self.verify_mounted_destination_location(self.env.DEST_LOCATION, create_if_not_exists=False)
+        self.verify_nautcical_mounted_source_location(self.env.SOURCE_LOCATION)
+        self.verify_nautiucal_mounted_destination_location(self.env.DEST_LOCATION, create_if_not_exists=False)
 
     def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, log_type)
 
-    def verify_source_location(self, src_dir: str):
+    def verify_nautcical_mounted_source_location(self, src_dir: str):
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", LogType.INIT)
         if not os.path.isdir(src_dir):
             self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", LogType.INIT)
@@ -65,8 +65,8 @@ class NauticalBackup:
 
         self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", LogType.INIT)
 
-    def verify_mounted_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True):
-        self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
+    def verify_nautiucal_mounted_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True):
+        self.log_this(f"Verifying Nautical destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
 
         if not os.path.exists(dest_dir) and create_if_not_exists:
             os.makedirs(dest_dir, exist_ok=True)
@@ -548,11 +548,13 @@ class NauticalBackup:
         else:  # Only container given (no secondary dest)
             dest_path = Path(self.env.DEST_LOCATION)
 
-        self.verify_destination_location(dest_path)
-        if not dest_dir.exists():
-            self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
+        src_dir_required = str(c.labels.get("nautical-backup.source-dir-required", "true")).lower()
+        if src_dir_required == "true":
+            self.verify_destination_location(dest_path)
+            if not dest_dir.exists():
+                self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
-        if src_dir.exists():
+        if src_dir.exists() or src_dir_required == "false":
             self.log_this(f"Backing up {c.name}...", "INFO")
 
             rsync_args = self._get_rsync_args(c)
@@ -666,13 +668,15 @@ class NauticalBackup:
 
                 src_dir, src_dir_no_path = self._get_src_dir(c)
                 if not src_dir.exists():
-                    src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
+                    src_dir_required = str(c.labels.get("nautical-backup.source-dir-required", "true")).lower()
                     if src_dir_required == "false":
-                        self.log_this(f"{c.name} - Source directory '{src_dir}' does, but that's okay", "DEBUG")
-
-                    self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
-                    self.containers_skipped.add(c.name)
-                    continue
+                        self.log_this(
+                            f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
+                        )
+                    else:
+                        self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
+                        self.containers_skipped.add(c.name)
+                        continue
 
                 stop_result = self._stop_container(c)  # Stop containers
 
