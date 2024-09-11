@@ -46,7 +46,7 @@ add_current_datetime() {
 
     # Format the current date and time
     local datetime_format1=$(date +"%A, %B %d, %Y at %I:%M %p")
-    local datetime_format2=$(date +"%m/%d/%y %I:%M")
+    local datetime_format2=$(date +"%m/%d/%y %H:%M")
 
     # Update or create the key with the formatted date and time
     jq --arg key "$key" --arg datetime1 "$datetime_format1" --arg datetime2 "$datetime_format2" \

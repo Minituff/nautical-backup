@@ -259,6 +259,44 @@ nautical-backup.group.<group_name>.priority=<integer>
               - "nautical-backup.group.authentic.priority=105"
         ```
 
+## Require Source Folder for Backup
+Use this label to tell Nautical to process <small> (start/stop)</small> this container even if it cannot find a matching source directory.
+
+> **Default If Missing**: *true* <small> (container will be skipped if no matching source folder is found)</small>
+
+```properties
+nautical-backup.source-dir-required=false
+```
+
+!!! example "Example"
+    Here we have an example [Immich](https://immich.app) deployment. Notice the `immich-server` does not have any mounted directories, but we still want to stop/start it along with it's other services. This is especially helpful when combined with the [Groups](#groups) feature.
+
+    ```yaml hl_lines="4 7"
+    immich-server:
+      container_name: immich_server
+      volumes:
+        # No volumes to backup
+      labels:
+        - "nautical-backup.group=immich"
+        - "nautical-backup.source-dir-required=false"
+
+    immich-redis:
+      container_name: immich_redis
+      volumes:
+        - ${APPDATADIR}/immich/redis:/data
+      labels:
+        - "nautical-backup.group=immich"
+        - "nautical-backup.override-source-dir=immich/redis"
+
+    immich-database:
+      container_name: immich_postgres
+      volumes:
+        - ${APPDATADIR}/immich/database:/var/lib/postgresql/data
+      labels:
+        - "nautical-backup.group=immich"
+        - "nautical-backup.override-source-dir=immich/database"
+    ```
+
 ## Additional Folders
 Use this label to backup more folders associated with the container.
 
@@ -296,13 +334,12 @@ nautical-backup.additional-folders.when=after
         In this example, the `service-additional` folder already exists withing the `source` directory, so no additional mount point is needed.
         
         ```yaml
-        version: '3'
         services:
           # Service config ...
           labels:
             - "nautical-backup.additional-folders=service-additional"
         
-        ------8<------ "docker-compose-example-no-tooltips.yml:4:11"
+        ------8<------ "docker-compose-example-no-tooltips.yml:1:8"
         ```
         
 === "Example 2"
@@ -313,14 +350,13 @@ nautical-backup.additional-folders.when=after
         Also, the additional folders are backed up *after* the service is restarted.
 
         ```yaml
-        version: '3'
         services:
           # Service config ...
           labels:
             - "nautical-backup.additional-folders=service-additional"
             - "nautical-backup.additional-folders.when=after"
         
-        ------8<------ "docker-compose-example-no-tooltips.yml:4:11"
+        ------8<------ "docker-compose-example-no-tooltips.yml:1:8"
               - /mnt/service-additional:/app/source/service-additional #(1)!
         ```
 
@@ -359,6 +395,8 @@ By default, Nautical will look for the source directory that is the same name as
     | Container Name | Old Source Directory | New Source Directory              |
     | -------------- | -------------------- | --------------------------------- |
     | example1       | `src/example1`       | `src/subfolder/example1`          |
+
+    !!! tip "Another nested folder example can be found [here](#require-source-folder-for-backup)"
 
 <small>🔄 This is the same action as the [Override Source Directory](./arguments.md#override-source-directory) variable, but applied only to this container.</small>
 

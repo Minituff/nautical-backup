@@ -2431,3 +2431,70 @@ class TestBackup:
             nb = NauticalBackup(mock_docker_client)
 
         assert "No write access to destination directory" in str(err.value)
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.override-source-dir": "immich/database",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    def test_nested_source_and_dest(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test nested source directory"""
+        nautical_env = NauticalEnv()
+        nested_path = Path(nautical_env.SOURCE_LOCATION) / "immich" / "database"
+        nested_path.mkdir(parents=True, exist_ok=True)
+
+        # Remove the destination directory. It should be created
+        rm_tree(Path(nautical_env.DEST_LOCATION) / "immich" / "database")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_subprocess_run.call_args_list[0][0][0][1] == f"{nautical_env.SOURCE_LOCATION}/immich/database/"
+        assert mock_subprocess_run.call_args_list[0][0][0][2] == f"{nautical_env.DEST_LOCATION}/immich/database/"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.source-dir-required": "false",
+                },
+                "source_exists": False,
+            }
+        ],
+        indirect=True,
+    )
+    def test_source_dir_required_label(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test source-dir-required label"""
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container once has no source dir, so no rsync or stop is called
+        mock_container1.stop.assert_called_once()
+        mock_subprocess_run.assert_not_called()
+        mock_container1.start.assert_called_once()

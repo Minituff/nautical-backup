@@ -9,8 +9,8 @@ The API is ^^enabled internally by default^^, but you still must open the port f
 You need to ensure the port is opened by Docker for the Nautical container. See the ==highlighted== sections of this example Nautical config:
 
 === "Docker Compose"
-    ```yaml hl_lines="11 12"
-    ------8<------ "docker-compose-example-no-tooltips.yml:0:11"
+    ```yaml hl_lines="8 9"
+    ------8<------ "docker-compose-example-no-tooltips.yml:0:8"
         ports:
           - "8069:8069/tcp"
     ```
@@ -78,6 +78,7 @@ This endpoint is the quickest way to get a glimpse into everything Nautical has 
       "completed": "0",
       "skipped": "1",
       "errors": "0",
+      "last_backup_seconds_taken": "15",
       "backup_running": "false"
     }
     ```

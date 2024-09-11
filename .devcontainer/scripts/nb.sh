@@ -8,13 +8,13 @@ show_help() {
     echo "  build-run      - Build and run Nautical container"
     echo ""
     echo "  unit-test      - Run Unit tests locally using mounts"
-    echo "  unit-test-full - Build and run Unit tests locally"
-    echo "  build-test     - Build and run Nautical Testing container"
+    echo "  integration    - Build and run integration tests locally"
+    # echo "  build-test     - Build and run Nautical Testing container"
     echo "  test           - Run already built test Nautical container"
-    echo "  build-test-run - Build and run Nautical Testing container"
+    # echo "  build-test-run - Build and run Nautical Testing container"
     echo ""
-    echo "  dev            - Run Nautical Development container"
-    echo "  build-dev      - Build and run Nautical Development container"
+    # echo "  dev            - Run Nautical Development container"
+    # echo "  build-dev      - Build and run Nautical Development container"
     echo "  api            - Run the Python API locally"
     echo "  pytest         - Pytest locally and capture coverage"
     echo "  format         - Format all python code with black"
@@ -56,21 +56,21 @@ execute_command() {
         cd $APP_HOME/tests
         docker compose run nautical-backup-test4 --exit-code-from nautical-backup-test4
         ;;
-    dev)
-        cd $APP_HOME/tests
-        docker compose run nautical-backup-test5 --exit-code-from nautical-backup-test5
-        ;;
-    build-test)
-        clear
-        cecho CYAN "Building Test Nautical container..."
-        cd $APP_HOME
-        docker build -t minituff/nautical-test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .
-        ;;
-    build-dev)
-        cd $APP_HOME
-        nb build-test
-        ;;
-    test)
+    # dev)
+    #     cd $APP_HOME/tests
+    #     docker compose run nautical-backup-test5 --exit-code-from nautical-backup-test5
+    #     ;;
+    # build-test)
+    #     clear
+    #     cecho CYAN "Building Test Nautical container..."
+    #     cd $APP_HOME
+    #     docker build -t minituff/nautical-test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' --build-arg='TEST_MODE=0' .
+    #     ;;
+    # build-dev)
+    #     cd $APP_HOME
+    #     nb build-test
+    #     ;;
+    integration)
         cecho CYAN "Running Nautical integration tests..."
         cd $APP_HOME
         
@@ -108,11 +108,11 @@ execute_command() {
         rm -rf source destination config
 
         ;;
-    build-test-run)
-        nb build-test
-        clear
-        nb test
-        ;;
+    # build-test-run)
+    #     nb build-test
+    #     clear
+    #     nb test
+    #     ;;
     api)
         cd $APP_HOME
         cecho CYAN "Running Nautical API locally..."

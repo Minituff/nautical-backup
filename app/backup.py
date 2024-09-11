@@ -47,14 +47,14 @@ class NauticalBackup:
         if self.env.REPORT_FILE == True and self.env.REPORT_FILE_ON_BACKUP_ONLY == False:
             self.logger._create_new_report_file()
 
-        self.verify_source_location(self.env.SOURCE_LOCATION)
-        self.verify_destination_location(self.env.DEST_LOCATION)
+        self.verify_nautcical_mounted_source_location(self.env.SOURCE_LOCATION)
+        self.verify_nautiucal_mounted_destination_location(self.env.DEST_LOCATION, create_if_not_exists=False)
 
     def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, log_type)
 
-    def verify_source_location(self, src_dir: str):
+    def verify_nautcical_mounted_source_location(self, src_dir: str):
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", LogType.INIT)
         if not os.path.isdir(src_dir):
             self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", LogType.INIT)
@@ -65,8 +65,12 @@ class NauticalBackup:
 
         self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", LogType.INIT)
 
-    def verify_destination_location(self, dest_dir: str):
-        self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
+    def verify_nautiucal_mounted_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True):
+        self.log_this(f"Verifying Nautical destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
+
+        if not os.path.exists(dest_dir) and create_if_not_exists:
+            os.makedirs(dest_dir, exist_ok=True)
+
         if not os.path.isdir(dest_dir):
             self.log_this(
                 f"Destination directory '{dest_dir}' does not exist. Please mount it to /app/destination",
@@ -82,6 +86,28 @@ class NauticalBackup:
             raise PermissionError(f"No write access to destination directory '{dest_dir}'")
 
         self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE", LogType.INIT)
+
+    def verify_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True) -> bool:
+        """Verify the destination location (for containers) exists and is writable"""
+        self.log_this(f"Verifying destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
+
+        if not os.path.exists(dest_dir) and create_if_not_exists:
+            os.makedirs(dest_dir, exist_ok=True)
+
+        if not os.path.isdir(dest_dir):
+            self.log_this(
+                f"Destination directory '{dest_dir}' does not exist. Please mount it to /app/destination", "ERROR"
+            )
+            return False
+        elif not os.access(dest_dir, os.R_OK):
+            self.log_this(f"No read access to destination directory '{dest_dir}'.", "ERROR")
+            return False
+        elif not os.access(dest_dir, os.W_OK):
+            self.log_this(f"No write access to destination directory '{dest_dir}'.", "ERROR")
+            raise PermissionError(f"No write access to destination directory '{dest_dir}'")
+
+        self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE")
+        return True
 
     def _should_skip_container(self, c: Container) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
@@ -465,8 +491,8 @@ class NauticalBackup:
             return
 
         base_src_dir = Path(self.env.SOURCE_LOCATION)
-        # base_dest_dir = Path(self.env.DEST_LOCATION)
 
+        self.verify_destination_location(base_dest_dir)
         if not os.path.exists(base_dest_dir):
             self.log_this(
                 f"Destination directory '{base_dest_dir}' does not exist during {BeforeOrAfter.BEFORE.name}", "ERROR"
@@ -508,6 +534,7 @@ class NauticalBackup:
                 if not os.path.exists(dest_dir):
                     os.makedirs(dest_dir, exist_ok=True)
 
+            self.verify_destination_location(dest_dir)
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
@@ -521,14 +548,21 @@ class NauticalBackup:
         else:  # Only container given (no secondary dest)
             dest_path = Path(self.env.DEST_LOCATION)
 
-        if not dest_dir.exists():
-            self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
+        src_dir_required = str(c.labels.get("nautical-backup.source-dir-required", "true")).lower()
+        if src_dir_required == "true":
+            self.verify_destination_location(dest_path)
+            if not dest_dir.exists():
+                self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
         if src_dir.exists():
             self.log_this(f"Backing up {c.name}...", "INFO")
 
             rsync_args = self._get_rsync_args(c)
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
+        elif src_dir_required == "false":
+            # Do nothing. This container is still started and stopped, but there is nothing to backup
+            # Likely this container is part of a group and the source directory is not required
+            pass
         else:
             self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
 
@@ -587,14 +621,26 @@ class NauticalBackup:
 
         return f"{default_rsync_args} {custom_rsync_args}"
 
+    def reset_db(self) -> None:
+        """Reset the database values to their defaults"""
+        self.db.put("containers_completed", 0)
+        self.db.put("containers_skipped", 0)
+        self.db.put("last_backup_seconds_taken", 0)
+        self.db.put("last_cron", "None")
+        self.db.put("completed", "0")
+        self.db.put("backup_running", False)
+
     def backup(self):
         if self.env.REPORT_FILE == True:
             self.logger._create_new_report_file()
 
         self.log_this("Starting backup...", "INFO")
 
+        self.reset_db()
         self.db.put("backup_running", True)
-        self.db.put("last_cron", datetime.now().strftime("%m/%d/%y %I:%M"))
+
+        start_time = datetime.now()
+        self.db.put("last_cron", start_time.strftime("%m/%d/%y %H:%M"))
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
@@ -626,13 +672,15 @@ class NauticalBackup:
 
                 src_dir, src_dir_no_path = self._get_src_dir(c)
                 if not src_dir.exists():
-                    src_dir_required = str(c.labels.get("nautical-backup.source-dir-required-to-stop", "true")).lower()
+                    src_dir_required = str(c.labels.get("nautical-backup.source-dir-required", "true")).lower()
                     if src_dir_required == "false":
-                        self.log_this(f"{c.name} - Source directory '{src_dir}' does, but that's okay", "DEBUG")
-
-                    self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
-                    self.containers_skipped.add(c.name)
-                    continue
+                        self.log_this(
+                            f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
+                        )
+                    else:
+                        self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
+                        self.containers_skipped.add(c.name)
+                        continue
 
                 stop_result = self._stop_container(c)  # Stop containers
 
@@ -686,12 +734,18 @@ class NauticalBackup:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
+        end_time = datetime.now()
+        exeuction_time = end_time - start_time
+        duration = datetime.fromtimestamp(exeuction_time.total_seconds())
+
         self.db.put("backup_running", False)
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
+        self.db.put("last_backup_seconds_taken", round(exeuction_time.total_seconds()))
 
         self.log_this("Containers completed: " + self.logger.set_to_string(self.containers_completed), "DEBUG")
         self.log_this("Containers skipped: " + self.logger.set_to_string(self.containers_skipped), "DEBUG")
+        self.log_this(f"Completed in {duration.strftime('%Mm %Ss')}", "INFO")
 
         self.log_this(
             f"Success. {len(self.containers_completed)} containers backed up! {len(self.containers_skipped)} skipped.",
