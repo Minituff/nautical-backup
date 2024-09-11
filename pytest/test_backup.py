@@ -2496,5 +2496,5 @@ class TestBackup:
 
         # Container once has no source dir, so no rsync or stop is called
         mock_container1.stop.assert_called_once()
-        mock_subprocess_run.assert_called_once()
+        mock_subprocess_run.assert_not_called()
         mock_container1.start.assert_called_once()

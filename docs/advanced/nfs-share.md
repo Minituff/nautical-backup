@@ -44,7 +44,7 @@ The above example created a local directory of `/mnt/nfs/docker_backups` which i
 Here is how we can use this new mount withing Nautical:
 === "Docker Compose"
     ```yaml  hl_lines="9"
-    ------8<------ "docker-compose-example.yml:0:9"
+    ------8<------ "docker-compose-example.yml::8"
           - /mnt/nfs/docker_backups:/app/destination #(3) <-- NFS Share
 
     ```

@@ -29,7 +29,7 @@ Currently, the latest version of Nautical is <a href="https://hub.docker.com/r/m
 This will need to be done each time a new version is released.
 === "Docker Compose"
     ```yaml hl_lines="3"
-    ------8<------ "docker-compose-semver-example.yml:3"
+    ------8<------ "docker-compose-semver-example.yml::3"
         # Rest of config...
     ```
 
@@ -56,7 +56,7 @@ While convenient, automatic updates may break things. For this reason we recomme
 
         === "Docker Compose"
             ```yaml hl_lines="3"
-            ------8<------ "docker-compose-example.yml:3:5"
+            ------8<------ "docker-compose-example.yml::3"
                 # Rest of config...
               
               watchtower:
@@ -95,7 +95,7 @@ While convenient, automatic updates may break things. For this reason we recomme
 
         === "Docker Compose"
             ```yaml hl_lines="3"
-            ------8<------ "docker-compose-semver-major-example.yml:3:5"
+            ------8<------ "docker-compose-semver-major-example.yml::3"
                 # Rest of config...
 
               watchtower:
@@ -140,7 +140,7 @@ While convenient, automatic updates may break things. For this reason we recomme
         
         === "Docker Compose"
             ```yaml hl_lines="3"
-            ------8<------ "docker-compose-example.yml:3:4"
+            ------8<------ "docker-compose-example.yml::2"
                 image: minituff/nautical-backup:latest
                 # Rest of config...
 

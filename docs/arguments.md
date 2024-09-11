@@ -117,7 +117,7 @@ ADDITIONAL_FOLDERS_WHEN=after
     The `additional2` folder already exists within the `/opt/volume-data` so it does not need a mount point.
 
     ```yaml
-    ------8<------ "docker-compose-example-no-tooltips.yml:3:9"
+    ------8<------ "docker-compose-example-no-tooltips.yml:1:7"
           - /opt/volume-data:/app/source #(4)!
           - /mnt/nfs-share/backups:/app/destination
           - /mnt/additional:/app/source/additional #(1)!
@@ -154,7 +154,7 @@ SECONDARY_DEST_DIRS=/path/one,/path/two
         Pay attention to the newly added highlighed lines:
 
         ```yaml hl_lines="10-13"
-        ------8<------ "docker-compose-example-no-tooltips.yml:3:9"
+        ------8<------ "docker-compose-example-no-tooltips.yml:1:7"
               - /opt/volume-data:/app/source
               - /mnt/nfs-share/backups:/app/destination
               - /mnt/nfs-share/destination1:/nautical/destination1 #(1)!

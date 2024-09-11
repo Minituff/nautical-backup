@@ -554,11 +554,15 @@ class NauticalBackup:
             if not dest_dir.exists():
                 self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
-        if src_dir.exists() or src_dir_required == "false":
+        if src_dir.exists():
             self.log_this(f"Backing up {c.name}...", "INFO")
 
             rsync_args = self._get_rsync_args(c)
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
+        elif src_dir_required == "false":
+            # Do nothing. This container is still started and stopped, but there is nothing to backup
+            # Likely this container is part of a group and the source directory is not required
+            pass
         else:
             self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
 
