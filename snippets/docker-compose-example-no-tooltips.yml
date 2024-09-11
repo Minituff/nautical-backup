@@ -1,6 +1,6 @@
 services:
   nautical-backup:
-    image: minituff/nautical-backup:2.5
+    image: minituff/nautical-backup:2.6
     container_name: nautical-backup
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
