@@ -95,11 +95,11 @@ RUN \
     echo "**** Cleanup ****" && \
     apk del --purge build-dependencies
 
-RUN echo "Installing nautical backup script..." "DEBUG" "init" && \
+RUN echo "****Installing nautical backup script ****" && \
     # Allows the nautical backup script to be run using `bash nautical`
     ln -s /app/backup.py /usr/local/bin/nautical && \
     chmod +x /usr/local/bin/nautical
-    
+
 # Conditionally execute commands based on TESTMODE
 RUN if [ "$TEST_MODE" != "-1" ]; then \
       echo "=== TEST MODE ENABLED ===" && \
