@@ -18,7 +18,6 @@ ARG TEST_MODE="-1"
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ENV S6_OVERLAY_VERSION="3.1.6.2"
 
-
 # Install S6 Overlay
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
@@ -49,23 +48,23 @@ COPY requirements.txt app/requirements.txt
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
 
 # renovate: datasource=repology depName=alpine_3_18/bash versioning=loose
-ENV BASH_VERSION="5.2.15-r5"
+ENV BASH_VERSION="5.2.15"
 # renovate: datasource=repology depName=alpine_3_18/rsync versioning=loose
-ENV RSYNC_VERSION="3.2.7-r4"
+ENV RSYNC_VERSION="3.2.7"
 # renovate: datasource=repology depName=alpine_3_18/tzdata versioning=loose
-ENV TZ_DATA_VERSION="2024a-r0"
+ENV TZ_DATA_VERSION="2024"
 # renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
-ENV DOS2UNIX_VERSION="7.4.4-r1"
+ENV DOS2UNIX_VERSION="7.4.4"
 # renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
-ENV JQ_VERSION="1.6-r4"
+ENV JQ_VERSION="1.6"
 # renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
-ENV CURL_VERSION="8.9.1-r0"
+ENV CURL_VERSION="8.9.1"
 # renovate: datasource=repology depName=alpine_3_18/python3 versioning=loose
-ENV PYTHON_VERSION="3.11.8-r1"
+ENV PYTHON_VERSION="3.11"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
-ENV PIP_VERSION="23.1.2-r0"
+ENV PIP_VERSION="23.1.2"
 # renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
-ENV RUBY_VERSION="3.2.4-r0"
+ENV RUBY_VERSION="3.2.4"
 
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
 ENV S6_VERBOSITY=1
@@ -77,16 +76,16 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 RUN \
     echo "**** Install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
-    dos2unix="${DOS2UNIX_VERSION}" && \
+    dos2unix=~"${DOS2UNIX_VERSION}" && \
     echo "**** Install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
-    bash="${BASH_VERSION}" \
-    rsync="${RSYNC_VERSION}" \
-    tzdata="${TZ_DATA_VERSION}" \
-    jq="${JQ_VERSION}" \ 
-    curl="${CURL_VERSION}" \
-    python3="${PYTHON_VERSION}" \
-    py3-pip="${PIP_VERSION}" && \
+    bash=~"${BASH_VERSION}" \
+    rsync=~"${RSYNC_VERSION}" \
+    tzdata=~"${TZ_DATA_VERSION}" \
+    jq=~"${JQ_VERSION}" \ 
+    curl=~"${CURL_VERSION}" \
+    python3=~"${PYTHON_VERSION}" \
+    py3-pip=~"${PIP_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
@@ -96,12 +95,17 @@ RUN \
     echo "**** Cleanup ****" && \
     apk del --purge build-dependencies
 
+RUN echo "****Installing nautical backup script ****" && \
+    # Allows the nautical backup script to be run using `bash nautical`
+    ln -s /app/backup.py /usr/local/bin/nautical && \
+    chmod +x /usr/local/bin/nautical
+
 # Conditionally execute commands based on TESTMODE
 RUN if [ "$TEST_MODE" != "-1" ]; then \
       echo "=== TEST MODE ENABLED ===" && \
       echo "**** Installing TEST packages ****" && \
       apk add --no-cache \
-      ruby-full="${RUBY_VERSION}" && \
+      ruby-full=~"${RUBY_VERSION}" && \
       echo "**** Installing ruby packages (for tests) ****" && \
       gem install bashcov simplecov-cobertura simplecov-html; \
     fi
@@ -114,6 +118,7 @@ COPY --chmod=755 s6-overlay/ /
 
 VOLUME [ "/app/source" ]
 VOLUME [ "/app/destination" ]
+VOLUME [ "/config" ]
 
 # Only should be exposed when running in test mode
 VOLUME [ "/tests" ]

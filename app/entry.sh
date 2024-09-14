@@ -39,7 +39,8 @@ cd /
 with-contenv python3 /app/db.py
 
 # Simlinks the nautical command to the backup script (python)
-initialize_nautical
+# This is now handled via the Dockerfile
+# initialize_nautical
 
 
 # :nocov:
