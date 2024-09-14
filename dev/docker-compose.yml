@@ -24,17 +24,18 @@ services:
     labels:
       - "nautical-backup.enable=true"
       # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
-      - "nautical-backup.curl.before=/config/script.sh"
-      - "nautical-backup.override-source-dir=folder/watchtower"
+      # - "nautical-backup.curl.before=/config/script.sh"
+      # - "nautical-backup.override-source-dir=folder/watchtower"
 
   nautical-backup:
     image: nautical-backup:test
     container_name: nautical-backup-test
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source:ro
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
       - /var/run/docker.sock:/var/run/docker.sock
+    user: 1000:1000
     ports:
       - 8069:8069
     environment:
