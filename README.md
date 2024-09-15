@@ -31,7 +31,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /config:/config
-      - /source:/app/source
+      - /source:/app/source:ro
       - /destination:/app/destination
     environment: # Optional variables
       - TZ=America/Los_Angeles
@@ -44,7 +44,7 @@ docker run -d \
   --name nautical-backup \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /config:/config \
-  -v /source:/app/source \
+  -v /source:/app/source:ro \
   -v /destination:/app/destination \
   -e TZ="America/Los_Angeles" \
   -e CRON_SCHEDULE="0 4 * * *" \
