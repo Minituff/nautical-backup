@@ -71,14 +71,43 @@ initialize_nautical_python() {
 }
 
 initialize_nautical() {
-    if [ ! -f "/usr/local/bin/nautical" ]; then
-        logThis "Installing nautical backup script..." "DEBUG" "init"
-        # Allows the nautical backup script to be run using `bash nautical`
-        ln -s /app/nautical.sh /usr/local/bin/nautical
-        chmod +x /usr/local/bin/nautical
-        logThis "ln -s /app/backup.sh /usr/local/bin/nautical" "TRACE" "init"
+    local symlink="/usr/local/bin/nautical"
+    local target="/app/nautical.sh"
+
+    # Check if the symlink exists
+    if [ -L "$symlink" ]; then
+        logThis "Nautical symlink exists." "TRACE" "init"
+
+        # Verify that the symlink points to the correct target
+        if [ "$(readlink "$symlink")" != "$target" ]; then
+            logThis "Symlink points to the wrong target. Recreating..." "DEBUG" "init"
+            rm -f "$symlink"
+            ln -s "$target" "$symlink"
+        fi
+    else
+        logThis "Creating nautical symlink..." "DEBUG" "init"
+        ln -s "$target" "$symlink"
+    fi
+
+    # Ensure the target script exists
+    if [ ! -f "$target" ]; then
+        logThis "Target script '$target' does not exist." "ERROR" "init"
+        return 1
+    fi
+
+    # Ensure the target script is executable
+    if [ ! -x "$target" ]; then
+        logThis "Making target script executable..." "DEBUG" "init"
+        chmod +x "$target"
+    fi
+
+    # Ensure the symlink has the correct permissions
+    if [ ! -x "$symlink" ]; then
+        logThis "Setting executable permission on symlink..." "DEBUG" "init"
+        chmod +x "$symlink"
     fi
 }
+
 
 # Function to initialize the database if it doesn't exist
 initialize_db() {
