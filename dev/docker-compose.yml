@@ -35,15 +35,16 @@ services:
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source:ro
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
       - /var/run/docker.sock:/var/run/docker.sock
-    user: 1000:1000
+    # user: 1000:1000
     ports:
       - 8069:8069
     environment:
       - TZ=America/Los_Angeles
       - LOG_LEVEL=TRACE
-      - BACKUP_ON_START=true
+      # - BACKUP_ON_START=true
       - REPORT_FILE=false
-      - CRON_SCHEDULE=0 4 * * *
+      # - CRON_SCHEDULE=0 4 * * *
+      - CRON_SCHEDULE=* * * * *
       # - REQUIRE_LABEL=true
       - HTTP_REST_API_ENABLED=true
       # - RUN_ONCE=true
