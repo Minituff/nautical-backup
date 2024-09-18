@@ -31,14 +31,20 @@ services:
 
   nautical-backup:
     image: nautical-backup:test
+    build: ../
     container_name: nautical-backup-test
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: ${LOCAL_WORKSPACE_FOLDER-./}/app
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
-      - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app # Allows code to be edited on the fly
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source:ro
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/data/source:ro
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/data/destination
       - /var/lib/docker/volumes:/app/volumes:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      # Development
+      - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app # Allows code to be edited on the fly
     # user: 1000:1000
     ports:
       - 8069:8069

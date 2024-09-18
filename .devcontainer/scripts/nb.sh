@@ -5,7 +5,6 @@ show_help() {
     cecho CYAN "Nautical Backup Developer Commands:"
     echo "  build          - Build Nautical container"
     echo "  run            - Run already built Nautical container"
-    echo "  build-run      - Build and run Nautical container"
     echo ""
     echo "  unit-test      - Run Unit tests locally using mounts"
     echo "  integration    - Build and run integration tests locally"
@@ -31,20 +30,13 @@ execute_command() {
     build)
         clear
         cecho CYAN "Building Nautical..."
-        cd $APP_HOME
-        docker build -t nautical-backup -t nautical-backup:test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' .
-        ;;
-    build-run)
-        cd $APP_HOME
-        nb build
-        cecho CYAN "Running Nautical..."
-        cd dev
-        docker-compose up
+        cd $APP_HOME/dev
+        docker compose --progress=plain build --no-cache --build-arg='NAUTICAL_VERSION=testing'
         ;;
     run)
         cecho CYAN "Running Nautical..."
         cd $APP_HOME/dev
-        docker-compose up
+        docker-compose up --watch
         ;;
     unit-test)
         cd $APP_HOME/tests
