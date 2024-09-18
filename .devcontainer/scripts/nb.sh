@@ -30,13 +30,14 @@ execute_command() {
     build)
         clear
         cecho CYAN "Building Nautical..."
-        cd $APP_HOME/dev
-        docker compose --progress=plain build --no-cache --build-arg='NAUTICAL_VERSION=testing'
+        cd $APP_HOME
+        # docker compose --progress=plain build --no-cache --build-arg='NAUTICAL_VERSION=testing'
+        docker build -t nautical-backup -t nautical-backup:test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' .
         ;;
     run)
         cecho CYAN "Running Nautical..."
         cd $APP_HOME/dev
-        docker-compose up --watch
+        docker-compose up
         ;;
     unit-test)
         cd $APP_HOME/tests
