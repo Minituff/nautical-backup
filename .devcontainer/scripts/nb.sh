@@ -37,7 +37,23 @@ execute_command() {
     run)
         cecho CYAN "Running Nautical..."
         cd $APP_HOME/dev
-        docker-compose up
+        docker-compose up -d 
+
+        docker rm nautical-backup-dev
+        
+        docker run \
+        --name nautical-backup-dev \
+        -v /var/run/docker.sock:/var/run/docker.sock:ro \
+        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source:ro \
+        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config \
+        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination \
+        -e TZ=America/Los_Angeles \
+        -e LOG_LEVEL=TRACE \
+        -e BACKUP_ON_START=true \
+        -e REPORT_FILE=false \
+        -e HTTP_REST_API_ENABLED=true \
+        nautical-backup:test  
+
         ;;
     unit-test)
         cd $APP_HOME/tests
