@@ -7,13 +7,7 @@ FROM docker:24.0.7-cli-alpine3.18@sha256:a2a608408fa15d6694543a7308c2bfd1a7ea90a
 ARG TARGETPLATFORM
 ENV TARGETPLATFORM=${TARGETPLATFORM}
 
-# Nautical Version (for example "v0.2.1") or "main" if not set
-ARG NAUTICAL_VERSION="main"
-ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
-
 LABEL maintainer="minituff"
-
-ARG TEST_MODE="-1"
 
 # renovate: datasource=github-releases depName=just-containers/s6-overlay versioning=loose
 ENV S6_OVERLAY_VERSION="3.1.6.2"
@@ -40,9 +34,6 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-noarch.tar.xz
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-symlinks-arch.tar.xz /tmp
 RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
-# Copy all necessary files into the container (from /app in the repository to /app in the container)
-COPY app app
-COPY requirements.txt app/requirements.txt
 
 # Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.18&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
@@ -66,15 +57,8 @@ ENV PIP_VERSION="23.1.2"
 # renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
 ENV RUBY_VERSION="3.2.4"
 
-# Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
-ENV S6_VERBOSITY=1
-
-# Set the maximum time to wait for services to be ready (0=forever). Needed for BACKUP_ON_START since it could take time.
-ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
-
 # Install dependencies
-RUN \
-    echo "**** Install build packages (will be uninstalled later) ****" && \
+RUN echo "**** Install build packages (will be uninstalled later) ****" && \
     apk add --no-cache --virtual=build-dependencies \
     dos2unix=~"${DOS2UNIX_VERSION}" && \
     echo "**** Install runtime packages (required at runtime) ****" && \
@@ -85,20 +69,26 @@ RUN \
     jq=~"${JQ_VERSION}" \ 
     curl=~"${CURL_VERSION}" \
     python3=~"${PYTHON_VERSION}" \
-    py3-pip=~"${PIP_VERSION}" && \
-    echo "**** Making the entire /app folder executable ****" && \
-    chmod -R +x /app && \
+    py3-pip=~"${PIP_VERSION}"
+
+# Copy all necessary files into the container (from /app in the repository to /app in the container)
+COPY app app
+COPY requirements.txt app/requirements.txt
+
+RUN echo "**** Making the entire /app folder executable ****" && \
+  chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
     echo "**** Install Python packages ****" && \
     python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
     echo "**** Cleanup ****" && \
-    apk del --purge build-dependencies
-
-RUN echo "****Installing nautical backup script ****" && \
+    apk del --purge build-dependencies && \
+    echo "****Installing nautical backup script ****" && \
     # Allows the nautical backup script to be run using `bash nautical`
     ln -s /app/backup.py /usr/local/bin/nautical && \
     chmod +x /usr/local/bin/nautical
+
+ARG TEST_MODE="-1"
 
 # Conditionally execute commands based on TESTMODE
 RUN if [ "$TEST_MODE" != "-1" ]; then \
@@ -113,8 +103,19 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
 # Required for Python imports to work
 ENV PYTHONPATH="."
 
+# Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
+ENV S6_VERBOSITY=1
+
+# Set the maximum time to wait for services to be ready (0=forever). Needed for BACKUP_ON_START since it could take time.
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+
 # Add S6 files
 COPY --chmod=755 s6-overlay/ /
+
+# Nautical Version (for example "v0.2.1") or "main" if not set
+ARG NAUTICAL_VERSION="main"
+ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
+
 
 VOLUME [ "/app/source" ]
 VOLUME [ "/app/destination" ]
