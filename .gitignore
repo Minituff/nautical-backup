@@ -6,6 +6,7 @@ coverage
 .vscode
 __pycache__
 pytest_cache
+.pytest_cache
 .coverage
 htmlcov
 coverage.xml
