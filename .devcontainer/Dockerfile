@@ -6,9 +6,10 @@ COPY requirements.txt /tmp/nautical/requirements.txt
 COPY requirements-dev.txt /tmp/nautical/requirements-dev.txt
 
 RUN echo "Installing python packages (for api)..." && \
-    # This will also install everything in requirements.txt file
-    python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/nautical/requirements-dev.txt && \
-    echo "Installation complete."
+  python3 -m pip install --upgrade pip && \
+  # This will also install everything in requirements.txt file
+  python3 -m pip --no-cache-dir install -r /tmp/nautical/requirements-dev.txt && \
+  echo "Installation complete."
 
 # For development, prevents Nautical from stopping VSCode DevContainer itself
 LABEL nautical-backup.enable=false
