@@ -59,6 +59,8 @@ ENV DOS2UNIX_VERSION="7.4.4"
 ENV JQ_VERSION="1.6"
 # renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
 ENV CURL_VERSION="8.9.1"
+# renovate: datasource=repology depName=alpine_3_18/7zip versioning=loose
+ENV SEVENZIP_VERSION="22.01"
 # renovate: datasource=repology depName=alpine_3_18/python3 versioning=loose
 ENV PYTHON_VERSION="3.11"
 # renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
@@ -84,6 +86,7 @@ RUN \
     tzdata=~"${TZ_DATA_VERSION}" \
     jq=~"${JQ_VERSION}" \ 
     curl=~"${CURL_VERSION}" \
+    7zip=~"${SEVENZIP_VERSION}" \
     python3=~"${PYTHON_VERSION}" \
     py3-pip=~"${PIP_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
