@@ -151,6 +151,20 @@ test_curl() {
         echo "FAIL: 'curl --version' did not return a value."
         exit 1
     fi
+
+test_7zip() {
+    EXPECTED_OUTPUT="/usr/bin/7z"
+    ACTUAL_OUTPUT=$(which 7z)
+
+    # Compare the actual output to the expected output
+    if [ "$ACTUAL_OUTPUT" == "$EXPECTED_OUTPUT" ]; then
+        echo "PASS: 'which 7z' returns $EXPECTED_OUTPUT"
+    else
+        echo "FAIL: 7z does not match expected output."
+        echo "Expected: $EXPECTED_OUTPUT"
+        echo "Got: $ACTUAL_OUTPUT"
+        exit 1
+    fi
 }
 
 test_timeout() {
@@ -319,6 +333,7 @@ if [ "$1" == "test1" ]; then
     test_rsync
     test_jq
     test_curl
+    test_7zip
     test_timeout
     test_alpine_release
     test_python
