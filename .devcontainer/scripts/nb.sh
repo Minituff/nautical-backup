@@ -39,6 +39,7 @@ execute_command() {
         cd $APP_HOME/dev
         docker-compose up -d 
 
+        docker stop --time 0 nautical-backup-dev
         docker rm nautical-backup-dev
         
         docker run \

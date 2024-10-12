@@ -1,14 +1,17 @@
 import os
 from pathlib import Path
+from typing import Dict, List, Optional
 import yaml
 from pprint import pprint
 from nautical_env import NauticalEnv
 import inspect
+from copy import deepcopy
 
 
 class NauticalConfig:
-    def __init__(self, nauticalEnv: NauticalEnv, config_path: Path) -> None:
-        self.config_path = config_path
+    def __init__(self, nauticalEnv: NauticalEnv, config_path: Optional[Path]) -> None:
+        self.nauticalEnv = nauticalEnv
+        self.config_path = config_path if config_path else Path(nauticalEnv.NAUTICAL_CONFIG_PATH)
         self.yml = self._load_yaml(config_path)
         env = self.yml.get("env", {})
 
@@ -40,6 +43,50 @@ class NauticalConfig:
         self.SECONDARY_DEST_DIRS = env.get("SECONDARY_DEST_DIRS", nauticalEnv.SECONDARY_DEST_DIRS)
         self.PRE_BACKUP_EXEC = env.get("PRE_BACKUP_EXEC", nauticalEnv.PRE_BACKUP_EXEC)
         self.POST_BACKUP_EXEC = env.get("POST_BACKUP_EXEC", nauticalEnv.POST_BACKUP_EXEC)
+
+        DIRECTORY_MAPPINGS: Dict[str, Dict[str, str]] = self.yml.get("directory", {}).get("mappings", {})
+        self.directory_mappings_by_source = self._map_directories_by_source(DIRECTORY_MAPPINGS)
+
+    @staticmethod
+    def _map_directories_by_source(mappings: Dict[str, Dict[str, str]]):
+        """Sort the directory mappings by source, this is the most common query method"""
+        result = {}
+        for name, data in mappings.items():
+            if "source" not in data and "src" not in data:
+                raise ValueError(f"'source' key is missing in directory mapping: {name}")
+            source = data.get("source", data.get("src", ""))
+            if "destination" not in data and "dest" not in data:
+                raise ValueError(f"'dest' key is missing in directory mapping: {name}")
+            destination = data.get("destination", data.get("dest", ""))
+
+            result[source] = data
+            result[source]["name"] = name
+            result[source]["destination"] = destination  # Ensire destination is always set (even if it is 'dest')
+        return result
+
+    def get_directory_mappings_with_precedence(
+        self, source_dir: str | Path, directory_mappings_by_source: Dict | None
+    ) -> Dict[str, str]:
+        """Return the directory mapping for the given source directory, with the highest precedence (by specificity)"""
+        map = directory_mappings_by_source if directory_mappings_by_source else self.directory_mappings_by_source
+
+        source_dir = Path(source_dir) if isinstance(source_dir, str) else source_dir
+
+        src = source_dir
+        suffix = ""
+        while src != Path("/"):
+            if str(src) in map:
+                # Copy the dictionary to avoid modifying the original
+                map_copy: Dict[str, str] = deepcopy(map[str(src)])
+
+                nautical_source = Path(map_copy["destination"]) / suffix
+                map_copy["nautical_source"] = str(nautical_source)
+                return map_copy
+
+            suffix = src.name + "/" + suffix
+            src = src.parent
+
+        raise ValueError(f"Directory mapping not found for source: {source_dir}")
 
     def __repr__(self):
         repr = inspect.cleandoc(
@@ -93,4 +140,5 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    print(config)
+    print(config.get_directory_mappings_with_precedence("/var/lib/docker/volumes/TEST", None))
+    # print(config)

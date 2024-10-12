@@ -1,5 +1,5 @@
 # https://github.com/devcontainers/images/tree/main/src/python
-FROM mcr.microsoft.com/devcontainers/python:3.11
+FROM mcr.microsoft.com/devcontainers/python:3.12
 
 # These files must be ignored in the docker ignore
 COPY requirements.txt /tmp/nautical/requirements.txt

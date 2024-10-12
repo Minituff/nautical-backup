@@ -9,7 +9,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - watchtower-data:/data/test:ro # Named volume
-      - /data/test2 # Anonymously volume
+      - /data/test2 # Anonymous volume
+      - ./source/watchtower:/data/watchtower:ro # Bind mount
     ports:
       - 8080:8080
     environment:
