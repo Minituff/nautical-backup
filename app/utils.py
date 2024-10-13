@@ -5,21 +5,6 @@ import yaml
 from pprint import pprint
 from nautical_env import NauticalEnv
 import inspect
-from copy import deepcopy
-
-
-class NauticalDirectoryMapping:
-    def __init__(
-        self, name: str, host_path: str, nautical_path: str, description: str = "", final_path: Path | None = None
-    ) -> None:
-        self.name = name
-        self.host_path = host_path
-        self.nautical_path = nautical_path
-        self.description = description
-        self.final_path = final_path
-
-    def __repr__(self):
-        return str(self.__dict__)
 
 
 class ContainerConfig:
@@ -128,6 +113,19 @@ class ContainerConfig:
 
 
 class NauticalConfig:
+    class DirectoryMapping:
+        def __init__(
+            self, name: str, host_path: str, nautical_path: str, description: str = "", final_path: Path | None = None
+        ) -> None:
+            self.name = name
+            self.host_path = host_path
+            self.nautical_path = nautical_path
+            self.description = description
+            self.final_path = final_path
+
+        def __repr__(self):
+            return str(self.__dict__)
+
     def __init__(self, nauticalEnv: NauticalEnv, config_path: Optional[Path]) -> None:
         self.nauticalEnv = nauticalEnv
         self.config_path = config_path if config_path else Path(nauticalEnv.NAUTICAL_CONFIG_PATH)
@@ -163,10 +161,15 @@ class NauticalConfig:
         self.PRE_BACKUP_EXEC = env.get("PRE_BACKUP_EXEC", nauticalEnv.PRE_BACKUP_EXEC)
         self.POST_BACKUP_EXEC = env.get("POST_BACKUP_EXEC", nauticalEnv.POST_BACKUP_EXEC)
 
-        self._directory_mappings_list: List[NauticalDirectoryMapping] = self._serialize_directory_mappings(self.yml)
+        self._directory_mappings_list: List[NauticalConfig.DirectoryMapping] = self._serialize_directory_mappings(
+            self.yml
+        )
         self.directory_mappings_by_source = self._map_directories_by_source(self._directory_mappings_list)
 
         self.containers = self._serialize_containers(self.yml)
+
+    def __repr__(self):
+        return str(self.__dict__)
 
     @staticmethod
     def _serialize_containers(yml: Dict) -> List[ContainerConfig]:
@@ -178,7 +181,7 @@ class NauticalConfig:
         return configs
 
     @staticmethod
-    def _serialize_directory_mappings(yml: Dict) -> List[NauticalDirectoryMapping]:
+    def _serialize_directory_mappings(yml: Dict) -> List[DirectoryMapping]:
         mappings = yml.get("directory", {}).get("mappings", {})
         result = []
         for name, data in mappings.items():
@@ -191,7 +194,7 @@ class NauticalConfig:
             if not host_path:
                 raise ValueError(f"'host_path' key is missing in directory mapping: {name}")
 
-            ndm = NauticalDirectoryMapping(
+            ndm = NauticalConfig.DirectoryMapping(
                 name=name,
                 host_path=host_path,
                 nautical_path=nautical_path,
@@ -201,16 +204,16 @@ class NauticalConfig:
         return result
 
     @staticmethod
-    def _map_directories_by_source(mappings: List[NauticalDirectoryMapping]):
+    def _map_directories_by_source(mappings: List[DirectoryMapping]):
         """Sort the directory mappings by source, this is the most common query method"""
-        result: Dict[str, NauticalDirectoryMapping] = {}
+        result: Dict[str, NauticalConfig.DirectoryMapping] = {}
         for map in mappings:
             result[map.host_path] = map
         return result
 
     def get_directory_mappings_with_precedence(
         self, source_dir: str | Path, directory_mappings_by_source: Dict | None
-    ) -> NauticalDirectoryMapping:
+    ) -> DirectoryMapping:
         """Return the directory mapping for the given source directory, with the highest precedence (by specificity)"""
         map = directory_mappings_by_source if directory_mappings_by_source else self.directory_mappings_by_source
 
@@ -220,8 +223,8 @@ class NauticalConfig:
         suffix = ""
         while src != Path("/"):
             if str(src) in map:
-                matched_ndm: NauticalDirectoryMapping = map[str(src)]
-                ndm = NauticalDirectoryMapping(
+                matched_ndm: NauticalConfig.DirectoryMapping = map[str(src)]
+                ndm = NauticalConfig.DirectoryMapping(
                     name=matched_ndm.name,
                     host_path=str(src),
                     nautical_path=matched_ndm.nautical_path,
@@ -234,38 +237,6 @@ class NauticalConfig:
             src = src.parent
 
         raise ValueError(f"Directory mapping not found for source: {source_dir}")
-
-    def __repr__(self):
-        repr = inspect.cleandoc(
-            f"""
-        REPORT_FILE: {self.REPORT_FILE}
-        LOG_LEVEL: {self.LOG_LEVEL}
-        REQUIRE_LABEL: {self.REQUIRE_LABEL}
-        SKIP_CONTAINERS: {self.SKIP_CONTAINERS}
-        SKIP_STOPPING: {self.SKIP_STOPPING}
-        SELF_CONTAINER_ID: {self.SELF_CONTAINER_ID}
-        REPORT_FILE_LOG_LEVEL: {self.REPORT_FILE_LOG_LEVEL}
-        REPORT_FILE_ON_BACKUP_ONLY: {self.REPORT_FILE_ON_BACKUP_ONLY}
-        DEST_LOCATION: {self.DEST_LOCATION}
-        SOURCE_LOCATION: {self.SOURCE_LOCATION}
-        KEEP_SRC_DIR_NAME: {self.KEEP_SRC_DIR_NAME}
-        OVERRIDE_SOURCE_DIR: {self.OVERRIDE_SOURCE_DIR}
-        OVERRIDE_DEST_DIR: {self.OVERRIDE_DEST_DIR}
-        DEFAULT_RNC_ARGS: {self.DEFAULT_RNC_ARGS}
-        USE_DEFAULT_RSYNC_ARGS: {self.USE_DEFAULT_RSYNC_ARGS}
-        RSYNC_CUSTOM_ARGS: {self.RSYNC_CUSTOM_ARGS}
-        USE_DEST_DATE_FOLDER: {self.USE_DEST_DATE_FOLDER}
-        DEST_DATE_FORMAT: {self.DEST_DATE_FORMAT}
-        DEST_DATE_PATH_FORMAT: {self.DEST_DATE_PATH_FORMAT}
-        ADDITIONAL_FOLDERS: {self.ADDITIONAL_FOLDERS}
-        ADDITIONAL_FOLDERS_WHEN: {self.ADDITIONAL_FOLDERS_WHEN}
-        SECONDARY_DEST_DIRS: {self.SECONDARY_DEST_DIRS}
-        PRE_BACKUP_EXEC: {self.PRE_BACKUP_EXEC}
-        POST_BACKUP_EXEC: {self.POST_BACKUP_EXEC}
-        Containers: {self.containers}
-        """
-        )
-        return repr
 
     @staticmethod
     def _load_yaml(path):
@@ -288,6 +259,3 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    # print(config._directory_mappings_list)
-    # print(config.get_directory_mappings_with_precedence("/var/lib/docker/volumes/TEST", None))
-    print(config.containers[0])
