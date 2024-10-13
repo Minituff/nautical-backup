@@ -22,6 +22,53 @@ class NauticalDirectoryMapping:
         return str(self.__dict__)
 
 
+class ContainerConfig:
+    class Match:
+        def __init__(
+            self,
+            container_name: str | None,
+            container_id: str | None,
+            container_label: str | None,
+            container_image: str | None,
+        ) -> None:
+
+            self.container_name = container_name
+            self.container_id = container_id
+            self.container_label = container_label
+            self.container_image = container_image
+            # self.container_ip_address = None
+
+            if not container_name and not container_id and not container_label and not container_image:
+                raise ValueError(
+                    "At least one of the following must be set: container_name, container_id, container_label, container_image"
+                )
+
+        def __repr__(self):
+            return str(self.__dict__)
+
+    def __init__(
+        self,
+        yml_tag_name: str,
+        match: Match,
+    ) -> None:
+        self.yml_tag_name = yml_tag_name
+        self.match = match
+
+    @staticmethod
+    def serialize(yml_tag_name: str, yml_data: Dict) -> "ContainerConfig":
+        match_json = yml_data.get("match", {})
+        match = ContainerConfig.Match(
+            container_name=match_json.get("container_name"),
+            container_id=match_json.get("container_id"),
+            container_label=match_json.get("container_label"),
+            container_image=match_json.get("container_image"),
+        )
+        return ContainerConfig(yml_tag_name=yml_tag_name, match=match)
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
 class NauticalConfig:
     def __init__(self, nauticalEnv: NauticalEnv, config_path: Optional[Path]) -> None:
         self.nauticalEnv = nauticalEnv
@@ -172,5 +219,9 @@ if __name__ == "__main__":
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
     # print(config._directory_mappings_list)
-    print(config.get_directory_mappings_with_precedence("/var/lib/docker/volumes/TEST", None))
+    # print(config.get_directory_mappings_with_precedence("/var/lib/docker/volumes/TEST", None))
     # print(config)
+    containers = config.yml.get("containers", [])
+    for container in containers:
+        config = ContainerConfig.serialize(container, containers.get(container))
+        print(config)
