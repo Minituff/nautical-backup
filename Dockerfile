@@ -107,14 +107,16 @@ RUN if [ "$TEST_MODE" != "-1" ]; then \
       gem install bashcov simplecov-cobertura simplecov-html; \
     fi
 
-# Required for Python imports to work
-ENV PYTHONPATH="."
 
-# Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
-ENV S6_VERBOSITY=1
-
-# Set the maximum time to wait for services to be ready (0=forever). Needed for BACKUP_ON_START since it could take time.
-ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
+ENV \
+  # Required for Python imports to work
+  PYTHONPATH="." \
+  # Required for Python to not buffer the output (print to console immediately)
+  PYTHONUNBUFFERED="1" \
+  # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
+  S6_VERBOSITY=1 \ 
+  # Set the maximum time to wait for services to be ready (0=forever). Needed for BACKUP_ON_START since it could take time.
+  S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
 # Add S6 files
 COPY --chmod=755 s6-overlay/ /

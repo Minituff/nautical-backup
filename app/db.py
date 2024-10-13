@@ -44,6 +44,7 @@ class DB:
                     json.dump(
                         {
                             "created_at": f"{current_date}",
+                            "created_by_version": os.getenv("NAUTICAL_VERSION", "0.0.0"),
                         },
                         db_file,
                     )
