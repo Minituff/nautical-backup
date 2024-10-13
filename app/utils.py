@@ -46,16 +46,41 @@ class ContainerConfig:
         def __repr__(self):
             return str(self.__dict__)
 
+    class Volumes:
+        class Volume:
+            def __init__(self, source: str, dest: str) -> None:
+                self.source = source
+                self.dest = dest
+
+            def __repr__(self):
+                return str(self.__dict__)
+
+        def __init__(self) -> None:
+            self.skip_volumes: List[ContainerConfig.Volumes.Volume] = []
+            self.only_volumes: List[ContainerConfig.Volumes.Volume] = []
+
+        def __repr__(self):
+            return str(self.__dict__)
+
     def __init__(
         self,
         yml_tag_name: str,
+        name: str,
+        description: str,
         match: Match,
+        skip_volumes: List[Volumes.Volume],
+        only_volumes: List[Volumes.Volume],
     ) -> None:
         self.yml_tag_name = yml_tag_name
+        self.name = name
+        self.description = description
         self.match = match
+        self.only_volumes: List[ContainerConfig.Volumes.Volume] = only_volumes
+        self.skip_volumes: List[ContainerConfig.Volumes.Volume] = skip_volumes
 
     @staticmethod
     def serialize(yml_tag_name: str, yml_data: Dict) -> "ContainerConfig":
+
         match_json = yml_data.get("match", {})
         match = ContainerConfig.Match(
             container_name=match_json.get("container_name"),
@@ -63,7 +88,40 @@ class ContainerConfig:
             container_label=match_json.get("container_label"),
             container_image=match_json.get("container_image"),
         )
-        return ContainerConfig(yml_tag_name=yml_tag_name, match=match)
+
+        volumes_json = yml_data.get("volumes", {"skip_volumes": [], "only_volumes": []})
+
+        def process_volume(volume: str) -> ContainerConfig.Volumes.Volume:
+            # Fix splitting issue when volume is not in the format "source:dest"
+            if ":" not in volume:
+                volume += ":"
+
+            # Check if volume has a read-write or read-only flag
+            if volume.count(":") >= 2:
+                if volume.endswith(":rw") or volume.endswith(":ro"):
+                    volume = volume[:-3]
+                else:
+                    raise ValueError("Invalid volume format: " + volume)
+
+            src, dest = volume.split(":")
+            return ContainerConfig.Volumes.Volume(src, dest)
+
+        skip_volumes = []
+        for volume in volumes_json.get("skip_volumes", []):
+            skip_volumes.append(process_volume(volume))
+
+        only_volumes = []
+        for volume in volumes_json.get("only_volumes", []):
+            only_volumes.append(process_volume(volume))
+
+        return ContainerConfig(
+            yml_tag_name=yml_tag_name,
+            name=yml_data.get("name", ""),
+            description=yml_data.get("description", ""),
+            match=match,
+            skip_volumes=skip_volumes,
+            only_volumes=only_volumes,
+        )
 
     def __repr__(self):
         return str(self.__dict__)
@@ -107,6 +165,17 @@ class NauticalConfig:
 
         self._directory_mappings_list: List[NauticalDirectoryMapping] = self._serialize_directory_mappings(self.yml)
         self.directory_mappings_by_source = self._map_directories_by_source(self._directory_mappings_list)
+
+        self.containers = self._serialize_containers(self.yml)
+
+    @staticmethod
+    def _serialize_containers(yml: Dict) -> List[ContainerConfig]:
+        containers = yml.get("containers", [])
+        configs = []
+        for container in containers:
+            config = ContainerConfig.serialize(container, containers.get(container))
+            configs.append(config)
+        return configs
 
     @staticmethod
     def _serialize_directory_mappings(yml: Dict) -> List[NauticalDirectoryMapping]:
@@ -193,6 +262,7 @@ class NauticalConfig:
         SECONDARY_DEST_DIRS: {self.SECONDARY_DEST_DIRS}
         PRE_BACKUP_EXEC: {self.PRE_BACKUP_EXEC}
         POST_BACKUP_EXEC: {self.POST_BACKUP_EXEC}
+        Containers: {self.containers}
         """
         )
         return repr
@@ -220,8 +290,4 @@ if __name__ == "__main__":
     config = NauticalConfig(env, config_path)
     # print(config._directory_mappings_list)
     # print(config.get_directory_mappings_with_precedence("/var/lib/docker/volumes/TEST", None))
-    # print(config)
-    containers = config.yml.get("containers", [])
-    for container in containers:
-        config = ContainerConfig.serialize(container, containers.get(container))
-        print(config)
+    print(config.containers[0])
