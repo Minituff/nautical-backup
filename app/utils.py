@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 import yaml
 from pprint import pprint
 from nautical_env import NauticalEnv
-import inspect
 
 
 class ContainerConfig:
@@ -47,6 +45,60 @@ class ContainerConfig:
         def __repr__(self):
             return str(self.__dict__)
 
+    class Config:
+        def __init__(self) -> None:
+            self.enabled = ""
+            self.stop_before_backup = ""
+
+            self.group: str = ""
+            self.group_priority: int = 100
+            # self.source_dir_required = ""
+
+            self.additional_folders: str = ""
+            self.additional_folders_when: str = ""
+
+            # self.override_source_dir = ""
+            # self.override_destination_dir = ""
+            # self.keep_src_dir_name = ""
+
+            self.exec_before = ""
+            self.exec_after = ""
+            self.exec_during = ""
+
+            self.lifecycle_before = ""
+            self.lifecycle_after = ""
+            self.lifecycle_before_timeout: str = "60s"
+            self.lifecycle_after_timeout: str = "60s"
+
+            self.rsync_custom_args = ""
+            self.use_default_rsync_args = ""
+
+        @staticmethod
+        def serialize(config_json: Dict):
+            config = ContainerConfig.Config()
+            if not config_json:
+                return config
+
+            config.enabled = config_json.get("enabled", "")
+            config.stop_before_backup = config_json.get("stop_before_backup", "")
+            config.group = config_json.get("group", "")
+            config.group_priority = config_json.get("group_priority", 100)
+            config.additional_folders = config_json.get("additional_folders", "")
+            config.additional_folders_when = config_json.get("additional_folders_when", "")
+            config.exec_before = config_json.get("exec_before", "")
+            config.exec_after = config_json.get("exec_after", "")
+            config.exec_during = config_json.get("exec_during", "")
+            config.lifecycle_before = config_json.get("lifecycle_before", "")
+            config.lifecycle_after = config_json.get("lifecycle_after", "")
+            config.lifecycle_before_timeout = config_json.get("lifecycle_before_timeout", "")
+            config.lifecycle_after_timeout = config_json.get("lifecycle_after_timeout", "")
+            config.rsync_custom_args = config_json.get("rsync_custom_args", "")
+            config.use_default_rsync_args = config_json.get("use_default_rsync_args", "")
+            return config
+
+        def __repr__(self):
+            return str(self.__dict__)
+
     def __init__(
         self,
         yml_tag_name: str,
@@ -55,6 +107,7 @@ class ContainerConfig:
         match: Match,
         skip_volumes: List[Volumes.Volume],
         only_volumes: List[Volumes.Volume],
+        config: Config,
     ) -> None:
         self.yml_tag_name = yml_tag_name
         self.name = name
@@ -62,6 +115,7 @@ class ContainerConfig:
         self.match = match
         self.only_volumes: List[ContainerConfig.Volumes.Volume] = only_volumes
         self.skip_volumes: List[ContainerConfig.Volumes.Volume] = skip_volumes
+        self.config = config
 
     @staticmethod
     def serialize(yml_tag_name: str, yml_data: Dict) -> "ContainerConfig":
@@ -99,6 +153,8 @@ class ContainerConfig:
         for volume in volumes_json.get("only_volumes", []):
             only_volumes.append(process_volume(volume))
 
+        config = ContainerConfig.Config.serialize(yml_data.get("config", {}))
+
         return ContainerConfig(
             yml_tag_name=yml_tag_name,
             name=yml_data.get("name", ""),
@@ -106,6 +162,7 @@ class ContainerConfig:
             match=match,
             skip_volumes=skip_volumes,
             only_volumes=only_volumes,
+            config=config,
         )
 
     def __repr__(self):
@@ -126,7 +183,7 @@ class NauticalConfig:
         def __repr__(self):
             return str(self.__dict__)
 
-    def __init__(self, nauticalEnv: NauticalEnv, config_path: Optional[Path]) -> None:
+    def __init__(self, nauticalEnv: NauticalEnv, config_path: Path | None) -> None:
         self.nauticalEnv = nauticalEnv
         self.config_path = config_path if config_path else Path(nauticalEnv.NAUTICAL_CONFIG_PATH)
         self.yml = self._load_yaml(config_path)
@@ -259,3 +316,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
+    print(config.containers[0].config)
