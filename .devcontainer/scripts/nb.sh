@@ -33,6 +33,7 @@ execute_command() {
         cd $APP_HOME
         # docker compose --progress=plain build --no-cache --build-arg='NAUTICAL_VERSION=testing'
         docker build -t nautical-backup -t nautical-backup:test --progress=plain --build-arg='NAUTICAL_VERSION=testing' .
+        docker images | grep "^nautical-backup .*latest"
         ;;
     run)
         cecho CYAN "Running Nautical..."
