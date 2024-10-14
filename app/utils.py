@@ -118,7 +118,7 @@ class ContainerConfig:
         self.config = config
 
     @staticmethod
-    def serialize(yml_tag_name: str, yml_data: Dict) -> "ContainerConfig":
+    def from_yml(yml_tag_name: str, yml_data: Dict) -> "ContainerConfig":
 
         match_json = yml_data.get("match", {})
         match = ContainerConfig.Match(
@@ -218,27 +218,27 @@ class NauticalConfig:
         self.PRE_BACKUP_EXEC = env.get("PRE_BACKUP_EXEC", nauticalEnv.PRE_BACKUP_EXEC)
         self.POST_BACKUP_EXEC = env.get("POST_BACKUP_EXEC", nauticalEnv.POST_BACKUP_EXEC)
 
-        self._directory_mappings_list: List[NauticalConfig.DirectoryMapping] = self._serialize_directory_mappings(
+        self._directory_mappings_list: List[NauticalConfig.DirectoryMapping] = self._directory_mappings_from_yml(
             self.yml
         )
         self.directory_mappings_by_source = self._map_directories_by_source(self._directory_mappings_list)
 
-        self.containers = self._serialize_containers(self.yml)
+        self.containers = self._containers_from_yml(self.yml)
 
     def __repr__(self):
         return str(self.__dict__)
 
     @staticmethod
-    def _serialize_containers(yml: Dict) -> List[ContainerConfig]:
+    def _containers_from_yml(yml: Dict) -> List[ContainerConfig]:
         containers = yml.get("containers", [])
         configs = []
         for container in containers:
-            config = ContainerConfig.serialize(container, containers.get(container))
+            config = ContainerConfig.from_yml(container, containers.get(container))
             configs.append(config)
         return configs
 
     @staticmethod
-    def _serialize_directory_mappings(yml: Dict) -> List[DirectoryMapping]:
+    def _directory_mappings_from_yml(yml: Dict) -> List[DirectoryMapping]:
         mappings = yml.get("directory", {}).get("mappings", {})
         result = []
         for name, data in mappings.items():

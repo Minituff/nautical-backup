@@ -5,6 +5,8 @@ from typing import Dict, List
 
 class NauticalEnv:
     def __init__(self) -> None:
+        # This is used by the Docker Socket Proxy
+        self.DOCKER_HOST = os.environ.get("DOCKER_HOST", "")
         self.SKIP_CONTAINERS = os.environ.get("SKIP_CONTAINERS", "")
         self.SKIP_STOPPING = os.environ.get("SKIP_STOPPING", "")
         self.SELF_CONTAINER_ID = os.environ.get("SELF_CONTAINER_ID", "")

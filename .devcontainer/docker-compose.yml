@@ -1,0 +1,17 @@
+services:
+  devcontainer:
+    build:
+      context: ../
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+      # Docker socket will be mounted as part of the Docker-Outside-Docker feature
+    command: sleep infinity
+    environment:
+      - PYTHONPATH="."
+      - TZ=America/Los_Angeles
+      - NAUTICAL_DB_PATH="/workspaces/nautical-backup/dev/config"
+      - NAUTICAL_DB_NAME="nautical-db.json"
+      - DEST_LOCATION="/workspaces/nautical-backup/dev/destination"
+      - SOURCE_LOCATION="/workspaces/nautical-backup/dev/source"
+      - LOG_LEVEL="DEBUG"

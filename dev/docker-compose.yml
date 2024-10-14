@@ -52,7 +52,7 @@ services:
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/data/source:ro
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/data/destination
-      - /var/lib/ddocker/volumes:/data/volumes:ro
+      # - /var/lib/docker/volumes:/data/volumes:ro
       # Optional, or you can use the docker_socket_proxy service
       - /var/run/docker.sock:/var/run/docker.sock
       - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app # Allows code to be edited on the fly

@@ -41,7 +41,7 @@ pre-commit install
 cecho "GREEN" "Success!! Nautical Development enviornment ready to go!!"
 cecho "GREEN" "Use the command 'nb --help' to get started."
 
-cecho "YELLOW" Please ensure the slashes are linux style, i.e. /workspaces/nautical-backup
-cecho "CYAN" $LOCAL_WORKSPACE_FOLDER
+# cecho "YELLOW" "Please ensure the slashes are linux style, i.e. /workspaces/nautical-backup"
+# cecho "CYAN" $LOCAL_WORKSPACE_FOLDER
 exit 0
 # No need to 'source ~/.zshrc' since the terminal won't be open yet

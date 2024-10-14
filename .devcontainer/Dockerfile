@@ -5,6 +5,16 @@ FROM mcr.microsoft.com/devcontainers/python:3.12
 COPY requirements.txt /tmp/nautical/requirements.txt
 COPY requirements-dev.txt /tmp/nautical/requirements-dev.txt
 
+RUN echo "Installing packages..." && \
+  apt-get update && export DEBIAN_FRONTEND=noninteractive && \
+  apt install -y \
+    jq \
+    curl \
+    nano && \
+  echo "Cleanup" && \
+  rm -rf /var/lib/apt/lists/* && \
+  echo "Installation complete."
+
 RUN echo "Installing python packages (for api)..." && \
   python3 -m pip install --upgrade pip && \
   # This will also install everything in requirements.txt file
