@@ -35,7 +35,7 @@ ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLA
 RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
 
-# Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.20&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
+# Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.20&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_20
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
 
 # renovate: datasource=repology depName=alpine_3_20/bash versioning=loose
@@ -103,8 +103,7 @@ ARG NAUTICAL_VERSION="main"
 ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
 
-VOLUME [ "/app/source" ]
-VOLUME [ "/app/destination" ]
+VOLUME [ "/data" ]
 VOLUME [ "/config" ]
 
 # Only should be exposed when running in test mode
