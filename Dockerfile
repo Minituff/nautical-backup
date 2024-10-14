@@ -1,7 +1,7 @@
 # Use base docker image; it contains the docker commands we need to start and stop containers.
 # Use this tool https://github.com/estesp/manifest-tool to get the multiplatform SHA. 
 # For example: docker run --rm mplatform/mquery docker:cli
-FROM docker:24.0.7-cli-alpine3.18@sha256:a2a608408fa15d6694543a7308c2bfd1a7ea90a0e4ca989d0471ca7b8348fabb
+FROM python:3.13.0-alpine3.20
 
 # The platform this image is created for (linux/amd64, linux/arm64)
 ARG TARGETPLATFORM
@@ -35,27 +35,25 @@ ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLA
 RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
 
-# Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.18&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
+# Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.20&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_18
 # Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
 
-# renovate: datasource=repology depName=alpine_3_18/bash versioning=loose
-ENV BASH_VERSION="5.2.15"
-# renovate: datasource=repology depName=alpine_3_18/rsync versioning=loose
-ENV RSYNC_VERSION="3.2.7"
-# renovate: datasource=repology depName=alpine_3_18/tzdata versioning=loose
+# renovate: datasource=repology depName=alpine_3_20/bash versioning=loose
+ENV BASH_VERSION="5.2.26"
+# renovate: datasource=repology depName=alpine_3_20/rsync versioning=loose
+ENV RSYNC_VERSION="3.3.0"
+# renovate: datasource=repology depName=alpine_3_20/tzdata versioning=loose
 ENV TZ_DATA_VERSION="2024"
-# renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
-ENV JQ_VERSION="1.6"
-# renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
-ENV CURL_VERSION="8.9.1"
-# renovate: datasource=repology depName=alpine_3_18/7zip versioning=loose
-ENV SEVENZIP_VERSION="22.01"
-# renovate: datasource=repology depName=alpine_3_18/python3 versioning=loose
-ENV PYTHON_VERSION="3.11"
-# renovate: datasource=repology depName=alpine_3_18/py3-pip versioning=loose
-ENV PIP_VERSION="23.1.2"
-# renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
+# renovate: datasource=repology depName=alpine_3_20/jq versioning=loose
+ENV JQ_VERSION="1.7.1"
+# renovate: datasource=repology depName=alpine_3_20/curl versioning=loose
+ENV CURL_VERSION="8.10.1"
+# renovate: datasource=repology depName=alpine_3_20/7zip versioning=loose
+ENV SEVENZIP_VERSION="23.01"
+# renovate: datasource=repology depName=alpine_3_20/ruby-full versioning=loose
 ENV RUBY_VERSION="3.2.4"
+# renovate: datasource=repology depName=alpine_3_20/dos2unix versioning=loose
+ENV DOS2UNIX_VERSION="7.5.2"
 
 # Install dependencies
 RUN echo "**** Install runtime packages (required at runtime) ****" && \
@@ -66,47 +64,26 @@ RUN echo "**** Install runtime packages (required at runtime) ****" && \
     jq=~"${JQ_VERSION}" \ 
     curl=~"${CURL_VERSION}" \
     7zip=~"${SEVENZIP_VERSION}" \
-    python3=~"${PYTHON_VERSION}" \
-    py3-pip=~"${PIP_VERSION}" && \
+    dos2unix=~"${DOS2UNIX_VERSION}" && \
+    rm -rf /var/cache/apk/* && \
   echo "**** Package install successful ****"
 
-# renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
-ENV DOS2UNIX_VERSION="7.4.4"
-
 # Copy all necessary files into the container (from /app in the repository to /app in the container)
-COPY app app
 COPY requirements.txt app/requirements.txt
+RUN echo "**** Install Python packages ****" && \
+  python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
+  echo "**** Installation complete ****"
 
-RUN echo "**** Install build packages (will be uninstalled later) ****" && \
-  apk add --no-cache --virtual=build-dependencies \
-    dos2unix=~"${DOS2UNIX_VERSION}" && \
-  echo "**** Cleanup ****" && \
-  apk del --purge build-dependencies && \
-  rm -rf /var/cache/apk/* && \
-  echo "**** Making the entire /app folder executable ****" && \
+COPY app /app
+RUN echo "**** Making the entire /app folder executable ****" && \
   chmod -R +x /app && \
   echo "**** Making the all files in the /app folder Unix format ****" && \
   find /app -type f -print0 | xargs -0 dos2unix && \
-  echo "**** Install Python packages ****" && \
-  python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
   echo "****Installing nautical backup script ****" && \
   # Allows the nautical backup script to be run using `bash nautical`
   ln -s /app/backup.py /usr/local/bin/nautical && \
   chmod +x /usr/local/bin/nautical && \
   echo "**** Installation complete ****"
-
-ARG TEST_MODE="-1"
-
-# Conditionally execute commands based on TESTMODE
-RUN if [ "$TEST_MODE" != "-1" ]; then \
-      echo "=== TEST MODE ENABLED ===" && \
-      echo "**** Installing TEST packages ****" && \
-      apk add --no-cache \
-      ruby-full=~"${RUBY_VERSION}" && \
-      echo "**** Installing ruby packages (for tests) ****" && \
-      gem install bashcov simplecov-cobertura simplecov-html; \
-    fi
-
 
 ENV \
   # Required for Python imports to work

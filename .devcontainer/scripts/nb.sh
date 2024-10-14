@@ -32,7 +32,7 @@ execute_command() {
         cecho CYAN "Building Nautical..."
         cd $APP_HOME
         # docker compose --progress=plain build --no-cache --build-arg='NAUTICAL_VERSION=testing'
-        docker build -t nautical-backup -t nautical-backup:test --no-cache --progress=plain --build-arg='NAUTICAL_VERSION=testing' .
+        docker build -t nautical-backup -t nautical-backup:test --progress=plain --build-arg='NAUTICAL_VERSION=testing' .
         ;;
     run)
         cecho CYAN "Running Nautical..."
@@ -45,9 +45,9 @@ execute_command() {
         docker run \
         --name nautical-backup-dev \
         -v /var/run/docker.sock:/var/run/docker.sock:ro \
-        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source:ro \
+        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/data/source:ro \
         -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config \
-        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination \
+        -v ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/data/destination \
         -e TZ=America/Los_Angeles \
         -e LOG_LEVEL=TRACE \
         -e BACKUP_ON_START=true \
