@@ -11,4 +11,4 @@ mock==5.1.0
 pre-commit==4.0.1
 
 # Docs
-mkdocs-material==9.5.40
+mkdocs-material==9.5.41
