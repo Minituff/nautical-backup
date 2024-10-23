@@ -11,7 +11,7 @@ class NauticalEnv:
         self.SKIP_STOPPING = os.environ.get("SKIP_STOPPING", "")
         self.SELF_CONTAINER_ID = os.environ.get("SELF_CONTAINER_ID", "")
 
-        self.NAUTICAL_CONFIG_PATH = os.environ.get("NAUTICAL_CONFIG_PATH", "")
+        self.NAUTICAL_CONFIG_PATH: Path = Path(os.environ.get("NAUTICAL_CONFIG_PATH", "/config/config.yml"))
 
         self.LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
         self.REPORT_FILE_LOG_LEVEL = os.environ.get("REPORT_FILE_LOG_LEVEL", "")

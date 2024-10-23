@@ -13,6 +13,15 @@
 		},
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
+	"containerEnv": {
+		"PYTHONPATH": ".", // Required for python to work
+		"NAUTICAL_DB_PATH": "/workspaces/nautical-backup/dev/config",
+		"NAUTICAL_CONFIG_PATH": "/workspaces/nautical-backup/dev/config/config.yml",
+		"NAUTICAL_DB_NAME": "nautical-db.json",
+		"DEST_LOCATION": "/workspaces/nautical-backup/dev/destination",
+		"SOURCE_LOCATION": "/workspaces/nautical-backup/dev/source",
+		"LOG_LEVEL": "DEBUG"
+	},
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},

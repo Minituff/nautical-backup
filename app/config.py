@@ -5,6 +5,9 @@ from pprint import pprint
 from nautical_env import NauticalEnv
 
 
+from docker.models.containers import Container
+
+
 class ContainerConfig:
     class Match:
         def __init__(
@@ -26,7 +29,7 @@ class ContainerConfig:
                     "At least one of the following must be set: container_name, container_id, container_label, container_image"
                 )
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             return str(self.__dict__)
 
     class Volumes:
@@ -167,6 +170,12 @@ class ContainerConfig:
 
     def __repr__(self):
         return str(self.__dict__)
+
+
+class NauticalContainer(Container):
+    def __init__(self, config: ContainerConfig) -> None:
+        self.config = config
+        super().__init__()
 
 
 class NauticalConfig:
@@ -316,4 +325,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    print(config.containers[0].config)
+    print(config.containers[0])

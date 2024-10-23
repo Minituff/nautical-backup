@@ -19,6 +19,7 @@ from app.api.config import Settings
 from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
+from app.config import NauticalConfig, NauticalContainer
 
 
 class BeforeOrAfter(Enum):
@@ -36,10 +37,13 @@ class NauticalBackup:
     def __init__(self, docker_client: docker.DockerClient):
         self.db = DB()
         self.env = NauticalEnv()
+        self.config = NauticalConfig(self.env, self.env.NAUTICAL_CONFIG_PATH)
         self.logger = Logger()
         self.settings = Settings()
         self.docker = docker_client
         self.default_group_pfx_sfx = "&"  # The prefix and suffix used to define this group
+
+        # TODO: Load all containers (serialze config and labels)
 
         self.containers_completed = set()
         self.containers_skipped = set()

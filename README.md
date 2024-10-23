@@ -17,6 +17,13 @@ A simple Docker volume backup tool.
 
 </div>
 
+
+### TODO:
+- [] Add docs for Docker socker Proxy
+- [] Add docs for YML
+- [] Unit tests
+- [] Integration tests
+
 ### Documentation
 Full documentation is available at [https://minituff.github.io/nautical-backup](https://minituff.github.io/nautical-backup)
 
