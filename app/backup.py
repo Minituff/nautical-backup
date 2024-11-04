@@ -483,6 +483,19 @@ class NauticalBackup:
 
         return dest_dir_full, dest_dir_no_path
 
+    def _format_dated_folder(self, base_dest_dir: Path, folder: str) -> Path:
+        """Format the destination folder with the date"""
+        time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
+
+        if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
+            dest_dir: Path = base_dest_dir / folder / time_format
+        elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
+            dest_dir: Path = base_dest_dir / time_format / folder
+
+        return dest_dir
+
+        return base_dest_dir
+
     def _backup_additional_folders_standalone(self, when: BeforeOrAfter, base_dest_dir: Path):
         """Backup folders that are not associated with a container."""
         additional_folders = str(self.env.ADDITIONAL_FOLDERS)
@@ -511,6 +524,13 @@ class NauticalBackup:
 
             src_dir = base_src_dir / folder
             dest_dir = base_dest_dir / folder
+
+            if str(self.env.ADDITIONAL_FOLDERS_USE_DEST_DATE_FOLDER).lower() == "true":
+                dest_dir = self._format_dated_folder(base_dest_dir, folder)
+
+                if not os.path.exists(dest_dir):
+                    os.makedirs(dest_dir, exist_ok=True)
+
             self.log_this(f"Backing up standalone additional folder '{folder}'")
             self._run_rsync(None, rsync_args, src_dir, dest_dir)
 
@@ -528,12 +548,7 @@ class NauticalBackup:
             dest_dir = base_dest_dir / folder
 
             if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
-                time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
-
-                if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
-                    dest_dir: Path = base_dest_dir / folder / time_format
-                elif str(self.env.DEST_DATE_PATH_FORMAT) == "date/container":
-                    dest_dir: Path = base_dest_dir / time_format / folder
+                dest_dir = self._format_dated_folder(base_dest_dir, folder)
 
                 if not os.path.exists(dest_dir):
                     os.makedirs(dest_dir, exist_ok=True)

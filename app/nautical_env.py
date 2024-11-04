@@ -44,6 +44,7 @@ class NauticalEnv:
         # Not associated with containers
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
         self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")
+        self.ADDITIONAL_FOLDERS_USE_DEST_DATE_FOLDER = os.environ.get("ADDITIONAL_FOLDERS_USE_DEST_DATE_FOLDER", "")
 
         self.SECONDARY_DEST_DIRS: List[Path] = []
         for dir in os.environ.get("SECONDARY_DEST_DIRS", "").split(","):
