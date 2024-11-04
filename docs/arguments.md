@@ -136,6 +136,16 @@ ADDITIONAL_FOLDERS_WHEN=after
 
 <small>🔄 This is the same action as the [Additional Folders](./labels.md#additional-folders) label, but applied globally.</small>
 
+### Additional folders date format
+To enable the [Dated Destination](#create-a-dated-destination-folder) folder systax for Global Additional folders <small>(not folders tied to containers)</small>, then use this variable.
+
+> **Default**: false <small>(use the base destination folder)</small>
+
+```properties
+ADDITIONAL_FOLDERS_USE_DEST_DATE_FOLDER=true
+```
+!!! note "The [destination folder format](#destination-folder-format) and [destination folder path](#destination-folder-path) enviornment variables will be respected."
+
 ## Secondary Destination Locations
 Tell Nautical to backup folders to more destination locations--in addition to the normal destination folder <small>(/app/destination)</small>.
 
