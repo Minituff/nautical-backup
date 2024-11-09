@@ -19,7 +19,7 @@ from app.api.config import Settings
 from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
-from app.config import NauticalConfig, NauticalContainer
+from app.config import ContainerConfig, NauticalConfig, NauticalContainer
 
 
 class BeforeOrAfter(Enum):
@@ -171,8 +171,20 @@ class NauticalBackup:
         # No reason to skip
         return False
 
+    def _serialize_containers(self, containers: List[Container]) -> List[NauticalContainer]:
+        """Serialize the containers into a list of NauticalContainer objects"""
+        pass
+
+        # nautical_containers: List[NauticalContainer] = []
+        # for c in containers:
+        #     config = ContainerConfig.from_yml()
+        #     nc = NauticalContainer.from_container(c, config)
+        #     nautical_containers.append(config)
+        # return nautical_cont
+
     def group_containers(self) -> Dict[str, List[Container]]:
-        containers: List[Container] = self.docker.containers.list()  # type: ignore
+        containers: List[NauticalContainer] = self._serialize_containers(self.docker.containers.list())
+
         starting_container_amt = len(containers)
         self.log_this(f"Processing {starting_container_amt} containers...", "INFO")
 

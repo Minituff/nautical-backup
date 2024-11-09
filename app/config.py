@@ -173,9 +173,19 @@ class ContainerConfig:
 
 
 class NauticalContainer(Container):
-    def __init__(self, config: ContainerConfig) -> None:
-        self.config = config
+    def __init__(self, container: Container, container_config: ContainerConfig | None = None) -> None:
         super().__init__()
+        self._config: ContainerConfig | None = None
+
+    @classmethod
+    def from_container(cls, container: Container, container_config: ContainerConfig) -> "NauticalContainer":
+        return cls(container, container_config)
+
+    @property
+    def config(self) -> ContainerConfig:
+        if not self._config:
+            raise ValueError("Container config is not set")
+        return self._config
 
 
 class NauticalConfig:
@@ -238,12 +248,12 @@ class NauticalConfig:
         return str(self.__dict__)
 
     @staticmethod
-    def _containers_from_yml(yml: Dict) -> List[ContainerConfig]:
+    def _containers_from_yml(yml: Dict) -> Dict[str, ContainerConfig]:
         containers = yml.get("containers", [])
-        configs = []
-        for container in containers:
-            config = ContainerConfig.from_yml(container, containers.get(container))
-            configs.append(config)
+        configs = {}
+        for container_yml_tag in containers:
+            config = ContainerConfig.from_yml(container_yml_tag, containers.get(container_yml_tag))
+            configs[container_yml_tag] = config
         return configs
 
     @staticmethod
@@ -325,4 +335,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    print(config.containers[0])
+    pprint(config)

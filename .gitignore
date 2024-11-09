@@ -1,7 +1,7 @@
-/dev/config
+
 /dev/source
 /dev/destination
-/dev/*.json
+/dev/config/*.json
 coverage
 .vscode
 __pycache__

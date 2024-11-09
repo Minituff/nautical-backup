@@ -1,0 +1,54 @@
+env:
+  RUN_ONCE: False
+  REPORT_FILE: True
+  LOG_LEVEL: Debug
+  REQUIRE_LABEL: False
+  SKIP_CONTAINERS: ""
+  SKIP_STOPPING: ""
+  SELF_CONTAINER_ID: ""
+  REPORT_FILE_LOG_LEVEL: ""
+  REPORT_FILE_ON_BACKUP_ONLY: "" 
+  DEST_LOCATION: ""
+  SOURCE_LOCATION: ""
+  KEEP_SRC_DIR_NAME: ""
+  OVERRIDE_SOURCE_DIR: "" 
+  OVERRIDE_DEST_DIR: ""
+  DEFAULT_RNC_ARGS: ""
+  USE_DEFAULT_RSYNC_ARGS: "" 
+  RSYNC_CUSTOM_ARGS: ""
+  USE_DEST_DATE_FOLDER: '%Y-%m-%d'
+  DEST_DATE_FORMAT: "date/container"
+  DEST_DATE_PATH_FORMAT: 
+  ADDITIONAL_FOLDERS: ""
+  ADDITIONAL_FOLDERS_WHEN: before
+  SECONDARY_DEST_DIRS: ""
+  PRE_BACKUP_EXEC: ""
+  POST_BACKUP_EXEC: ""
+
+containers:
+  container_1:
+    match:
+      # One of the following must be true
+      container_name: "Nautical"
+      container_id: ""
+      container_label: ""
+      container_image: ""
+    volumes:
+      skip_volumes:
+        - src:dest
+      only_volumes:
+        - src:dest
+
+directory:
+  mappings:
+    data_folder:
+      # The path on the host machine we are mapping 
+      host_path: "/workspaces/nautical-backup/dev"
+      nautical_path: "/data"
+      description: "Idk"
+  
+    dockerv_volumes:
+      # The path on the host machine we are mapping 
+      host_path: /var/lib/docker/volumes"
+      nautical_path: "/data/volumes"
+      description: "Docker Native volumes"
