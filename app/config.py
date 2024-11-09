@@ -242,19 +242,54 @@ class NauticalConfig:
         )
         self.directory_mappings_by_source = self._map_directories_by_source(self._directory_mappings_list)
 
-        self.containers = self._containers_from_yml(self.yml)
+        self._containers_from_yml_by_tag_name: Dict[str, ContainerConfig] = {}
+        self._containers_from_yml_by_id: Dict[str, ContainerConfig] = {}
+        self._containers_from_yml_by_name: Dict[str, ContainerConfig] = {}
+        self._containers_from_yml_by_image: Dict[str, ContainerConfig] = {}
+        self._containers_from_yml_by_label: Dict[str, ContainerConfig] = {}
+        self._load_containers_from_yml(self.yml)
 
     def __repr__(self):
         return str(self.__dict__)
 
-    @staticmethod
-    def _containers_from_yml(yml: Dict) -> Dict[str, ContainerConfig]:
+    @property
+    def containers_from_yml_by_id(self) -> Dict[str, ContainerConfig]:
+        return self._containers_from_yml_by_id
+
+    @property
+    def containers_from_yml_by_name(self) -> Dict[str, ContainerConfig]:
+        return self._containers_from_yml_by_name
+
+    @property
+    def containers_from_yml_by_tag_name(self) -> Dict[str, ContainerConfig]:
+        return self._containers_from_yml_by_tag_name
+
+    @property
+    def containers_from_yml_by_image(self) -> Dict[str, ContainerConfig]:
+        return self._containers_from_yml_by_image
+
+    @property
+    def containers_from_yml_by_label(self) -> Dict[str, ContainerConfig]:
+        return self._containers_from_yml_by_label
+
+    def _load_containers_from_yml(self, yml: Dict) -> None:
+        """Loads the container configurations from the yml file"""
         containers = yml.get("containers", [])
-        configs = {}
+
         for container_yml_tag in containers:
-            config = ContainerConfig.from_yml(container_yml_tag, containers.get(container_yml_tag))
-            configs[container_yml_tag] = config
-        return configs
+            container_values = containers.get(container_yml_tag)
+            config = ContainerConfig.from_yml(container_yml_tag, container_values)
+            self._containers_from_yml_by_tag_name[container_yml_tag] = config
+
+            value_match = container_values.get("match", {})
+            if value_match.get("container_name", None):
+                self._containers_from_yml_by_name[value_match.get("container_name")] = config
+            if value_match.get("container_id", None):
+                self._containers_from_yml_by_id[value_match.get("container_id")] = config
+            if value_match.get("container_image", None):
+                self._containers_from_yml_by_image[value_match.get("container_image")] = config
+            if value_match.get("container_label", None):
+                self._containers_from_yml_by_label[value_match.get("container_label")] = config
 
     @staticmethod
     def _directory_mappings_from_yml(yml: Dict) -> List[DirectoryMapping]:

@@ -173,14 +173,35 @@ class NauticalBackup:
 
     def _serialize_containers(self, containers: List[Container]) -> List[NauticalContainer]:
         """Serialize the containers into a list of NauticalContainer objects"""
-        pass
 
-        # nautical_containers: List[NauticalContainer] = []
-        # for c in containers:
-        #     config = ContainerConfig.from_yml()
-        #     nc = NauticalContainer.from_container(c, config)
-        #     nautical_containers.append(config)
-        # return nautical_cont
+        conf = self.config
+
+        nautical_containers: List[NauticalContainer] = []
+        for c in containers:
+            # Search for the container in the config yml
+            if c.id in conf._containers_from_yml_by_id:
+                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_id[c.id]))
+                self.log_this(f"Found container {c.name} in config by ID: {c.id}", "DEBUG")
+                continue
+
+            if c.name in conf.containers_from_yml_by_name:
+                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_name[c.name]))
+                self.log_this(f"Found container {c.name} in config by name: {c.name}", "DEBUG")
+                continue
+
+            if c.image in conf.containers_from_yml_by_image:
+                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_image[c.image]))
+                self.log_this(f"Found container {c.name} in config by image: {c.image}", "DEBUG")
+                continue
+
+            for label in c.labels:
+                if label in conf.containers_from_yml_by_label:
+                    nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_label[label]))
+                    self.log_this(f"Found container {c.name} in config by label: {label}", "DEBUG")
+                    break
+                continue
+
+        return nautical_containers
 
     def group_containers(self) -> Dict[str, List[Container]]:
         containers: List[NauticalContainer] = self._serialize_containers(self.docker.containers.list())

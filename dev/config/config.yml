@@ -30,9 +30,9 @@ containers:
     match:
       # One of the following must be true
       container_name: "Nautical"
-      container_id: ""
-      container_label: ""
-      container_image: ""
+      container_id: "123abc"
+      container_label: "nautical-backup.label" # Only the key is matched here, the value can be anything
+      container_image: "minituff/nautical-backup"
     volumes:
       skip_volumes:
         - src:dest
