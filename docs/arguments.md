@@ -137,7 +137,7 @@ ADDITIONAL_FOLDERS_WHEN=after
 <small>🔄 This is the same action as the [Additional Folders](./labels.md#additional-folders) label, but applied globally.</small>
 
 ### Additional folders date format
-To enable the [Dated Destination](#create-a-dated-destination-folder) folder systax for Global Additional folders <small>(not folders tied to containers)</small>, then use this variable.
+To enable the [Dated Destination](#create-a-dated-destination-folder) folder syntax for Global Additional folders <small>(not folders tied to containers)</small>, then use this variable.
 
 > **Default**: false <small>(use the base destination folder)</small>
 
