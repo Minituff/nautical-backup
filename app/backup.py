@@ -189,16 +189,22 @@ class NauticalBackup:
                 self.log_this(f"Found container {c.name} in config by name: {c.name}", "DEBUG")
                 continue
 
-            if c.image in conf.containers_from_yml_by_image:
-                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_image[c.image]))
-                self.log_this(f"Found container {c.name} in config by image: {c.image}", "DEBUG")
-                continue
+            # Search all tags for the container
+            if c.image:
+                found = False
+                for tag in c.image.tags:
+                    if tag in conf.containers_from_yml_by_image:
+                        nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_image[tag]))
+                        self.log_this(f"Found container {c.name} in config by image: {tag}", "DEBUG")
+                        found = True
+                        break
+                if found:
+                    continue
 
-            for label in c.labels:
-                if label in conf.containers_from_yml_by_label:
-                    nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_label[label]))
-                    self.log_this(f"Found container {c.name} in config by label: {label}", "DEBUG")
-                    break
+            c_label = c.labels.get("nautical-backup.match.container_label", None)
+            if c_label and c_label in conf.containers_from_yml_by_label:
+                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_label[c_label]))
+                self.log_this(f"Found container {c.name} in config by label: {c_label}", "DEBUG")
                 continue
 
         return nautical_containers

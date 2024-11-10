@@ -31,7 +31,7 @@ containers:
       # One of the following must be true
       container_name: "Nautical"
       container_id: "123abc"
-      container_label: "nautical-backup.label" # Only the key is matched here, the value can be anything
+      container_label: "container_1" # Applied using "nautical-backup.match.container_label=container_1"
       container_image: "minituff/nautical-backup"
     volumes:
       skip_volumes:
