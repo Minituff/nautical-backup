@@ -174,11 +174,12 @@ class ContainerConfig:
 
 class NauticalContainer(Container):
     def __init__(self, container: Container, container_config: ContainerConfig | None = None) -> None:
-        super().__init__()
-        self._config: ContainerConfig | None = None
+        self._config: ContainerConfig | None = container_config
+
+        super().__init__(container.attrs, client=container.client, collection=container.collection)  # type: ignore
 
     @classmethod
-    def from_container(cls, container: Container, container_config: ContainerConfig) -> "NauticalContainer":
+    def from_container(cls, container: Container, container_config: ContainerConfig | None) -> "NauticalContainer":
         return cls(container, container_config)
 
     @property

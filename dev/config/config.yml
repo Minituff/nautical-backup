@@ -25,6 +25,14 @@ env:
   PRE_BACKUP_EXEC: ""
   POST_BACKUP_EXEC: ""
 
+# All container configs will use these configs unless overriden
+default_contianer_config:
+  volumes:
+    max_size: 10gb
+    only_if_host_path_starts_with:
+      - "/workspaces/nautical-backup/dev"
+
+
 containers:
   container_1:
     match:
@@ -34,6 +42,9 @@ containers:
       container_label: "container_1" # Applied using "nautical-backup.match.container_label=container_1"
       container_image: "minituff/nautical-backup"
     volumes:
+      none: True # No volumes should be associate with this container
+      max_size: 10gb # Do not backup anothing over this size.
+      #TODO: ALlow slection of backing up by either src or dest, delimitted by the :
       skip_volumes:
         - src:dest
       only_volumes:
@@ -47,7 +58,7 @@ directory:
       nautical_path: "/data"
       description: "Idk"
   
-    dockerv_volumes:
+    docker_volumes:
       # The path on the host machine we are mapping 
       host_path: /var/lib/docker/volumes"
       nautical_path: "/data/volumes"

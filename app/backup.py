@@ -117,12 +117,14 @@ class NauticalBackup:
         """Use logic to determine if a container should be skipped by nautical completely"""
 
         SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID  # Used to skip self
-
         try:
             # Attempt to pull info from container. Skip if not found
-            info = str(c.name) + " " + str(c.id) + " " + str(c.image) + " " + str(c.labels)
-        except ImageNotFound as e:
-            self.log_this(f"Skipping container because it's info was not found.", "TRACE")
+            info = str(c.name)
+            info += " " + str(c.id)
+            info += " " + str(c.image)
+            info += " " + str(c.labels)
+        except (ImageNotFound, KeyError) as e:
+            self.log_this(f"Skipping container `{info}` because it's info was not found.", "TRACE")
             return True
 
         if "minituff/nautical-backup" in str(c.image):
@@ -176,16 +178,16 @@ class NauticalBackup:
 
         conf = self.config
 
-        nautical_containers: List[NauticalContainer] = []
+        nautic_ctrs: List[NauticalContainer] = []  # List of NauticalContainer objects
         for c in containers:
             # Search for the container in the config yml
             if c.id in conf._containers_from_yml_by_id:
-                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_id[c.id]))
+                nautic_ctrs.append(NauticalContainer.from_container(c, conf.containers_from_yml_by_id[c.id]))
                 self.log_this(f"Found container {c.name} in config by ID: {c.id}", "DEBUG")
                 continue
 
             if c.name in conf.containers_from_yml_by_name:
-                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_name[c.name]))
+                nautic_ctrs.append(NauticalContainer.from_container(c, conf.containers_from_yml_by_name[c.name]))
                 self.log_this(f"Found container {c.name} in config by name: {c.name}", "DEBUG")
                 continue
 
@@ -194,7 +196,7 @@ class NauticalBackup:
                 found = False
                 for tag in c.image.tags:
                     if tag in conf.containers_from_yml_by_image:
-                        nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_image[tag]))
+                        nautic_ctrs.append(NauticalContainer.from_container(c, conf.containers_from_yml_by_image[tag]))
                         self.log_this(f"Found container {c.name} in config by image: {tag}", "DEBUG")
                         found = True
                         break
@@ -203,11 +205,15 @@ class NauticalBackup:
 
             c_label = c.labels.get("nautical-backup.match.container_label", None)
             if c_label and c_label in conf.containers_from_yml_by_label:
-                nautical_containers.append(NauticalContainer(c, conf.containers_from_yml_by_label[c_label]))
+                nautic_ctrs.append(NauticalContainer.from_container(c, conf.containers_from_yml_by_label[c_label]))
                 self.log_this(f"Found container {c.name} in config by label: {c_label}", "DEBUG")
                 continue
 
-        return nautical_containers
+            self.log_this(f"Container {c.name} not found in config", "DEBUG")
+            # No match found. We still need to add the container to the list, but there is no config
+            nautic_ctrs.append(NauticalContainer.from_container(c, None))
+
+        return nautic_ctrs
 
     def group_containers(self) -> Dict[str, List[Container]]:
         containers: List[NauticalContainer] = self._serialize_containers(self.docker.containers.list())
