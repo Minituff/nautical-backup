@@ -26,12 +26,23 @@ env:
   POST_BACKUP_EXEC: ""
 
 # All container configs will use these configs unless overriden
-default_contianer_config:
+default_container_config:
+  require_label: False
   volumes:
     max_size: 10gb
+    
+    # The volume will only be processed if the host path starts with any of these paths
     only_if_host_path_starts_with:
       - "/workspaces/nautical-backup/dev"
+    
+    only_if_nautical_path_starts_with:
+      - "/data"
 
+    skip_if_host_path_starts_with:
+      - None
+    
+    skip_if_nautical_path_starts_with:
+      - None
 
 containers:
   container_1:
@@ -41,6 +52,10 @@ containers:
       container_id: "123abc"
       container_label: "container_1" # Applied using "nautical-backup.match.container_label=container_1"
       container_image: "minituff/nautical-backup"
+    require_label: False
+    group:
+      name: test
+      priority: 100
     volumes:
       none: True # No volumes should be associate with this container
       max_size: 10gb # Do not backup anothing over this size.

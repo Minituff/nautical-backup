@@ -45,6 +45,11 @@ class ContainerConfig:
             self.skip_volumes: List[ContainerConfig.Volumes.Volume] = []
             self.only_volumes: List[ContainerConfig.Volumes.Volume] = []
 
+            self.only_if_host_path_starts_with: List[str] = []
+            self.only_if_nautical_path_starts_with: List[str] = []
+            self.skip_if_host_path_starts_with: List[str] = []
+            self.skip_if_nautical_path_starts_with: List[str] = []
+
         def __repr__(self):
             return str(self.__dict__)
 
@@ -107,9 +112,13 @@ class ContainerConfig:
         yml_tag_name: str,
         name: str,
         description: str,
-        match: Match,
+        match: Match | None,
         skip_volumes: List[Volumes.Volume],
         only_volumes: List[Volumes.Volume],
+        only_if_host_path_starts_with: List[str],
+        only_if_nautical_path_starts_with: List[str],
+        skip_if_host_path_starts_with: List[str],
+        skip_if_nautical_path_starts_with: List[str],
         config: Config,
     ) -> None:
         self.yml_tag_name = yml_tag_name
@@ -118,18 +127,24 @@ class ContainerConfig:
         self.match = match
         self.only_volumes: List[ContainerConfig.Volumes.Volume] = only_volumes
         self.skip_volumes: List[ContainerConfig.Volumes.Volume] = skip_volumes
+        self.only_if_host_path_starts_with: List[str] = only_if_host_path_starts_with
+        self.only_if_nautical_path_starts_with: List[str] = only_if_nautical_path_starts_with
+        self.skip_if_host_path_starts_with: List[str] = skip_if_host_path_starts_with
+        self.skip_if_nautical_path_starts_with: List[str] = skip_if_nautical_path_starts_with
         self.config = config
 
     @staticmethod
-    def from_yml(yml_tag_name: str, yml_data: Dict) -> "ContainerConfig":
+    def from_yml(yml_tag_name: str, yml_data: Dict, default_config=False) -> "ContainerConfig":
 
-        match_json = yml_data.get("match", {})
-        match = ContainerConfig.Match(
-            container_name=match_json.get("container_name"),
-            container_id=match_json.get("container_id"),
-            container_label=match_json.get("container_label"),
-            container_image=match_json.get("container_image"),
-        )
+        match: ContainerConfig.Match | None = None
+        if not default_config:
+            match_json = yml_data.get("match", {})
+            match = ContainerConfig.Match(
+                container_name=match_json.get("container_name"),
+                container_id=match_json.get("container_id"),
+                container_label=match_json.get("container_label"),
+                container_image=match_json.get("container_image"),
+            )
 
         volumes_json = yml_data.get("volumes", {"skip_volumes": [], "only_volumes": []})
 
@@ -156,6 +171,22 @@ class ContainerConfig:
         for volume in volumes_json.get("only_volumes", []):
             only_volumes.append(process_volume(volume))
 
+        only_if_host_path_starts_with = []
+        for volume in volumes_json.get("only_if_host_path_starts_with", []):
+            only_if_host_path_starts_with.append(process_volume(volume))
+
+        only_if_nautical_path_starts_with = []
+        for volume in volumes_json.get("only_if_nautical_path_starts_with", []):
+            only_if_nautical_path_starts_with.append(process_volume(volume))
+
+        skip_if_host_path_starts_with = []
+        for volume in volumes_json.get("skip_if_host_path_starts_with", []):
+            skip_if_host_path_starts_with.append(process_volume(volume))
+
+        skip_if_nautical_path_starts_with = []
+        for volume in volumes_json.get("skip_if_nautical_path_starts_with", []):
+            skip_if_nautical_path_starts_with.append(process_volume(volume))
+
         config = ContainerConfig.Config.serialize(yml_data.get("config", {}))
 
         return ContainerConfig(
@@ -165,6 +196,10 @@ class ContainerConfig:
             match=match,
             skip_volumes=skip_volumes,
             only_volumes=only_volumes,
+            only_if_host_path_starts_with=only_if_host_path_starts_with,
+            only_if_nautical_path_starts_with=only_if_nautical_path_starts_with,
+            skip_if_host_path_starts_with=skip_if_host_path_starts_with,
+            skip_if_nautical_path_starts_with=skip_if_nautical_path_starts_with,
             config=config,
         )
 
@@ -250,6 +285,9 @@ class NauticalConfig:
         self._containers_from_yml_by_label: Dict[str, ContainerConfig] = {}
         self._load_containers_from_yml(self.yml)
 
+        self.default_container_config: ContainerConfig | None = None
+        self._load_default_container_config(self.yml)
+
     def __repr__(self):
         return str(self.__dict__)
 
@@ -272,6 +310,16 @@ class NauticalConfig:
     @property
     def containers_from_yml_by_label(self) -> Dict[str, ContainerConfig]:
         return self._containers_from_yml_by_label
+
+    def _load_default_container_config(self, yml: Dict) -> None:
+        """Loads the default container configurations from the yml file"""
+        default_container_config = yml.get("default_container_config", None)
+        if default_container_config:
+            self.default_container_config = ContainerConfig.from_yml(
+                "default_container_config",
+                default_container_config,
+                default_config=True,
+            )
 
     def _load_containers_from_yml(self, yml: Dict) -> None:
         """Loads the container configurations from the yml file"""
@@ -324,7 +372,9 @@ class NauticalConfig:
         return result
 
     def get_directory_mappings_with_precedence(
-        self, source_dir: str | Path, directory_mappings_by_source: Dict | None
+        self,
+        source_dir: str | Path,
+        directory_mappings_by_source: Dict | None,
     ) -> DirectoryMapping:
         """Return the directory mapping for the given source directory, with the highest precedence (by specificity)"""
         map = directory_mappings_by_source if directory_mappings_by_source else self.directory_mappings_by_source
@@ -371,4 +421,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    pprint(config)
+    pprint(config.default_container_config)
