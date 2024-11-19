@@ -30,3 +30,6 @@ services:
       # And they must be in the same compose, unless you use the absolute URL
       - DOCKER_HOST=tcp://docker_socket_proxy:2375
 ```
+
+!!! tip "[LinuxServer.io](https://linuxserver.io) has their own version of avialable [here](https://github.com/Minituff/nautical-backup/issues/230)."
+    It is based off the original [Tecnativa/docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy), so all the configs and variables will carry over.
