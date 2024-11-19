@@ -13,6 +13,7 @@ repo_url: 'https://github.com/minituff/nautical-backup'
 
 # Plugins
 plugins:
+  # - site-urls
   # git-revision-date-localized:
   #   enable_creation_date: true
   # offline:
@@ -37,6 +38,7 @@ nav:
  - Docker Labels: labels.md
  - Updating Nautical: updates.md
  - Rest API: rest-api.md
+ - Docker Socket Proxy: docker-socket-proxy.md
  - Advanced Usage: 
    - Source & Destination Mappings: advanced/advanced.md
    - NFS Shares: advanced/nfs-share.md
