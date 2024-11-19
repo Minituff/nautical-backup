@@ -12,7 +12,7 @@ Using the [Docker Socket Proxy](https://github.com/Tecnativa/docker-socket-proxy
 ## How?
 We can use the [Docker Socket Proxy](https://github.com/Tecnativa/docker-socket-proxy) container to act as a *man-in-the-middle* (AKA Proxy) for the Docker socket.
 
-Esstially, the [DSP](https://github.com/Tecnativa/docker-socket-proxy) gets full control over the Docker Socket, but it then gives out smaller permissions to the socket out to Nautical
+Essentially, the [DSP](https://github.com/Tecnativa/docker-socket-proxy) gets full control over the Docker Socket, but it then gives out smaller permissions to the socket out to Nautical <small>(or anything else)</small>.
 
 ## Setup
 For more information about which Docker Socket Proxy Enviornment varibles you must enable, check out [their docs](https://github.com/Tecnativa/docker-socket-proxy?tab=readme-ov-file#grant-or-revoke-access-to-certain-api-sections).
