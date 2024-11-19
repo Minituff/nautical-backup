@@ -343,7 +343,7 @@ SKIP_STOPPING=example1,example2
     Only do this on containers you know for certain do not need to be shutdown before backup.
 
 
-<small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-before-backup) label, but applied globally.</small>
+<small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-container-before-backup) label, but applied globally.</small>
 
 ## Backup on Start
 Nautical will immediately perform a backup when the container is started in addition to the CRON scheduled backup.

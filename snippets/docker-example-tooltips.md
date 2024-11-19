@@ -1,4 +1,4 @@
-1. Mount the docker socket. Used to start and stop containers.
+1. Mount the docker socket. Used to start and stop containers. See the [Docker Socket Proxy page](https://minituff.github.io/nautical-backup/docker-socket-proxy) for more information.
 2. Mount the `source` directory.
 3. Mount the `destination` directory.
 4. *TIP*: Avoid using "quotes" in the enviornment variables.
