@@ -4,7 +4,7 @@ services:
       context: ../
       dockerfile: .devcontainer/Dockerfile
     volumes:
-      - ../..:/workspaces:cached
+      - ..:/workspaces/nautical-backup:cached
       # Docker socket will be mounted as part of the Docker-Outside-Docker feature
     command: sleep infinity
     environment:

@@ -36,7 +36,7 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 
 
 # Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.20&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_20
-# Renovate-Bot will update this Dockerfile once and updae is realsed to these packages. The comments are needed to match pkg info.
+# Renovate-Bot will update this Dockerfile once and update is realsed to these packages. The comments are needed to match pkg info.
 
 # renovate: datasource=repology depName=alpine_3_20/bash versioning=loose
 ENV BASH_VERSION="5.2.26"
@@ -50,8 +50,6 @@ ENV JQ_VERSION="1.7.1"
 ENV CURL_VERSION="8.10.1"
 # renovate: datasource=repology depName=alpine_3_20/7zip versioning=loose
 ENV SEVENZIP_VERSION="23.01"
-# renovate: datasource=repology depName=alpine_3_20/ruby-full versioning=loose
-ENV RUBY_VERSION="3.2.4"
 # renovate: datasource=repology depName=alpine_3_20/dos2unix versioning=loose
 ENV DOS2UNIX_VERSION="7.5.2"
 
@@ -105,9 +103,6 @@ ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
 VOLUME [ "/data" ]
 VOLUME [ "/config" ]
-
-# Only should be exposed when running in test mode
-VOLUME [ "/tests" ]
 
 # Publish this port to enable the HTTP endpoints
 EXPOSE 8069
