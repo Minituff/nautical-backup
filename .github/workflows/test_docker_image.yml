@@ -60,7 +60,7 @@ jobs:
         python3 -m pytest --cov app --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       env: 
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
