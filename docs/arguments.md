@@ -85,7 +85,7 @@ DEST_DATE_PATH_FORMAT=date/container
 ```
 
 ### Container Backup Date vs Nautical Start Date
-Use the precise date for fomatting the destination folder
+Use the precise date for formatting the destination folder
 When `false`, use the time Nautical started the backup (not when the container was backed up).
 
 > **Default**: false
