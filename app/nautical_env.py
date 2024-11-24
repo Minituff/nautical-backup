@@ -37,6 +37,10 @@ class NauticalEnv:
         if self.DEST_DATE_PATH_FORMAT not in ["date/container", "container/date"]:
             self.DEST_DATE_PATH_FORMAT = "date/container"  # Set default
 
+        self.USE_CONTAINER_BACKUP_DATE = True
+        if os.environ.get("USE_CONAINER_BACKUP_DATE", "true").lower() == "false":
+            self.USE_CONTAINER_BACKUP_DATE = False
+
         # Not associated with containers
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
         self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")

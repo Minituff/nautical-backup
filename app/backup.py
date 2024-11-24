@@ -44,6 +44,9 @@ class NauticalBackup:
         self.containers_completed = set()
         self.containers_skipped = set()
 
+        # Grab the backup starting time
+        self.start_time = datetime.now()
+
         if self.env.REPORT_FILE == True and self.env.REPORT_FILE_ON_BACKUP_ONLY == False:
             self.logger._create_new_report_file()
 
@@ -465,7 +468,13 @@ class NauticalBackup:
         dest_dir_no_path = dest_dir_name  # Assigment to userstand they are the same thing
         if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
             # Final name of the actual folder
-            time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
+
+            # Use Nautical start time as the date for formatting
+            time_format = str(self.start_time.strftime(self.env.DEST_DATE_FORMAT))
+            if self.env.USE_CONTAINER_BACKUP_DATE:
+                # Use current time for formatting
+                self.log_this(f"Using current time for date formatting since DEST_DATE_FORMAT=true", "Trace")
+                time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
 
             if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
                 dest_dir_no_path = f"{dest_dir_name}/{time_format}"
@@ -481,7 +490,13 @@ class NauticalBackup:
 
     def _format_dated_folder(self, base_dest_dir: Path, folder: str) -> Path:
         """Format the destination folder with the date"""
-        time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
+
+        # Use Nautical start time as the date for formatting
+        time_format = str(self.start_time.strftime(self.env.DEST_DATE_FORMAT))
+        if self.env.USE_CONTAINER_BACKUP_DATE:
+            # Use current time for formatting
+            self.log_this(f"Using current time for date formatting since DEST_DATE_FORMAT=true", "Trace")
+            time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
 
         if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
             dest_dir: Path = base_dest_dir / folder / time_format
@@ -654,8 +669,8 @@ class NauticalBackup:
         self.reset_db()
         self.db.put("backup_running", True)
 
-        start_time = datetime.now()
-        self.db.put("last_cron", start_time.strftime("%m/%d/%y %H:%M"))
+        self.start_time = datetime.now()
+        self.db.put("last_cron", self.start_time.strftime("%m/%d/%y %H:%M"))
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
@@ -750,7 +765,7 @@ class NauticalBackup:
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
         end_time = datetime.now()
-        exeuction_time = end_time - start_time
+        exeuction_time = end_time - self.start_time
         duration = datetime.fromtimestamp(exeuction_time.total_seconds())
 
         self.db.put("backup_running", False)

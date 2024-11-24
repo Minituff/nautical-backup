@@ -84,6 +84,41 @@ Use this option to designate which path strategy is used when creating a dated d
 DEST_DATE_PATH_FORMAT=date/container
 ```
 
+### Container Backup Date vs Nautical Start Date
+Use the precise date for fomatting the destination folder
+When `false`, use the time Nautical started the backup (not when the container was backed up).
+
+> **Default**: false
+
+```properties
+USE_CONTAINER_BACKUP_DATE=true
+```
+
+
+???+ example "Understanding `USE_CONTAINER_BACKUP_DATE`."
+    Let's say you have the following format: `DEST_DATE_FORMAT=%Y-%m-%d_%H-%M-%S`
+
+    Since the timing is so precise <small>(using seconds)</small> we may get a result like this:
+    ```python
+    -- src
+    |-- 2024-11-24_14-26-43
+    |-- 2024-11-24_14-26-44
+    |-- 2024-11-24_14-28-10
+    ```
+
+    But what we actually want is a result like this:
+    ```python
+    -- src
+    |-- 2024-11-24_14-26-43
+    #  (1)
+    |-- 2024-11-24_14-28-10
+    ```
+
+    1. The folder that was here is now within in `2024-11-24_14-26-43` folder
+
+    By setting `USE_CONTAINER_BACKUP_DATE=false`, then the date used will be the time Nautical actually started, not the time when each container is processed.
+    Meaning that even if the containers take a few minutes to backup, the folder format will remain the same for each of them.
+
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 
