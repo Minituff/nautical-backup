@@ -4,14 +4,24 @@ Commonly, we run containers on our host machine, then use an NFS share as the ba
 
 ## Connect to an NFS Share On Container Host (Linux)
 
+1. Install nfs util
+    ```bash
+    apt install nfs-common
+    ```
 1. Create the NFS destination directories.
     ```bash
     # Create mount point (1)
     mkdir -p /mnt/nfs/docker_backups
+    
+    # Assign user permissions (2)
+    chown /mnt/nfs/docker_backups james:james
     ```
    
-    1. The destination directories must exist before a mount can be created  
+    1. The destination directories must exist before a mount can be created
+    2. The folder must be owned by the user permitted in the share
 
+!!! warning "If you're on a Proxmox LXC, this is more complicated"
+    This is easier if you're using a Virtual Machine, but if you insist on using an LXC, check out [these](https://forum.proxmox.com/threads/tutorial-mounting-nfs-share-to-an-unprivileged-lxc.138506/) instructions.
 
 2. Setup NFS mount points: 
     ```bash

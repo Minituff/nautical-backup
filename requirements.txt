@@ -5,3 +5,4 @@ croniter==5.0.1
 pytz==2024.2
 docker==7.1.0
 pydantic-settings==2.6.1
+PyYAML==6.0.2
