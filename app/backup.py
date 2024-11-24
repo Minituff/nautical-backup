@@ -473,7 +473,7 @@ class NauticalBackup:
             time_format = str(self.start_time.strftime(self.env.DEST_DATE_FORMAT))
             if self.env.USE_CONTAINER_BACKUP_DATE:
                 # Use current time for formatting
-                self.log_this(f"Using current time for date formatting since DEST_DATE_FORMAT=true", "Trace")
+                self.log_this(f"Using current time for date formatting since USE_CONTAINER_BACKUP_DATE=true", "Trace")
                 time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
 
             if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
@@ -495,7 +495,7 @@ class NauticalBackup:
         time_format = str(self.start_time.strftime(self.env.DEST_DATE_FORMAT))
         if self.env.USE_CONTAINER_BACKUP_DATE:
             # Use current time for formatting
-            self.log_this(f"Using current time for date formatting since DEST_DATE_FORMAT=true", "Trace")
+            self.log_this(f"Using current time for date formatting since USE_CONTAINER_BACKUP_DATE=true", "Trace")
             time_format = str(time.strftime(self.env.DEST_DATE_FORMAT))
 
         if str(self.env.DEST_DATE_PATH_FORMAT) == "container/date":
