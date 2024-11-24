@@ -38,7 +38,7 @@ class NauticalEnv:
             self.DEST_DATE_PATH_FORMAT = "date/container"  # Set default
 
         self.USE_CONTAINER_BACKUP_DATE = True
-        if os.environ.get("USE_CONAINER_BACKUP_DATE", "true").lower() == "false":
+        if os.environ.get("USE_CONTAINER_BACKUP_DATE", "true").lower() == "false":
             self.USE_CONTAINER_BACKUP_DATE = False
 
         # Not associated with containers
