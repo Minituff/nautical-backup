@@ -505,8 +505,6 @@ class NauticalBackup:
 
         return dest_dir
 
-        return base_dest_dir
-
     def _backup_additional_folders_standalone(self, when: BeforeOrAfter, base_dest_dir: Path):
         """Backup folders that are not associated with a container."""
         additional_folders = str(self.env.ADDITIONAL_FOLDERS)
