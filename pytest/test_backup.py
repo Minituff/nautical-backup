@@ -1439,7 +1439,7 @@ class TestBackup:
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
-    def test_additional_folders_and_DEST_DATE_PATH_FORMAT(
+    def test_additional_folders_and_DEST_DATE_PATH_FORMAT2(
         self,
         mock_subprocess_run: MagicMock,
         mock_docker_client: MagicMock,
@@ -1482,6 +1482,49 @@ class TestBackup:
             f"{self.src_location}/container1/",
             f"{self.dest_location}/container1/",
         ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-source-dir": "container1-override"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_src_label_and_USE_DEST_DATE_FOLDER(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test override source dir with USE_DEST_DATE_FOLDER"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        time_format = time.strftime("%Y-%m-%d")
+
+        # Additional folder 1
+        assert mock_subprocess_run.call_args_list[0][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1-override/",
+            f"{self.dest_location}/{time_format}/container1-override/",
+        ]
+
+        rm_tree(Path(self.src_location) / "container1-override")
+        rm_tree(Path(self.dest_location) / time_format / "container1-override")
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
