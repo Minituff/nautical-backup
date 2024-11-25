@@ -442,9 +442,11 @@ class NauticalBackup:
 
         if str(self.env.KEEP_SRC_DIR_NAME).lower() == "true" and keep_src_dir_name_label != "false":
             dest_dir_full: Path = base_dest_dir / src_dir_name
+            dest_dir_name = src_dir_name
 
         if keep_src_dir_name_label == "true":
             dest_dir_full: Path = base_dest_dir / src_dir_name
+            dest_dir_name = src_dir_name
 
         if str(c.name) in self.env.OVERRIDE_DEST_DIR:
             new_dest_dir = self.env.OVERRIDE_DEST_DIR[str(c.name)]
@@ -452,7 +454,6 @@ class NauticalBackup:
             dest_dir_name = new_dest_dir
             self.log_this(f"Overriding destination directory for {c.name} to '{new_dest_dir}'")
 
-        dest_dir_name = str(c.name)
         if str(c.id) in self.env.OVERRIDE_DEST_DIR:
             new_dest_dir = self.env.OVERRIDE_DEST_DIR[str(c.id)]
             dest_dir_full = base_dest_dir / new_dest_dir
