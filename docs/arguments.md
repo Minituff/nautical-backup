@@ -252,6 +252,30 @@ REQUIRE_LABEL=true
 
 See the [Enable or Disable Nautical](./labels.md#enable-or-disable-nautical) Label Section for more details.
 
+## Label Prefix
+By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid colision among instances.
+
+> **Default**: nautical-backup
+
+```properties
+services:
+  # Multiple instance of nautical
+  nautical-inst1:
+    environment:
+      - LABEL_PREFIX=nautical-backup.inst1
+  nautical-inst2:
+    environment:
+      - LABEL_PREFIX=nautical-backup.inst2
+
+  # Multi targets
+  backuped-inst1:
+    labels:
+      - nautical-backup.inst1.enable=true
+  backuped-inst2:
+    labels:
+      - nautical-backup.inst2.enable=true
+```
+
 ## Override Source Directory
 Allows a source directory and container-name that do not match.
 
