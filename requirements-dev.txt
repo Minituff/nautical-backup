@@ -2,13 +2,13 @@
 -r requirements.txt
 
 # Tests
-pytest==8.3.3
+pytest==8.3.4
 pytest-cov==6.0.0
 black==24.10.0
-httpx==0.28.0
+httpx==0.28.1
 pytest-testdox==3.1.0
 mock==5.1.0
 pre-commit==4.0.1
 
 # Docs
-mkdocs-material==9.5.46
+mkdocs-material==9.5.47
