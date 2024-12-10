@@ -28,6 +28,7 @@ class NauticalEnv:
         self.REQUIRE_LABEL = False
         if os.environ.get("REQUIRE_LABEL", "False").lower() == "true":
             self.REQUIRE_LABEL = True
+        self.LABEL_PREFIX = os.environ.get("LABEL_PREFIX", "nautical-backup")
 
         self.NAUTICAL_DB_PATH = os.environ.get("NAUTICAL_DB_PATH", "")
 

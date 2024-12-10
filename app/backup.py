@@ -43,6 +43,7 @@ class NauticalBackup:
 
         self.containers_completed = set()
         self.containers_skipped = set()
+        self.prefix = self.env.LABEL_PREFIX
 
         # Grab the backup starting time
         self.start_time = datetime.now()
@@ -56,6 +57,9 @@ class NauticalBackup:
     def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, log_type)
+
+    def get_label(self, container, target, default=None):
+        return container.labels.get(f"{self.prefix}.{target}", default)
 
     def verify_nautcical_mounted_source_location(self, src_dir: str):
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", LogType.INIT)
@@ -141,7 +145,7 @@ class NauticalBackup:
         # Convert the strings into lists
         skip_containers_set = set(SKIP_CONTAINERS.split(","))
 
-        nautical_backup_enable_str = str(c.labels.get("nautical-backup.enable", ""))
+        nautical_backup_enable_str = str(self.get_label(c, "enable", ""))
         if nautical_backup_enable_str.lower() == "false":
             nautical_backup_enable = False
         elif nautical_backup_enable_str.lower() == "true":
@@ -155,7 +159,7 @@ class NauticalBackup:
 
         if self.env.REQUIRE_LABEL == True and nautical_backup_enable is not True:
             self.log_this(
-                f"Skipping {c.name} as 'nautical-backup.enable=true' was not found and REQUIRE_LABEL is true.", "DEBUG"
+                f"Skipping {c.name} as '{self.prefix}.enable=true' was not found and REQUIRE_LABEL is true.", "DEBUG"
             )
             return True
 
@@ -192,7 +196,7 @@ class NauticalBackup:
 
             # Create a default group, so ungrouped items are not grouped together
             default_group = f"{self.default_group_pfx_sfx}{str(c.id)[0:12]}{self.default_group_pfx_sfx}"
-            group = str(c.labels.get("nautical-backup.group", default_group))
+            group = str(self.get_label(c, "group", default_group))
             if not group or group == "":
                 group = default_group
 
@@ -200,7 +204,7 @@ class NauticalBackup:
             groups = group.split(",")
             for g in groups:
                 # Get priority. Default=100
-                priority = int(c.labels.get(f"nautical-backup.group.{g}.priority", 100))
+                priority = int(self.get_label(c, f"group.{g}.priority", 100))
 
                 if g not in containers_by_group_in_process:
                     containers_by_group_in_process[g] = [(priority, c)]
@@ -240,33 +244,33 @@ class NauticalBackup:
 
         if attached_to_container == True and c:
             if when == BeforeAfterorDuring.BEFORE:
-                curl_command = str(c.labels.get("nautical-backup.curl.before", ""))
-                command = str(c.labels.get("nautical-backup.exec.before", curl_command))
+                curl_command = str(self.get_label(c, "curl.before", ""))
+                command = str(self.get_label(c, "exec.before", curl_command))
 
                 if curl_command and curl_command != "":
                     self.log_this(
-                        "Deprecated: 'nautical-backup.curl.before' has been moved to 'nautical-backup.exec.before'",
+                        f"Deprecated: '{self.prefix}.curl.before' has been moved to '{self.prefix}.exec.before'",
                         "WARN",
                     )
                 if command and command != "":
                     self.log_this("Running PRE-backup exec command for $name", "DEBUG")
             elif when == BeforeAfterorDuring.DURING:
-                curl_command = str(c.labels.get("nautical-backup.curl.during", ""))
-                command = str(c.labels.get("nautical-backup.exec.during", curl_command))
+                curl_command = str(self.get_label(c, "curl.during", ""))
+                command = str(self.get_label(c, "exec.during", curl_command))
 
                 if curl_command and curl_command != "":
                     self.log_this(
-                        "Deprecated: 'nautical-backup.curl.during' has been moved to 'nautical-backup.exec.during'",
+                        f"Deprecated: '{self.prefix}.curl.during' has been moved to '{self.prefix}.exec.during'",
                         "WARN",
                     )
                 if command and command != "":
                     self.log_this("Running DURING-backup exec command for $name", "DEBUG")
             elif when == BeforeAfterorDuring.AFTER:
-                curl_command = str(c.labels.get("nautical-backup.curl.after", ""))
-                command = str(c.labels.get("nautical-backup.exec.after", curl_command))
+                curl_command = str(self.get_label(c, "curl.after", ""))
+                command = str(self.get_label(c, "exec.after", curl_command))
                 if curl_command and curl_command != "":
                     self.log_this(
-                        "Deprecated: 'nautical-backup.curl.after' has been moved to 'nautical-backup.exec.after'",
+                        f"Deprecated: '{self.prefix}.curl.after' has been moved to '{self.prefix}.exec.after'",
                         "WARN",
                     )
                 if command and command != "":
@@ -322,13 +326,13 @@ class NauticalBackup:
     def _run_lifecyle_hook(self, c: Container, when: BeforeOrAfter):
         """Runs a commend inside the child container"""
         if when == BeforeOrAfter.BEFORE:
-            command = str(c.labels.get("nautical-backup.lifecycle.before", ""))
-            timeout = str(c.labels.get("nautical-backup.lifecycle.before.timeout", "60"))
+            command = str(self.get_label(c, "lifecycle.before", ""))
+            timeout = str(self.get_label(c, "lifecycle.before.timeout", "60"))
             if command and command != "":
                 self.log_this("Running DURING-backup lifecycle hook for $name", "DEBUG")
         elif when == BeforeOrAfter.AFTER:
-            timeout = str(c.labels.get("nautical-backup.lifecycle.after.timeout", "60"))
-            command = str(c.labels.get("nautical-backup.lifecycle.after", ""))
+            timeout = str(self.get_label(c, "lifecycle.after.timeout", "60"))
+            command = str(self.get_label(c, "lifecycle.after", ""))
             if command and command != "":
                 self.log_this("Running AFTER-backup lifecycle hook for $name", "DEBUG")
         else:
@@ -350,7 +354,7 @@ class NauticalBackup:
             self.log_this(f"Container {c.name} is in SKIP_STOPPING list. Will not stop container.", "DEBUG")
             return True
 
-        stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
+        stop_before_backup = str(self.get_label(c, "stop-before-backup", "true"))
         if stop_before_backup.lower() == "false":
             self.log_this(f"Skipping stopping of {c.name} because of label" "DEBUG")
             return True
@@ -419,7 +423,7 @@ class NauticalBackup:
             if log == True:
                 self.log_this(f"Overriding source directory for {c.id} to '{new_src_dir}'")
 
-        label_src = str(c.labels.get("nautical-backup.override-source-dir", ""))
+        label_src = str(self.get_label(c, "override-source-dir", ""))
         if label_src and label_src != "":
             if log == True:
                 self.log_this(f"Overriding source directory for {c.name} to '{label_src}' from label")
@@ -433,7 +437,7 @@ class NauticalBackup:
         dest_dir_full: Path = base_dest_dir / str(c.name)
         dest_dir_name = str(c.name)
 
-        keep_src_dir_name_label = str(c.labels.get("nautical-backup.keep_src_dir_name", "")).lower()
+        keep_src_dir_name_label = str(self.get_label(c, "keep_src_dir_name", "")).lower()
 
         # This allows the user to set the KEEP_SRC_DIR_NAME environment variable to override the label's default if set
         # But the label will still override the environment variable if set to false/true
@@ -460,7 +464,7 @@ class NauticalBackup:
             dest_dir_name = new_dest_dir
             self.log_this(f"Overriding destination directory for {c.id} to '{new_dest_dir}'")
 
-        label_dest = str(c.labels.get("nautical-backup.override-destination-dir", ""))
+        label_dest = str(self.get_label(c, "override-destination-dir", ""))
         if label_dest and label_dest != "":
             self.log_this(f"Overriding destination directory for {c.name} to '{label_dest}' from label")
             dest_dir_full = base_dest_dir / label_dest
@@ -545,7 +549,7 @@ class NauticalBackup:
             self._run_rsync(None, rsync_args, src_dir, dest_dir)
 
     def _backup_additional_folders(self, c: Container, base_dest_dir: Path):
-        additional_folders = str(c.labels.get("nautical-backup.additional-folders", ""))
+        additional_folders = str(self.get_label(c, "additional-folders", ""))
         base_src_dir = Path(self.env.SOURCE_LOCATION)
 
         rsync_args = self._get_rsync_args(c, log=False)
@@ -577,7 +581,7 @@ class NauticalBackup:
         else:  # Only container given (no secondary dest)
             dest_path = Path(self.env.DEST_LOCATION)
 
-        src_dir_required = str(c.labels.get("nautical-backup.source-dir-required", "true")).lower()
+        src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
         if src_dir_required == "true":
             self.verify_destination_location(dest_path)
             if not dest_dir.exists():
@@ -595,7 +599,7 @@ class NauticalBackup:
         else:
             self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
 
-        additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
+        additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
             self._backup_additional_folders(c, dest_path)
 
@@ -622,7 +626,7 @@ class NauticalBackup:
             default_rsync_args = ""
 
         if c:
-            use_default_args = str(c.labels.get("nautical-backup.use-default-rsync-args", "")).lower()
+            use_default_args = str(self.get_label(c, "use-default-rsync-args", "")).lower()
             if use_default_args == "false":
                 if log == True:
                     self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
@@ -635,7 +639,7 @@ class NauticalBackup:
             used_default_args = False
 
         if c:
-            custom_rsync_args_label = str(c.labels.get("nautical-backup.rsync-custom-args", ""))
+            custom_rsync_args_label = str(self.get_label(c, "rsync-custom-args", ""))
             if custom_rsync_args_label != "":
                 if log == True:
                     self.log_this(f"Setting custom rsync args from label ({custom_rsync_args_label})", "DEBUG")
@@ -694,14 +698,14 @@ class NauticalBackup:
                 self._run_exec(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
-                additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
+                additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
                 if additional_folders_when == "before":
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
 
                 src_dir, src_dir_no_path = self._get_src_dir(c)
                 if not src_dir.exists():
-                    src_dir_required = str(c.labels.get("nautical-backup.source-dir-required", "true")).lower()
+                    src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
                     if src_dir_required == "false":
                         self.log_this(
                             f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
@@ -718,7 +722,7 @@ class NauticalBackup:
                 # Backup containers
                 c.reload()  # Refresh the status for this container
                 if c.status != "exited":
-                    stop_before_backup = str(c.labels.get("nautical-backup.stop-before-backup", "true"))
+                    stop_before_backup = str(self.get_label(c, "stop-before-backup", "true"))
 
                     # Allow the user to skip stopping the container before backup
                     # Here we allow the Enviorment variable to supercede the EMPTY label
@@ -750,7 +754,7 @@ class NauticalBackup:
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
                 self._run_exec(c, BeforeAfterorDuring.AFTER, attached_to_container=True)
 
-                additional_folders_when = str(c.labels.get("nautical-backup.additional-folders.when", "during")).lower()
+                additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
                 if additional_folders_when == "after":
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
