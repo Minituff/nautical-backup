@@ -174,7 +174,6 @@ class NauticalBackup:
         # No reason to skip
         return False
 
-
     def group_containers(self) -> Dict[str, List[Container]]:
         containers: List[Container] = self.docker.containers.list()  # type: ignore
         starting_container_amt = len(containers)
