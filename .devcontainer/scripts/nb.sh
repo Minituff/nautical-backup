@@ -135,7 +135,7 @@ execute_command() {
         cd $APP_HOME
         clear
         cecho CYAN "Formatting Python code with Black..."
-        python3 -m black --line-length 120 api tests
+        python3 -m black --line-length 120 app tests
         ;;
     *)
         cecho RED "Unknown command: $1"
