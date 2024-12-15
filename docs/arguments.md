@@ -252,12 +252,14 @@ REQUIRE_LABEL=true
 
 See the [Enable or Disable Nautical](./labels.md#enable-or-disable-nautical) Label Section for more details.
 
-## Label Prefix
+## Multi-Instance Label Prefix
+Sometimes, running multiple insances of nautical-backup can enable extra funcunality: such as unique CRON schedules for different containers, etc.
+
 By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid colision among instances.
 
 > **Default**: nautical-backup
 
-```properties
+```yaml
 services:
   # Multiple instance of nautical
   nautical-inst1:

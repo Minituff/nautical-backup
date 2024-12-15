@@ -58,7 +58,10 @@ class NauticalBackup:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, log_type)
 
-    def get_label(self, container, target, default=None):
+    def get_label(self, container: Container, target: str, default=None):
+        """Apply the label prefix and return the label value
+        By default the label will look like: `nautical-backup.enable`
+        """
         return container.labels.get(f"{self.prefix}.{target}", default)
 
     def verify_nautcical_mounted_source_location(self, src_dir: str):
