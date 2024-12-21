@@ -1,7 +1,7 @@
 fastapi==0.115.6
 pydantic==2.10.3
 uvicorn==0.34.0
-croniter==5.0.1
+croniter==6.0.0
 pytz==2024.2
 docker==7.1.0
 pydantic-settings==2.7.0
