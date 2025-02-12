@@ -2,7 +2,7 @@
   <a href="#"><img width="400" alt="Logo" src="./docs/media/Logo-transparent.png"/></a>
     
     
-A simple Docker volume backup tool.
+A simple Docker bind mount (volume) backup tool.
 
 ---
 
