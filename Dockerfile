@@ -11,7 +11,10 @@ ENV TARGETPLATFORM=${TARGETPLATFORM}
 ARG NAUTICAL_VERSION="main"
 ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
-LABEL maintainer="minituff"
+LABEL maintainer="minituff" \
+  # Prevent self backups
+  nautical-backup.enable="false" \
+  nautical-backup.stop-before-backup="false"
 
 ARG TEST_MODE="-1"
 
