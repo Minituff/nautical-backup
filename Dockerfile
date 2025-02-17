@@ -11,7 +11,10 @@ ENV TARGETPLATFORM=${TARGETPLATFORM}
 ARG NAUTICAL_VERSION="main"
 ENV NAUTICAL_VERSION=${NAUTICAL_VERSION}
 
-LABEL maintainer="minituff"
+LABEL maintainer="minituff" \
+  # Prevent self backups
+  nautical-backup.enable="false" \
+  nautical-backup.stop-before-backup="false"
 
 ARG TEST_MODE="-1"
 
@@ -81,14 +84,14 @@ RUN \
     dos2unix=~"${DOS2UNIX_VERSION}" && \
     echo "**** Install runtime packages (required at runtime) ****" && \
     apk add --no-cache \
-    bash=~"${BASH_VERSION}" \
-    rsync=~"${RSYNC_VERSION}" \
-    tzdata=~"${TZ_DATA_VERSION}" \
-    jq=~"${JQ_VERSION}" \ 
-    curl=~"${CURL_VERSION}" \
-    7zip=~"${SEVENZIP_VERSION}" \
-    python3=~"${PYTHON_VERSION}" \
-    py3-pip=~"${PIP_VERSION}" && \
+    bash>="${BASH_VERSION}" \
+    rsync>="${RSYNC_VERSION}" \
+    tzdata>="${TZ_DATA_VERSION}" \
+    jq>="${JQ_VERSION}" \ 
+    curl>="${CURL_VERSION}" \
+    7zip>="${SEVENZIP_VERSION}" \
+    python3>="${PYTHON_VERSION}" \
+    py3-pip>="${PIP_VERSION}" && \
     echo "**** Making the entire /app folder executable ****" && \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
