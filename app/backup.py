@@ -359,7 +359,7 @@ class NauticalBackup:
 
         stop_before_backup = str(self.get_label(c, "stop-before-backup", "true"))
         if stop_before_backup.lower() == "false":
-            self.log_this(f"Skipping stopping of {c.name} because of label" "DEBUG")
+            self.log_this(f"Skipping stopping of {c.name} because of label", "DEBUG")
             return True
         if c.status != "running":
             self.log_this(f"Container {c.name} was not running. No need to stop.", "DEBUG")
