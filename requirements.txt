@@ -4,4 +4,4 @@ uvicorn==0.34.0
 croniter==6.0.0
 pytz==2025.1
 docker==7.1.0
-pydantic-settings==2.8.0
+pydantic-settings==2.8.1
