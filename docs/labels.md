@@ -145,7 +145,7 @@ nautical-backup.stop-before-backup=false
 <small>🔄 This is a similar action to the [Skip Stopping Containers](./arguments.md#skip-stopping-containers) variable, but applied only to this container.</small>
 
 ## Stop Timeout
-Nautical will allow the contianer *x* amount of _seconds_ to shutdown gracefully before killing the container.
+Nautical will allow the container  *x* amount of _seconds_ to shutdown gracefully before killing the container.
 
 > **Default If Missing**: [Stop Timeout](./arguments.md#stop-timeout) Enviornemnt value<small> (Defaults to 10 seconds)</small>
 
