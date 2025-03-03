@@ -147,7 +147,7 @@ nautical-backup.stop-before-backup=false
 ## Stop Timeout
 Nautical will allow the container  *x* amount of _seconds_ to shutdown gracefully before killing the container.
 
-> **Default If Missing**: [Stop Timeout](./arguments.md#stop-timeout) Enviornemnt value<small> (Defaults to 10 seconds)</small>
+> **Default If Missing**: [Stop Timeout](./arguments.md#stop-timeout) Environment value<small> (Defaults to 10 seconds)</small>
 
 ```properties
 nautical-backup.stop-timeout=10
