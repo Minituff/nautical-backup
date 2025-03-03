@@ -68,6 +68,8 @@ class NauticalEnv:
         if os.environ.get("REPORT_FILE", "True").lower() == "false":
             self.REPORT_FILE = False
 
+        self.STOP_TIMEOUT = int(os.environ.get("STOP_TIMEOUT", 10))
+
     @staticmethod
     def _populate_override_dirs(env_name: str) -> Dict[str, str]:
         """Translate the Enviornment variable from single string to Python Dict.

@@ -2587,3 +2587,54 @@ class TestBackup:
         mock_container1.stop.assert_called_once()
         mock_subprocess_run.assert_not_called()
         mock_container1.start.assert_called_once()
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_STOP_TIMEOUT_env(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Ensure the default timeout is 10
+        mock_container1.stop.assert_called_once_with(timeout=10)
+
+        monkeypatch.setenv("STOP_TIMEOUT", "15")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Ensure the set timeout is 15
+        assert mock_container1.stop.call_args_list[1] == call(timeout=15)
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.stop-timeout": "20"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_STOP_TIMEOUT_label(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+
+        monkeypatch.setenv("STOP_TIMEOUT", "15")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Ensure the set timeout is 20
+        mock_container1.stop.assert_called_once_with(timeout=20)

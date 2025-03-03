@@ -406,6 +406,17 @@ SKIP_STOPPING=example1,example2
 
 <small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-container-before-backup) label, but applied globally.</small>
 
+## Stop Timeout
+Nautical will allow the contianer *x* amount of _seconds_ to shutdown gracefully before killing the container.
+
+> **Default**: 10 <small>(seconds)</small>
+
+```properties
+STOP_TIMEOUT=10
+```
+
+<small>🔄 This is the same action as the [Stop Timeout](./labels.md#stop-timeout) label, but applied globally.</small>
+
 ## Backup on Start
 Nautical will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
 

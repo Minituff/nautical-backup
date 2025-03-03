@@ -365,9 +365,12 @@ class NauticalBackup:
             self.log_this(f"Container {c.name} was not running. No need to stop.", "DEBUG")
             return True
 
+        stop_timeout = str(self.get_label(c, "stop-timeout", str(self.env.STOP_TIMEOUT)))
+        stop_timeout = int(stop_timeout)
+
         self.log_this(f"Stopping {c.name}...", "INFO")
         try:
-            c.stop(timeout=10)  # * Actually stop the container
+            c.stop(timeout=stop_timeout)  # * Actually stop the container
         except APIError as e:
             self.log_this(f"Error stopping container {c.name}. Skipping backup for this container.", "ERROR")
             return False
