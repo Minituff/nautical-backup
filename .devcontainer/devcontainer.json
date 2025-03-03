@@ -13,10 +13,7 @@
 			"plugins": "copypath git dirhistory extract z colorize command-not-found colored-man-pages sudo zsh-completions zsh-autosuggestions fast-syntax-highlighting",
 			"omzPlugins": "https://github.com/zdharma-continuum/fast-syntax-highlighting https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions https://github.com/marlonrichert/zsh-autocomplete"
 		},
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
-		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-			"packages": "nano,curl,jq"
-		}
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
 	"containerEnv": {
 		"PYTHONPATH": ".", // Required for python to work
@@ -47,7 +44,7 @@
 				"njpwerner.autodocstring",
 				"rangav.vscode-thunder-client",
 				"ms-azuretools.vscode-docker",
-				"bungcip.better-toml",
+				"tamasfe.even-better-toml",
 				"littlefoxteam.vscode-python-test-adapter"
 			],
 			"settings": {
@@ -94,5 +91,5 @@
 		}
 	},
 	"remoteUser": "root",
-	"postCreateCommand": "chmod +x .devcontainer/scripts/postCreateCommand.sh && ./.devcontainer/scripts/postCreateCommand.sh"
+	"postCreateCommand": "dos2unix .devcontainer/scripts/postCreateCommand.sh && chmod +x .devcontainer/scripts/postCreateCommand.sh && ./.devcontainer/scripts/postCreateCommand.sh"
 }
