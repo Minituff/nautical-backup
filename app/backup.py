@@ -798,6 +798,12 @@ class NauticalBackup:
 
 
 if __name__ == "__main__":
-    docker_client = docker.from_env()
+    try:
+        docker_client = docker.from_env()
+        docker_client.ping()  # Test connection to Docker
+    except Exception as e:
+        print(f"Error connecting to Docker. Please either mount the Docker socket or set DOCKER_HOST.")
+        exit(1)
+
     nautical = NauticalBackup(docker_client)
     nautical.backup()
