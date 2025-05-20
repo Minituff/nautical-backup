@@ -17,13 +17,20 @@
     | `NB_EXEC_BEFORE_DURING_OR_AFTER` | When is this command being. [Options](./arguments.md#when-to-backup-additional-folders) |
     | `NB_EXEC_COMMAND`                | The exact command exectuted                                                             |
     | `NB_EXEC_ATTACHED_TO_CONTAINER`  | Is this exec command attached to a container                                            |
+    |                                  |                                                                                         |
+    | `NB_EXEC_TOTAL_ERRORS`           | The total errors on the last run+                                                       |
+    | `NB_EXEC_TOTAL_CONTAINERS_COMPLETED`           | The amount of containers processed sucessfully+                                                       |
+    | `NB_EXEC_TOTAL_CONTAINERS_SKIPPED`           | The amount of containers skipped (for any reason)+                                                       |
+    | `NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS`           | The amount of containers Nautical looked at+                                                       |
 
-    <small> *Require access to a container. Eg. When `NB_EXEC_ATTACHED_TO_CONTAINER=true`</small> 
+    <small> * Require access to a container. Eg. When `NB_EXEC_ATTACHED_TO_CONTAINER=true`</small> 
+
+    <small> + Must be used `AFTER` so there are values to fill. Eg. When `nautical-backup.exec.after`</small> 
 
     💰 **Tip:** To use the enviornment variables in a docker-compose file, you will need to escape them with a double `$`:
     ```yaml
     labels:
-      - "nautical-backup.curl.before=echo name: $$NB_EXEC_CONTAINER_NAME" # (1)!
+      - "nautical-backup.exec.before=echo name: $$NB_EXEC_CONTAINER_NAME" # (1)!
     ```
 
     1. Notice the double `$$`
