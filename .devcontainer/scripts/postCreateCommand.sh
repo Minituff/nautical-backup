@@ -28,6 +28,9 @@ done
 
 echo 'DISABLE_UPDATE_PROMPT=true  # Auto update ohmyzsh and dont ask' >> ~/.zshrc
 
+find $WORKSPACE_DIR/app -type f -print0 | xargs -0 dos2unix
+find $WORKSPACE_DIR/s6-overlay/etc/s6-overlay/s6-rc.d -type f -print0 | xargs -0 dos2unix
+
 # cecho CYAN "Installing python packages (for docs)..."
 # python3 -m pip install -r $WORKSPACE_DIR/docs/requirements.txt
 

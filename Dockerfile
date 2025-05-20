@@ -71,7 +71,7 @@ ENV PIP_VERSION="23.1.2"
 # renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
 ENV RUBY_VERSION="3.2.4"
 
-# Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0-5
+# Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0 (low) -- 5 (high)
 ENV S6_VERBOSITY=1
 
 # Set the maximum time to wait for services to be ready (0=forever). Needed for BACKUP_ON_START since it could take time.
@@ -96,6 +96,8 @@ RUN \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
+    echo "**** Making all files in ./etc/s6-overlay/s6-rc.d Unix format ****" && \
+    find ./etc/s6-overlay/s6-rc.d -type f -print0 | xargs -0 dos2unix && \
     echo "**** Install Python packages ****" && \
     python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
     echo "**** Cleanup ****" && \

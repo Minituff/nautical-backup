@@ -3,47 +3,46 @@
 # cd dev && docker compose up
 ---
 services:
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - watchtower-data:/data/test:ro # Named volume
-      - /data/test2 # Anonymous volume
-      - ./source/watchtower:/data/watchtower:ro # Bind mount
-    ports:
-      - 8080:8080
-    environment:
-      - TZ=America/Los_Angeles
-      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
-    labels:
-      - "nautical-backup.enable=true"
-      # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
-      # - "nautical-backup.curl.before=/config/script.sh"
-      # - "nautical-backup.override-source-dir=folder/watchtower"
+  # watchtower:
+  #   image: containrrr/watchtower
+  #   container_name: watchtower
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - watchtower-data:/data/test:ro # Named volume
+  #     - /data/test2 # Anonymous volume
+  #     - ./source/watchtower:/data/watchtower:ro # Bind mount
+  #   ports:
+  #     - 8080:8080
+  #   environment:
+  #     - TZ=America/Los_Angeles
+  #     - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
+  #   labels:
+  #     - "nautical-backup.enable=true"
+  #     # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
+  #     # - "nautical-backup.curl.before=/config/script.sh"
+  #     # - "nautical-backup.override-source-dir=folder/watchtower"
 
-  docker_socket_proxy:
-    image: tecnativa/docker-socket-proxy
-    container_name: docker_socket_proxy
-    ports:
-      - 2375:2375
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      # Enable the API access to the following sections of the Docker API
-      # https://github.com/Tecnativa/docker-socket-proxy?tab=readme-ov-file#grant-or-revoke-access-to-certain-api-sections
-      - CONTAINERS=1
-      - IMAGES=1
-      - ALLOW_START=1
-      - ALLOW_STOP=1
-      - EXEC=1
-      - VOLUMES=1
+  # docker_socket_proxy:
+  #   image: tecnativa/docker-socket-proxy
+  #   container_name: docker_socket_proxy
+  #   ports:
+  #     - 2375:2375
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     # Enable the API access to the following sections of the Docker API
+  #     # https://github.com/Tecnativa/docker-socket-proxy?tab=readme-ov-file#grant-or-revoke-access-to-certain-api-sections
+  #     - CONTAINERS=1
+  #     - IMAGES=1
+  #     - ALLOW_START=1
+  #     - ALLOW_STOP=1
+  #     - EXEC=1
+  #     - VOLUMES=1
 
 
   nautical-backup:
-    image: nautical-backup:test
     build: ../
-    container_name: nautical-backup-test
+    # container_name: nautical-backup-test
     develop:
       watch:
         - action: rebuild
@@ -54,26 +53,26 @@ services:
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/data/destination
       # - /var/lib/docker/volumes:/data/volumes:ro
       # Optional, or you can use the docker_socket_proxy service
-      # - /var/run/docker.sock:/var/run/docker.sock
-      - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app # Allows code to be edited on the fly
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app # Allows code to be edited on the fly
     # user: 1000:1000
     ports:
       - 8069:8069
     environment:
-      - DOCKER_HOST=tcp://docker_socket_proxy:2375
       - TZ=America/Los_Angeles
       - LOG_LEVEL=TRACE
-      - BACKUP_ON_START=true
-      # - BACKUP_ON_START=false
+      # - BACKUP_ON_START=true
+      - BACKUP_ON_START=false
       - REPORT_FILE=false
       - CRON_SCHEDULE=0 4 * * *
       # - REQUIRE_LABEL=true
       - HTTP_REST_API_ENABLED=true
+      - EXIT_AFTER_INIT=true
       # - RUN_ONCE=trues
       # - USE_DEST_DATE_FOLDER=true
       # - DEST_DATE_PATH_FORMAT=container/date
       # - DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d
-
+    # entrypoint: ["sleep", "infinity"]
 
 volumes:
   watchtower-data:

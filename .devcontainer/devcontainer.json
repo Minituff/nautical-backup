@@ -21,7 +21,8 @@
 		"NAUTICAL_DB_NAME": "nautical-db.json",
 		"DEST_LOCATION": "/workspaces/nautical-backup/dev/destination",
 		"SOURCE_LOCATION": "/workspaces/nautical-backup/dev/source",
-		"LOG_LEVEL": "DEBUG"
+		"LOG_LEVEL": "DEBUG",
+		"COMPOSE_BAKE": "true"
 	},
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
