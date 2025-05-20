@@ -105,6 +105,8 @@ initialize_nautical() {
     if [ ! -x "$symlink" ]; then
         logThis "Setting executable permission on symlink..." "DEBUG" "init"
         chmod +x "$symlink"
+    fi
+    
     if [ ! -f "/usr/local/bin/nautical" ]; then
         logThis "Installing nautical backup script..." "DEBUG" "init"
         # Allows the nautical backup script to be run using `bash nautical`

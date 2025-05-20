@@ -45,14 +45,14 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-symlinks-arch.tar.xz
 # Packages are sourced from https://pkgs.alpinelinux.org/packages?branch=v3.20&repo=main tracked from https://repology.org/projects/?inrepo=alpine_3_20
 # Renovate-Bot will update this Dockerfile once and update is realsed to these packages. The comments are needed to match pkg info.
 
-# renovate: datasource=repology depName=alpine_3_20/bash versioning=loose
-ENV BASH_VERSION="5.2.26"
-# renovate: datasource=repology depName=alpine_3_20/rsync versioning=loose
-ENV RSYNC_VERSION="3.3.0"
-# renovate: datasource=repology depName=alpine_3_20/tzdata versioning=loose
+# renovate: datasource=repology depName=alpine_3_18/bash versioning=loose
+ENV BASH_VERSION="5.2.15"
+# renovate: datasource=repology depName=alpine_3_18/rsync versioning=loose
+ENV RSYNC_VERSION="3.2.7"
+# renovate: datasource=repology depName=alpine_3_18/tzdata versioning=loose
 ENV TZ_DATA_VERSION="2024"
 # renovate: datasource=repology depName=alpine_3_18/dos2unix versioning=loose
-ENV DOS2UNIX_VERSION="7.4.4"
+ENV DOS2UNIX_VERSION="7.5.2-ro0"
 # renovate: datasource=repology depName=alpine_3_18/jq versioning=loose
 ENV JQ_VERSION="1.6"
 # renovate: datasource=repology depName=alpine_3_18/curl versioning=loose
@@ -65,7 +65,6 @@ ENV PYTHON_VERSION="3.11"
 ENV PIP_VERSION="23.1.2"
 # renovate: datasource=repology depName=alpine_3_18/ruby-full versioning=loose
 ENV RUBY_VERSION="3.2.4"
-
 # Hide the S6 init logs. 2 = start and stop operations, 1 = warnings and errors, 0 = errors. Default 2: Options 0 (low) -- 5 (high)
 ENV S6_VERBOSITY=1
 
@@ -74,11 +73,9 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
 # Install dependencies
 RUN \
-    echo "**** Install build packages (will be uninstalled later) ****" && \
-    apk add --no-cache --virtual=build-dependencies \
-    dos2unix=~"${DOS2UNIX_VERSION}" && \
-    echo "**** Install runtime packages (required at runtime) ****" && \
+    echo "**** Installing packages ****" && \
     apk add --no-cache \
+    dos2unix>="${DOS2UNIX_VERSION}" && \
     bash>="${BASH_VERSION}" \
     rsync>="${RSYNC_VERSION}" \
     tzdata>="${TZ_DATA_VERSION}" \
@@ -87,20 +84,13 @@ RUN \
     7zip>="${SEVENZIP_VERSION}" \
     python3>="${PYTHON_VERSION}" \
     py3-pip>="${PIP_VERSION}" && \
-    echo "**** Making the entire /app folder executable ****" && \
-    chmod -R +x /app && \
-    echo "**** Making the all files in the /app folder Unix format ****" && \
-    find /app -type f -print0 | xargs -0 dos2unix && \
     echo "**** Making all files in ./etc/s6-overlay/s6-rc.d Unix format ****" && \
     find ./etc/s6-overlay/s6-rc.d -type f -print0 | xargs -0 dos2unix && \
-    echo "**** Install Python packages ****" && \
-    python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
-    echo "**** Cleanup ****" && \
-    apk del --purge build-dependencies
+    echo "**** Cleanup ****"
 
 # Copy all necessary files into the container (from /app in the repository to /app in the container)
-COPY requirements.txt app/requirements.txt
-RUN echo "**** Install Python packages ****" && \
+COPY requirements.txt /app/requirements.txt
+RUN echo "**** Installing Python packages ****" && \
   python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
   echo "**** Installation complete ****"
 

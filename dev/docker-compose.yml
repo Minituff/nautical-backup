@@ -41,8 +41,8 @@ services:
 
 
   nautical-backup:
-    build: ../
-    # container_name: nautical-backup-test
+    build: ../ # Build context
+    container_name: nautical-backup-test
     develop:
       watch:
         - action: rebuild
