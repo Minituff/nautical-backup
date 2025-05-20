@@ -84,6 +84,41 @@ Use this option to designate which path strategy is used when creating a dated d
 DEST_DATE_PATH_FORMAT=date/container
 ```
 
+### Container Backup Date vs Nautical Start Date
+Use the precise date for formatting the destination folder
+When `false`, use the time Nautical started the backup (not when the container was backed up).
+
+> **Default**: false
+
+```properties
+USE_CONTAINER_BACKUP_DATE=true
+```
+
+
+???+ example "Understanding `USE_CONTAINER_BACKUP_DATE`."
+    Let's say you have the following format: `DEST_DATE_FORMAT=%Y-%m-%d_%H-%M-%S`
+
+    Since the timing is so precise <small>(using seconds)</small> we may get a result like this:
+    ```python
+    -- src
+    |-- 2024-11-24_14-26-43
+    |-- 2024-11-24_14-26-44
+    |-- 2024-11-24_14-28-10
+    ```
+
+    But what we actually want is a result like this:
+    ```python
+    -- src
+    |-- 2024-11-24_14-26-43
+    #  (1)
+    |-- 2024-11-24_14-28-10
+    ```
+
+    1. The folder that was here is now within in `2024-11-24_14-26-43` folder
+
+    By setting `USE_CONTAINER_BACKUP_DATE=false`, then the date used will be the time Nautical actually started, not the time when each container is processed.
+    Meaning that even if the containers take a few minutes to backup, the folder format will remain the same for each of them.
+
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 
@@ -217,6 +252,32 @@ REQUIRE_LABEL=true
 
 See the [Enable or Disable Nautical](./labels.md#enable-or-disable-nautical) Label Section for more details.
 
+## Multi-Instance Label Prefix
+Sometimes, running multiple insances of nautical-backup can enable extra funcunality: such as unique CRON schedules for different containers, etc.
+
+By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid colision among instances.
+
+> **Default**: nautical-backup
+
+```yaml
+services:
+  # Multiple instance of nautical
+  nautical-inst1:
+    environment:
+      - LABEL_PREFIX=nautical-backup.inst1
+  nautical-inst2:
+    environment:
+      - LABEL_PREFIX=nautical-backup.inst2
+
+  # Multi targets
+  backuped-inst1:
+    labels:
+      - nautical-backup.inst1.enable=true
+  backuped-inst2:
+    labels:
+      - nautical-backup.inst2.enable=true
+```
+
 ## Override Source Directory
 Allows a source directory and container-name that do not match.
 
@@ -343,7 +404,18 @@ SKIP_STOPPING=example1,example2
     Only do this on containers you know for certain do not need to be shutdown before backup.
 
 
-<small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-before-backup) label, but applied globally.</small>
+<small>🔄 This is the same action as the [Stop Before Backup](./labels.md#stop-container-before-backup) label, but applied globally.</small>
+
+## Stop Timeout
+Nautical will allow the container *x* amount of _seconds_ to shutdown gracefully before killing the container.
+
+> **Default**: 10 <small>(seconds)</small>
+
+```properties
+STOP_TIMEOUT=10
+```
+
+<small>🔄 This is the same action as the [Stop Timeout](./labels.md#stop-timeout) label, but applied globally.</small>
 
 ## Backup on Start
 Nautical will immediately perform a backup when the container is started in addition to the CRON scheduled backup.

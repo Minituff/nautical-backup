@@ -1,5 +1,12 @@
 # https://github.com/devcontainers/images/tree/main/src/python
-FROM mcr.microsoft.com/devcontainers/python:3.12
+FROM mcr.microsoft.com/devcontainers/python:3.13
+
+
+RUN echo "Installing packages..." && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends nano curl jq dos2unix && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo "Packages installed."
 
 # These files must be ignored in the docker ignore
 COPY requirements.txt /tmp/nautical/requirements.txt

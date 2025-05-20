@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 
+WORKSPACE_DIR="/workspaces/nautical-backup"
+
 echo "Installing 'cecho' command..."
-unlink /usr/bin/cecho
-ln -s /workspaces/nautical-backup/.devcontainer/scripts/cecho.sh /usr/bin/cecho
+dos2unix $WORKSPACE_DIR/.devcontainer/scripts/cecho.sh
+ln -s $WORKSPACE_DIR/.devcontainer/scripts/cecho.sh /usr/bin/cecho
 chmod +x /usr/bin/cecho
 
+
 cecho CYAN "Installing 'nb' command..."
-unlink /usr/bin/nb
-ln -s /workspaces/nautical-backup/.devcontainer/scripts/nb.sh /usr/bin/nb
+dos2unix $WORKSPACE_DIR/.devcontainer/scripts/nb.sh
+ln -s $WORKSPACE_DIR/.devcontainer/scripts/nb.sh /usr/bin/nb
 chmod +x /usr/bin/nb
 
 
 cecho CYAN "Installing python packages..."
 python3 -m pip install --upgrade pip
-python3 -m pip install -r /workspaces/nautical-backup/requirements-dev.txt
+python3 -m pip install -r $WORKSPACE_DIR/requirements-dev.txt
 
 cecho CYAN "Adding aliases (for convenience)..."
 for file in ~/.zshrc ~/.bashrc; do
@@ -23,8 +26,11 @@ done
 
 echo 'DISABLE_UPDATE_PROMPT=true  # Auto update ohmyzsh and dont ask' >> ~/.zshrc
 
+find $WORKSPACE_DIR/app -type f -print0 | xargs -0 dos2unix
+find $WORKSPACE_DIR/s6-overlay/etc/s6-overlay/s6-rc.d -type f -print0 | xargs -0 dos2unix
+
 # cecho CYAN "Installing python packages (for docs)..."
-# python3 -m pip install -r /workspaces/nautical-backup/docs/requirements.txt
+# python3 -m pip install -r $WORKSPACE_DIR/docs/requirements.txt
 
 cecho CYAN "Handling locales..."
 echo "export LANG=en_US.UTF-8" >> ~/.zshrc; 
@@ -41,7 +47,5 @@ pre-commit install
 cecho "GREEN" "Success!! Nautical Development enviornment ready to go!!"
 cecho "GREEN" "Use the command 'nb --help' to get started."
 
-# cecho "YELLOW" "Please ensure the slashes are linux style, i.e. /workspaces/nautical-backup"
-# cecho "CYAN" $LOCAL_WORKSPACE_FOLDER
 exit 0
 # No need to 'source ~/.zshrc' since the terminal won't be open yet

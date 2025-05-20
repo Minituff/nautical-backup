@@ -53,15 +53,15 @@ class Logger:
             return log_level
 
         # Override the defaults with environment variables if they exist
-        if log_level.lower() == "trace":
+        if log_level.lower().strip() == "trace":
             return LogLevel.TRACE
-        elif log_level.lower() == "debug":
+        elif log_level.lower().strip() == "debug":
             return LogLevel.DEBUG
-        elif log_level.lower() == "info":
+        elif log_level.lower().strip() == "info":
             return LogLevel.INFO
-        elif log_level.lower() == "warn":
+        elif log_level.lower().strip() == "warn":
             return LogLevel.WARN
-        elif log_level.lower() == "error":
+        elif log_level.lower().strip() == "error":
             return LogLevel.ERROR
         return None
 

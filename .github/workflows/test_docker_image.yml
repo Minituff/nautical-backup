@@ -31,7 +31,7 @@ jobs:
     - name: Set up Python 3.10
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.13'
 
     - name: Install dependencies
       run: |
@@ -60,7 +60,7 @@ jobs:
         python3 -m pytest --cov app --cov-report html --cov-report term --cov-report xml
 
     - name: Upload reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       env: 
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Required for v4
       with:
@@ -99,7 +99,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build and export Docker image
-      uses: docker/build-push-action@v6.9.0
+      uses: docker/build-push-action@v6.17.0
       with:
         context: .
         load: true # Do not push this image

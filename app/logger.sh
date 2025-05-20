@@ -16,6 +16,11 @@ if [ ! -z "$REPORT_FILE_LOG_LEVEL" ]; then
     report_file_logging_level=$REPORT_FILE_LOG_LEVEL
 fi
 
+# Convert logging level variables to uppercase for array lookup
+script_logging_level=$(echo "$script_logging_level" | tr '[:lower:]' '[:upper:]')
+report_file_logging_level=$(echo "$report_file_logging_level" | tr '[:lower:]' '[:upper:]')
+
+
 if [ ! -z "$REPORT_FILE_ON_BACKUP_ONLY" ]; then
     report_file_on_backup_only=$REPORT_FILE_ON_BACKUP_ONLY
 fi
@@ -39,7 +44,14 @@ logThis() {
     local log_priority=${2:-INFO}
     local message_type=${3:-"default"}
 
+    # Convert log_priority to uppercase
+    log_priority=$(echo "$log_priority" | tr '[:lower:]' '[:upper:]')
+
     # Check if level exists
+    if [ -z "${levels[$log_priority]}" ]; then
+        echo "Invalid log level: $log_priority"
+        return 1
+    fi
     [[ ${levels[$log_priority]} ]] || return 1
 
     # Check if level is enough for console logging
@@ -54,6 +66,3 @@ logThis() {
         fi
     fi
 }
-
-# logThis "SOURCE_LOCATION: ${SOURCE_LOCATION}" "DEBUG" "INIT"
-# logThis "DEST_LOCATION: ${DEST_LOCATION}" "DEBUG" "INIT"

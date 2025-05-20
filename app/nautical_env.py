@@ -32,6 +32,7 @@ class NauticalEnv:
         self.REQUIRE_LABEL = False
         if os.environ.get("REQUIRE_LABEL", "False").lower() == "true":
             self.REQUIRE_LABEL = True
+        self.LABEL_PREFIX = os.environ.get("LABEL_PREFIX", "nautical-backup")
 
         self.NAUTICAL_DB_PATH = os.environ.get("NAUTICAL_DB_PATH", "")
 
@@ -40,6 +41,10 @@ class NauticalEnv:
         self.DEST_DATE_PATH_FORMAT = os.environ.get("DEST_DATE_PATH_FORMAT", "date/container")
         if self.DEST_DATE_PATH_FORMAT not in ["date/container", "container/date"]:
             self.DEST_DATE_PATH_FORMAT = "date/container"  # Set default
+
+        self.USE_CONTAINER_BACKUP_DATE = False
+        if os.environ.get("USE_CONTAINER_BACKUP_DATE", "false").lower() == "true":
+            self.USE_CONTAINER_BACKUP_DATE = True
 
         # Not associated with containers
         self.ADDITIONAL_FOLDERS = os.environ.get("ADDITIONAL_FOLDERS", "")
@@ -66,6 +71,8 @@ class NauticalEnv:
         self.REPORT_FILE = True
         if os.environ.get("REPORT_FILE", "True").lower() == "false":
             self.REPORT_FILE = False
+
+        self.STOP_TIMEOUT = int(os.environ.get("STOP_TIMEOUT", 10))
 
     @staticmethod
     def _populate_override_dirs(env_name: str) -> Dict[str, str]:

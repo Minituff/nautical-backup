@@ -1439,7 +1439,7 @@ class TestBackup:
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
-    def test_additional_folders_and_DEST_DATE_PATH_FORMAT(
+    def test_additional_folders_and_DEST_DATE_PATH_FORMAT2(
         self,
         mock_subprocess_run: MagicMock,
         mock_docker_client: MagicMock,
@@ -1482,6 +1482,49 @@ class TestBackup:
             f"{self.src_location}/container1/",
             f"{self.dest_location}/container1/",
         ]
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-source-dir": "container1-override"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_src_label_and_USE_DEST_DATE_FOLDER(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test override source dir with USE_DEST_DATE_FOLDER"""
+
+        # Folders must be created before the backup is called
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "container1-override", and_file=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        time_format = time.strftime("%Y-%m-%d")
+
+        # Additional folder 1
+        assert mock_subprocess_run.call_args_list[0][0][0] == [
+            "-raq",
+            f"{self.src_location}/container1-override/",
+            f"{self.dest_location}/{time_format}/container1-override/",
+        ]
+
+        rm_tree(Path(self.src_location) / "container1-override")
+        rm_tree(Path(self.dest_location) / time_format / "container1-override")
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
@@ -2012,7 +2055,7 @@ class TestBackup:
         mock_docker_client: MagicMock,
         mock_container1: MagicMock,
     ):
-        """Test curl commands by labels"""
+        """Test exec variables labels"""
         nautical_env = NauticalEnv()
 
         container_name = "cont1"
@@ -2031,7 +2074,7 @@ class TestBackup:
         # Set mock attributes
         mock_container1.__setattr__("name", container_name)
         mock_container1.__setattr__("id", container_id)
-        mock_container1.__setattr__("labels", {"nautical-backup.curl.before": label})
+        mock_container1.__setattr__("labels", {"nautical-backup.exec.before": label})
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
@@ -2044,6 +2087,59 @@ class TestBackup:
         assert f"container_id: {container_id}" in decoded
         assert f"attached_to_container: True" in decoded
         assert f"before_during_or_after: BEFORE" in decoded
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.curl.after": "This will be set later, in the function",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @patch("codecs.decode")
+    def test_exec_total_variables_label(
+        self,
+        mock_decode: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test exec variables labels"""
+        nautical_env = NauticalEnv()
+
+        container_name = "cont1"
+        container_id = "9839343"
+
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / container_name, and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / container_name, and_file=True)
+
+        label = "echo"
+        label += " exec_commmand: $NB_EXEC_COMMAND"
+        label += " NB_EXEC_TOTAL_ERRORS: $NB_EXEC_TOTAL_ERRORS"
+        label += " NB_EXEC_TOTAL_CONTAINERS_COMPLETED: $NB_EXEC_TOTAL_CONTAINERS_COMPLETED"
+        label += " NB_EXEC_TOTAL_CONTAINERS_SKIPPED: $NB_EXEC_TOTAL_CONTAINERS_SKIPPED"
+        label += " NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS: $NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS"
+
+        # Set mock attributes
+        mock_container1.__setattr__("name", container_name)
+        mock_container1.__setattr__("id", container_id)
+        mock_container1.__setattr__("labels", {"nautical-backup.exec.after": label})
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        decoded = str(mock_decode.call_args_list[0][0][0], encoding="utf-8").strip()
+
+        # Assert all variables are set and accessible
+        assert f"NB_EXEC_TOTAL_ERRORS: 0" in decoded
+        assert f"NB_EXEC_TOTAL_CONTAINERS_COMPLETED: 1" in decoded
+        assert f"NB_EXEC_TOTAL_CONTAINERS_SKIPPED: 0" in decoded
+        assert f"NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS: 1" in decoded
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -2544,3 +2640,54 @@ class TestBackup:
         mock_container1.stop.assert_called_once()
         mock_subprocess_run.assert_not_called()
         mock_container1.start.assert_called_once()
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_STOP_TIMEOUT_env(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Ensure the default timeout is 10
+        mock_container1.stop.assert_called_once_with(timeout=10)
+
+        monkeypatch.setenv("STOP_TIMEOUT", "15")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Ensure the set timeout is 15
+        assert mock_container1.stop.call_args_list[1] == call(timeout=15)
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.stop-timeout": "20"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_STOP_TIMEOUT_label(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+
+        monkeypatch.setenv("STOP_TIMEOUT", "15")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Ensure the set timeout is 20
+        mock_container1.stop.assert_called_once_with(timeout=20)

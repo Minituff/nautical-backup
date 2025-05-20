@@ -20,6 +20,7 @@ class TestUtils:
         monkeypatch: pytest.MonkeyPatch,
     ):
         faked_now = datetime.datetime(2022, 1, 1, 14, 0, 0)
+        monkeypatch.setenv("TZ", "Etc/UTC")
         assert next_cron_occurrences(1, faked_now) == {
             "cron": "0 4 * * *",
             "tz": "Etc/UTC",

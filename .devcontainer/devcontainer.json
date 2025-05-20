@@ -20,7 +20,8 @@
 		"NAUTICAL_DB_NAME": "nautical-db.json",
 		"DEST_LOCATION": "/workspaces/nautical-backup/dev/destination",
 		"SOURCE_LOCATION": "/workspaces/nautical-backup/dev/source",
-		"LOG_LEVEL": "DEBUG"
+		"LOG_LEVEL": "DEBUG",
+		"COMPOSE_BAKE": "true"
 	},
 	"remoteEnv": {
 		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
@@ -43,7 +44,8 @@
 				"njpwerner.autodocstring",
 				"rangav.vscode-thunder-client",
 				"ms-azuretools.vscode-docker",
-				"tamasfe.even-better-toml"
+				"tamasfe.even-better-toml",
+				"littlefoxteam.vscode-python-test-adapter"
 			],
 			"settings": {
 				"terminal.integrated.defaultProfile.linux": "zsh",
@@ -89,5 +91,5 @@
 		}
 	},
 	"remoteUser": "root",
-	"postCreateCommand": "chmod +x .devcontainer/scripts/postCreateCommand.sh && ./.devcontainer/scripts/postCreateCommand.sh"
+	"postCreateCommand": "dos2unix .devcontainer/scripts/postCreateCommand.sh && chmod +x .devcontainer/scripts/postCreateCommand.sh && ./.devcontainer/scripts/postCreateCommand.sh"
 }
