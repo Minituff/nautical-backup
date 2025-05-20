@@ -11,6 +11,7 @@ fi
 
 source /app/utils.sh # This also loads the logger
 
+logThis "LOG_LEVEL: ${LOG_LEVEL}" "DEBUG" "INIT"
 handle_env() {
     # Export and log this env
     local var_name="$1"
