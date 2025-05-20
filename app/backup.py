@@ -313,6 +313,14 @@ class NauticalBackup:
             "NB_EXEC_CONTAINER_ID": str(c.id) if c else "None",
             "NB_EXEC_BEFORE_DURING_OR_AFTER": str(when.name),
         }
+
+        # Add environment variables to the command (after all containers are done)
+        if when == BeforeAfterorDuring.AFTER and attached_to_container == False:
+            vars["NB_EXEC_TOTAL_ERRORS"] = str(self.db.get("errors", ""))
+            vars["NB_EXEC_TOTAL_CONTAINERS_COMPLETED"] = str(self.db.get("containers_completed", ""))
+            vars["NB_EXEC_TOTAL_CONTAINERS_SKIPPED"] = str(self.db.get("containers_skipped", ""))
+            vars["NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS"] = str(self.db.get("number_of_containers", ""))
+
         self._set_exec_enviornment_variables(vars)
 
         self.log_this(f"Running EXEC command: {command}")
@@ -771,8 +779,6 @@ class NauticalBackup:
 
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
-        self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
-
         end_time = datetime.now()
         exeuction_time = end_time - self.start_time
         duration = datetime.fromtimestamp(exeuction_time.total_seconds())
@@ -781,6 +787,8 @@ class NauticalBackup:
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
         self.db.put("last_backup_seconds_taken", round(exeuction_time.total_seconds()))
+
+        self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
         self.log_this("Containers completed: " + self.logger.set_to_string(self.containers_completed), "DEBUG")
         self.log_this("Containers skipped: " + self.logger.set_to_string(self.containers_skipped), "DEBUG")

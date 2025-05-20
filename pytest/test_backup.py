@@ -2055,7 +2055,7 @@ class TestBackup:
         mock_docker_client: MagicMock,
         mock_container1: MagicMock,
     ):
-        """Test curl commands by labels"""
+        """Test exec variables labels"""
         nautical_env = NauticalEnv()
 
         container_name = "cont1"
@@ -2074,7 +2074,7 @@ class TestBackup:
         # Set mock attributes
         mock_container1.__setattr__("name", container_name)
         mock_container1.__setattr__("id", container_id)
-        mock_container1.__setattr__("labels", {"nautical-backup.curl.before": label})
+        mock_container1.__setattr__("labels", {"nautical-backup.exec.before": label})
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
@@ -2087,6 +2087,59 @@ class TestBackup:
         assert f"container_id: {container_id}" in decoded
         assert f"attached_to_container: True" in decoded
         assert f"before_during_or_after: BEFORE" in decoded
+
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {
+                    "nautical-backup.curl.after": "This will be set later, in the function",
+                },
+            }
+        ],
+        indirect=True,
+    )
+    @patch("codecs.decode")
+    def test_exec_total_variables_label(
+        self,
+        mock_decode: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test exec variables labels"""
+        nautical_env = NauticalEnv()
+
+        container_name = "cont1"
+        container_id = "9839343"
+
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / container_name, and_file=True)
+        create_folder(Path(nautical_env.DEST_LOCATION) / container_name, and_file=True)
+
+        label = "echo"
+        label += " exec_commmand: $NB_EXEC_COMMAND"
+        label += " NB_EXEC_TOTAL_ERRORS: $NB_EXEC_TOTAL_ERRORS"
+        label += " NB_EXEC_TOTAL_CONTAINERS_COMPLETED: $NB_EXEC_TOTAL_CONTAINERS_COMPLETED"
+        label += " NB_EXEC_TOTAL_CONTAINERS_SKIPPED: $NB_EXEC_TOTAL_CONTAINERS_SKIPPED"
+        label += " NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS: $NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS"
+
+        # Set mock attributes
+        mock_container1.__setattr__("name", container_name)
+        mock_container1.__setattr__("id", container_id)
+        mock_container1.__setattr__("labels", {"nautical-backup.exec.after": label})
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        decoded = str(mock_decode.call_args_list[0][0][0], encoding="utf-8").strip()
+
+        # Assert all variables are set and accessible
+        assert f"NB_EXEC_TOTAL_ERRORS: 0" in decoded
+        assert f"NB_EXEC_TOTAL_CONTAINERS_COMPLETED: 1" in decoded
+        assert f"NB_EXEC_TOTAL_CONTAINERS_SKIPPED: 0" in decoded
+        assert f"NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS: 1" in decoded
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
