@@ -96,8 +96,8 @@ RUN \
     chmod -R +x /app && \
     echo "**** Making the all files in the /app folder Unix format ****" && \
     find /app -type f -print0 | xargs -0 dos2unix && \
-    echo "**** Making all files in ./etc/s6-overlay/s6-rc.d/svc-cron/run Unix format ****" && \
-    find ./etc/s6-overlay/s6-rc.d/svc-cron/run -type f -print0 | xargs -0 dos2unix && \
+    echo "**** Making all files in ./etc/s6-overlay/s6-rc.d Unix format ****" && \
+    find ./etc/s6-overlay/s6-rc.d -type f -print0 | xargs -0 dos2unix && \
     echo "**** Install Python packages ****" && \
     python3 -m pip install --no-cache-dir --upgrade -r /app/requirements.txt && \
     echo "**** Cleanup ****" && \
