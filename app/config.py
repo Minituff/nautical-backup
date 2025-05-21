@@ -291,6 +291,9 @@ class NauticalConfig:
     def __repr__(self):
         return str(self.__dict__)
 
+    def print(self):
+        pprint(self.__dict__)
+
     @property
     def containers_from_yml_by_id(self) -> Dict[str, ContainerConfig]:
         return self._containers_from_yml_by_id
@@ -421,4 +424,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    pprint(config.default_container_config)
+    pprint(config.print())

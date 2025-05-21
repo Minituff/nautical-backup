@@ -73,9 +73,8 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
 
 # Install dependencies
 RUN \
-    echo "**** Installing packages ****" && \
+    echo "**** Install build packages****" && \
     apk add --no-cache \
-    dos2unix>="${DOS2UNIX_VERSION}" && \
     bash>="${BASH_VERSION}" \
     rsync>="${RSYNC_VERSION}" \
     tzdata>="${TZ_DATA_VERSION}" \
