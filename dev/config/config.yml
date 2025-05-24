@@ -26,26 +26,29 @@ env:
   POST_BACKUP_EXEC: ""
 
 # All container configs will use these configs unless overriden
-default_container_config:
+# This name MUST be exactly as is
+# All values can be overridden by [containers] config
+DEFAULT_CONTAINER_CONFIG:
   require_label: False
   volumes:
-    max_size: 10gb
+    none: False # If enabled, no volumes will be backed up
+    max_size: 10gb # Global Size limit for all volumes
     
-    # The volume will only be processed if the host path starts with any of these paths
-    only_if_host_path_starts_with:
+    # The volume will only be processed if the host path (source) starts with any of these paths. The trailing * is optional
+    allow_src:
       - "/workspaces/nautical-backup/dev"
     
-    only_if_nautical_path_starts_with:
+    allow_dest: 
       - "/data"
 
-    skip_if_host_path_starts_with:
-      - None
-    
-    skip_if_nautical_path_starts_with:
+    deny_src:
+      - "/var/run/docker.sock"
+
+    deny_dest: 
       - None
 
 containers:
-  container_1:
+  Nautical-Backup:
     match:
       # One of the following must be true
       container_name: "Nautical"
@@ -59,29 +62,26 @@ containers:
     volumes:
       none: True # No volumes should be associate with this container
       max_size: 10gb # Do not backup anothing over this size.
-      #TODO: ALlow slection of backing up by either src or dest, delimitted by the :
-      skip_volumes:
-        - src:dest
-      only_volumes:
-        - src:dest
 
   vscode_devcontainer:
-      match:
-        # One of the following must be true
-        container_id: "038e21324e573026236ae13c4220d47a5d6e474448fda627245543d0f713a3b7"
-        container_name: "relaxed_ptolemy"
-      require_label: True
+    match:
+      # One of the following must be true
+      container_id: "038e21324e573026236ae13c4220d47a5d6e474448fda627245543d0f713a3b7"
+      container_name: "relaxed_ptolemy"
+    require_label: True
+
+  watchtower:
+    match:
+      container_name: watchtower
 
 directory:
   mappings:
     data_folder:
-      # The path on the host machine we are mapping 
-      host_path: "/workspaces/nautical-backup/dev"
-      nautical_path: "/data"
+      host_path: "/workspaces/nautical-backup/dev" # The path on the host machine we are mapping 
+      nautical_path: "/data" # That path within Nautical we map the host_path to
       description: "Idk"
   
     docker_volumes:
-      # The path on the host machine we are mapping 
-      host_path: /var/lib/docker/volumes"
-      nautical_path: "/data/volumes"
+      host_path: /var/lib/docker/volumes" # The path on the host machine we are mapping 
+      nautical_path: "/data/volumes" # That path within Nautical we map the host_path to
       description: "Docker Native volumes"

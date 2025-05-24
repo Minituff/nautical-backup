@@ -98,10 +98,11 @@ class NauticalConfig:
 
     def _load_default_container_config(self, yml: Dict) -> None:
         """Loads the default container configurations from the yml file"""
-        default_container_config = yml.get("default_container_config", None)
+        default_container_config = yml.get("DEFAULT_CONTAINER_CONFIG", None)
+
         if default_container_config:
             self.default_container_config = ContainerConfig.from_yml(
-                "default_container_config",
+                "DEFAULT_CONTAINER_CONFIG",
                 default_container_config,
                 default_config=True,
             )

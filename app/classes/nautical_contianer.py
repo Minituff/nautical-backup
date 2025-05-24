@@ -43,8 +43,8 @@ class ContainerConfig:
             self.skip_volumes: List[ContainerConfig.Volumes.Volume] = []
             self.only_volumes: List[ContainerConfig.Volumes.Volume] = []
 
-            self.only_if_host_path_starts_with: List[str] = []
-            self.only_if_nautical_path_starts_with: List[str] = []
+            self.allow_src: List[str] = []
+            self.allow_dest: List[str] = []
             self.skip_if_host_path_starts_with: List[str] = []
             self.skip_if_nautical_path_starts_with: List[str] = []
 
@@ -111,24 +111,20 @@ class ContainerConfig:
         name: str,
         description: str,
         match: Match | None,
-        skip_volumes: List[Volumes.Volume],
-        only_volumes: List[Volumes.Volume],
-        only_if_host_path_starts_with: List[str],
-        only_if_nautical_path_starts_with: List[str],
-        skip_if_host_path_starts_with: List[str],
-        skip_if_nautical_path_starts_with: List[str],
+        allow_src: List[str],
+        allow_dest: List[str],
+        deny_src: List[str],
+        deny_dest: List[str],
         config: Config,
     ) -> None:
         self.yml_tag_name = yml_tag_name
         self.name = name
         self.description = description
         self.match = match
-        self.only_volumes: List[ContainerConfig.Volumes.Volume] = only_volumes
-        self.skip_volumes: List[ContainerConfig.Volumes.Volume] = skip_volumes
-        self.only_if_host_path_starts_with: List[str] = only_if_host_path_starts_with
-        self.only_if_nautical_path_starts_with: List[str] = only_if_nautical_path_starts_with
-        self.skip_if_host_path_starts_with: List[str] = skip_if_host_path_starts_with
-        self.skip_if_nautical_path_starts_with: List[str] = skip_if_nautical_path_starts_with
+        self.allow_src: List[str] = allow_src
+        self.allow_dest: List[str] = allow_dest
+        self.deny_src: List[str] = deny_src
+        self.deny_dest: List[str] = deny_dest
         self.config = config
 
     @staticmethod
@@ -144,46 +140,7 @@ class ContainerConfig:
                 container_image=match_json.get("container_image"),
             )
 
-        volumes_json = yml_data.get("volumes", {"skip_volumes": [], "only_volumes": []})
-
-        def process_volume(volume: str) -> ContainerConfig.Volumes.Volume:
-            # Fix splitting issue when volume is not in the format "source:dest"
-            if ":" not in volume:
-                volume += ":"
-
-            # Check if volume has a read-write or read-only flag
-            if volume.count(":") >= 2:
-                if volume.endswith(":rw") or volume.endswith(":ro"):
-                    volume = volume[:-3]
-                else:
-                    raise ValueError("Invalid volume format: " + volume)
-
-            src, dest = volume.split(":")
-            return ContainerConfig.Volumes.Volume(src, dest)
-
-        skip_volumes = []
-        for volume in volumes_json.get("skip_volumes", []):
-            skip_volumes.append(process_volume(volume))
-
-        only_volumes = []
-        for volume in volumes_json.get("only_volumes", []):
-            only_volumes.append(process_volume(volume))
-
-        only_if_host_path_starts_with = []
-        for volume in volumes_json.get("only_if_host_path_starts_with", []):
-            only_if_host_path_starts_with.append(process_volume(volume))
-
-        only_if_nautical_path_starts_with = []
-        for volume in volumes_json.get("only_if_nautical_path_starts_with", []):
-            only_if_nautical_path_starts_with.append(process_volume(volume))
-
-        skip_if_host_path_starts_with = []
-        for volume in volumes_json.get("skip_if_host_path_starts_with", []):
-            skip_if_host_path_starts_with.append(process_volume(volume))
-
-        skip_if_nautical_path_starts_with = []
-        for volume in volumes_json.get("skip_if_nautical_path_starts_with", []):
-            skip_if_nautical_path_starts_with.append(process_volume(volume))
+        volumes_json = yml_data.get("volumes", {})
 
         config = ContainerConfig.Config.serialize(yml_data.get("config", {}))
 
@@ -192,13 +149,11 @@ class ContainerConfig:
             name=yml_data.get("name", ""),
             description=yml_data.get("description", ""),
             match=match,
-            skip_volumes=skip_volumes,
-            only_volumes=only_volumes,
-            only_if_host_path_starts_with=only_if_host_path_starts_with,
-            only_if_nautical_path_starts_with=only_if_nautical_path_starts_with,
-            skip_if_host_path_starts_with=skip_if_host_path_starts_with,
-            skip_if_nautical_path_starts_with=skip_if_nautical_path_starts_with,
             config=config,
+            allow_src=list(volumes_json.get("allow_src", [])),
+            allow_dest=list(volumes_json.get("allow_dest", [])),
+            deny_src=list(volumes_json.get("deny_src", [])),
+            deny_dest=list(volumes_json.get("deny_dest", [])),
         )
 
     def __repr__(self):
