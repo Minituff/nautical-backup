@@ -65,6 +65,13 @@ containers:
       only_volumes:
         - src:dest
 
+  vscode_devcontainer:
+      match:
+        # One of the following must be true
+        container_id: "038e21324e573026236ae13c4220d47a5d6e474448fda627245543d0f713a3b7"
+        container_name: "relaxed_ptolemy"
+      require_label: True
+
 directory:
   mappings:
     data_folder:

@@ -1,0 +1,26 @@
+
+# cd .. docker build -t nautical-backup . --progress=plain --no-cache
+# cd dev && docker compose up
+---
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - watchtower-data:/data/test:ro # Named volume
+      - /data/test2 # Anonymous volume
+      - ./source/watchtower:/data/watchtower:ro # Bind mount
+    ports:
+      - 8080:8080
+    environment:
+      - TZ=America/Los_Angeles
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
+    labels:
+      - "nautical-backup.enable=true"
+      # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
+      # - "nautical-backup.curl.before=/config/script.sh"
+      # - "nautical-backup.override-source-dir=folder/watchtower"
+
+volumes:
+  watchtower-data:

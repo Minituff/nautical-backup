@@ -2,6 +2,7 @@
 
 import copy
 import os
+from pprint import pprint
 import subprocess
 import sys
 import time
@@ -19,7 +20,8 @@ from app.api.config import Settings
 from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
-from app.config import ContainerConfig, NauticalConfig, NauticalContainer
+from app.config import ContainerConfig, NauticalConfig
+from classes.nautical_contianer import NauticalContainer
 
 
 class BeforeOrAfter(Enum):
@@ -219,13 +221,13 @@ class NauticalBackup:
                 self.log_this(f"Found container {c.name} in config by label: {c_label}", "DEBUG")
                 continue
 
-            self.log_this(f"Container {c.name} not found in config", "DEBUG")
+            self.log_this(f"Container {c.name} does not have custom config, using defaults", "DEBUG")
             # No match found. We still need to add the container to the list, but there is no config
             nautic_ctrs.append(NauticalContainer.from_container(c, None))
 
         return nautic_ctrs
 
-    def group_containers(self) -> Dict[str, List[Container]]:
+    def group_containers(self) -> Dict[str, List[NauticalContainer]]:
         containers: List[NauticalContainer] = self._serialize_containers(self.docker.containers.list())
 
         starting_container_amt = len(containers)
@@ -239,7 +241,7 @@ class NauticalBackup:
         output = output[:-2]
         self.log_this(f"Containers: {output}", "DEBUG")
 
-        containers_by_group_in_process: Dict[str, List[Tuple[int, Container]]] = {}
+        containers_by_group_in_process: Dict[str, List[Tuple[int, NauticalContainer]]] = {}
 
         for c in containers:
             if self._should_skip_container(c) == True:
@@ -264,7 +266,7 @@ class NauticalBackup:
                     containers_by_group_in_process[g].append((priority, c))
 
         # Create final return dictionary
-        containers_by_group: Dict[str, List[Container]] = {}
+        containers_by_group: Dict[str, List[NauticalContainer]] = {}
 
         # Sort the groups by priority (highest first)
         for group, pri_and_cont in containers_by_group_in_process.items():
@@ -760,6 +762,9 @@ class NauticalBackup:
                 # Run before hooks
                 self._run_exec(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
+
+                for mount in c.mounts:
+                    print(mount)
 
                 additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
                 if additional_folders_when == "before":
