@@ -4,6 +4,7 @@ import yaml
 from pprint import pprint
 from nautical_env import NauticalEnv
 from classes.nautical_contianer import ContainerConfig
+from classes.jamespath_overrides import JamesPathDictMerger
 
 
 class NauticalConfig:
@@ -26,6 +27,15 @@ class NauticalConfig:
         self.yml = self._load_yaml(config_path)
         env = self.yml.get("env", {})
 
+        # Values NOT to get overridden by the DefaultContainerConfig
+        self._jamespaths_defaults = {
+            "name": "Default Name",
+            "match.container_name": "Default Container",
+            "match.container_id": None,
+            "match.container_label": "N/A",
+            "match.container_image": None,
+            "description": "Default Description",
+        }
         # Load the environment variables from config file.
         # If variable is not set, then use the default value from NauticalEnv (Container ENV)
 
@@ -109,10 +119,21 @@ class NauticalConfig:
 
     def _load_containers_from_yml(self, yml: Dict) -> None:
         """Loads the container configurations from the yml file"""
-        containers = yml.get("containers", [])
+        containers: Dict[str, Dict | None] = yml.get("containers", [])
 
         for container_yml_tag in containers:
             container_values = containers.get(container_yml_tag)
+            if not container_values:
+                continue
+
+            merged_config = ContainerConfig.merge_defaults(container_values, self.default_container_config.as_dict)
+
+            # Allow selective overrides using JamesPathDictMerger
+            JamesPathDictMerger.selective_override(
+                merged_config, self.default_container_config.as_dict, self._jamespaths_defaults
+            )
+            print(merged_config)
+            print("---")
             config = ContainerConfig.from_yml(container_yml_tag, container_values)
             self._containers_from_yml_by_tag_name[container_yml_tag] = config
 
@@ -207,4 +228,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    pprint(config.print())
+    # pprint(config.print())

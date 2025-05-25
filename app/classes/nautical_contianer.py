@@ -56,10 +56,14 @@ class ContainerConfig:
         def __init__(self) -> None:
             self.enabled = ""
             self.stop_before_backup = ""
+            self.require_label: bool = False
             self.destination_format: str = ""
             self.zip: bool = True  # Can be set globally, or override per-container or per-volume
             self.restore_map: bool = True  # Nautical-manifest file for restoration (future planned)
             self.dest_dirs: List[Path] = []  # Directories where the containers will be backup to
+
+        def __repr__(self):
+            return str(self.__dict__)
 
         @staticmethod
         def serialize(backup_json: Dict) -> "ContainerConfig.Backup":
@@ -73,6 +77,7 @@ class ContainerConfig:
             backup.zip = backup_json.get("zip", True)
             backup.restore_map = backup_json.get("restore_map", True)
             backup.dest_dirs = [Path(dir) for dir in backup_json.get("dest_dirs", [])]
+            backup.require_label = backup_json.get("require_label", True)
 
             return backup
 
@@ -126,6 +131,7 @@ class ContainerConfig:
     def __init__(
         self,
         yml_tag_name: str,
+        as_dict: dict,
         name: str,
         description: str,
         match: Match | None,
@@ -136,6 +142,7 @@ class ContainerConfig:
         config: Config,
         backup: Backup,
     ) -> None:
+        self.as_dict: Dict = as_dict
         self.yml_tag_name = yml_tag_name
         self.name = name
         self.description = description
@@ -169,6 +176,7 @@ class ContainerConfig:
 
         return ContainerConfig(
             yml_tag_name=yml_tag_name,
+            as_dict=yml_data,
             name=yml_data.get("name", ""),
             description=yml_data.get("description", ""),
             match=match,
@@ -182,6 +190,23 @@ class ContainerConfig:
 
     def __repr__(self):
         return str(self.__dict__)
+
+    @staticmethod
+    def merge_defaults(base: dict, override: dict):
+        """
+        Recursively merges 'override' into 'base'.
+        For each key in override:
+        - If the value is a dict and the same key in base is also a dict, merge them recursively.
+        - Otherwise, override or add the key in base with the override value.
+        """
+        for key, value in override.items():
+            if key in base and isinstance(base[key], dict) and isinstance(value, dict):
+                # Recursively merge nested dicts
+                ContainerConfig.merge_defaults(base[key], value)
+            else:
+                # Replace or add
+                base[key] = value
+        return base
 
 
 class NauticalContainer(Container):
@@ -208,6 +233,14 @@ class NauticalContainer(Container):
         self.mounts: list[NauticalContainer.Mount] = mounts or []
         super().__init__(container.attrs, client=container.client, collection=container.collection)  # type: ignore
 
+    def __repr__(self) -> str:
+        return str(
+            {
+                "Nautical Container Name": super().name,
+                "Image": super().image,
+            }
+        )
+
     @classmethod
     def from_container(cls, container: Container, container_config: ContainerConfig | None) -> "NauticalContainer":
         mounts = container.attrs.get("Mounts", [])
@@ -216,9 +249,11 @@ class NauticalContainer(Container):
 
     @property
     def config(self) -> ContainerConfig:
-        if not self._config:
-            raise ValueError("Container config is not set")
-        return self._config
+        return self._config  # type: ignore
+
+    @config.setter
+    def config(self, value: ContainerConfig) -> None:
+        self._config = value
 
     class Mount:
         def __init__(

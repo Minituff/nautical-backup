@@ -225,6 +225,11 @@ class NauticalBackup:
             # No match found. We still need to add the container to the list, but there is no config
             nautic_ctrs.append(NauticalContainer.from_container(c, None))
 
+        for c in nautic_ctrs:
+            # Set the default values for the container
+            if c.config:
+                pprint(c.config.as_dict)
+                print("")
         return nautic_ctrs
 
     def group_containers(self) -> Dict[str, List[NauticalContainer]]:

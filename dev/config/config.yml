@@ -29,10 +29,12 @@ env:
 # This name MUST be exactly as is
 # All values can be overridden by [containers] config
 DEFAULT_CONTAINER_CONFIG:
-  require_label: False
+  name: DEFAULT CONFIG
+  description: All container configs will use these configs unless overriden. Do not delete
 
   backup:
     enabled: True # If false, no volumes will be backed up
+    require_label: False
     destination_format: ""
     zip: true      # Can be set globally, or override per-container or per-volume
     restore_map: true   # Nautical-manifest file for restoration (future planned)
@@ -62,6 +64,8 @@ DEFAULT_CONTAINER_CONFIG:
 
 containers:
   Nautical-Backup:
+    name: Nautical Backup config
+    description: desc
     match:
       # One of the following must be true
       container_name: "Nautical"
@@ -77,13 +81,19 @@ containers:
       max_size: 10gb # Do not backup anothing over this size.
 
   vscode_devcontainer:
+    name: VSCODE dev
+    description: I need this to not get backed up
     match:
       # One of the following must be true
       container_id: "038e21324e573026236ae13c4220d47a5d6e474448fda627245543d0f713a3b7"
       container_name: "relaxed_ptolemy"
-    require_label: True
+    backup:
+      enabled: False # If false, no volumes will be backed up
+      require_label: True
 
   watchtower:
+    name: Watchtower
+    description: Debug testing
     match:
       container_name: watchtower
 
