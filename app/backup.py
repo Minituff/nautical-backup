@@ -5,6 +5,7 @@ import os
 from pprint import pprint
 import subprocess
 import sys
+import re
 import time
 import codecs
 from datetime import datetime
@@ -701,6 +702,53 @@ class NauticalBackup:
         self.db.put("completed", "0")
         self.db.put("backup_running", False)
 
+    def process_allow_and_deny_for_mounts(self, c: NauticalContainer) -> List[NauticalContainer.Mount]:
+        allow_src = c.config.allow_src
+        deny_src = c.config.deny_src
+
+        allow_dest = c.config.allow_dest
+        deny_dest = c.config.deny_dest
+
+        allowed_mounts: List[NauticalContainer.Mount] = []
+
+        for mount in c.mounts:
+            deny_mount = False
+
+            # Regex match
+            for denied_dest in deny_dest:
+                if re.fullmatch(denied_dest, mount.source):
+                    self.log_this(f"Denied mount '{mount.source}' by source regex '{denied_dest}'", "DEBUG")
+                    deny_mount = True
+                    break
+            if deny_mount:
+                continue  # Skip this mount
+
+            for denied_src in deny_src:
+                if re.fullmatch(denied_src, mount.destination):
+                    self.log_this(f"Denied mount '{mount.destination}' by destination regex '{denied_src}'", "DEBUG")
+                    deny_mount = True
+                    break
+
+            if deny_mount:
+                continue  # Skip this mount
+
+            for allowed_src in allow_src:
+                if re.fullmatch(allowed_src, mount.source):
+                    self.log_this(f"Allowed mount '{mount.source}' by source regex '{allowed_src}'", "DEBUG")
+                    allowed_mounts.append(mount)
+                    break
+
+            for allowed_dest in allow_dest:
+                if re.fullmatch(allowed_dest, mount.destination):
+                    self.log_this(f"Allowed mount '{mount.destination}' by destination regex '{allowed_dest}'", "DEBUG")
+                    allowed_mounts.append(mount)
+                    break
+
+            self.log_this(
+                f"Denied mount '{mount.source}:{mount.destination}' because it was matched in allow list", "DEBUG"
+            )
+        return allowed_mounts
+
     def backup(self):
         if self.env.REPORT_FILE == True:
             self.logger._create_new_report_file()
@@ -741,18 +789,23 @@ class NauticalBackup:
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
 
-                for mount in c.mounts:
-                    print(mount.source)
-                    # if not src_dir.exists():
-                    #     src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
-                    #     if src_dir_required == "false":
-                    #         self.log_this(
-                    #             f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
-                    #         )
-                    #     else:
-                    #         self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
-                    #         self.containers_skipped.add(c.name)
-                    #         continue
+                mounts = self.process_allow_and_deny_for_mounts(c)
+
+                if len(mounts) == 0:
+                    self.log_this(f"{c.name} - No mounts allowed. Skipping backup for {c.name}", "DEBUG")
+                    self.containers_skipped.add(c.name)
+                    continue
+
+                read_access_amount = 0
+                for mount in mounts:
+                    src_dir = Path(mount.source)
+                    if not src_dir.exists():
+                        self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR")
+                        read_access_amount += 1
+
+                if read_access_amount == 0:
+                    self.log_this(f"Skipping backup of {c.name} because source directories do not exist", "ERROR")
+                    self.containers_skipped.add(c.name)
 
                 stop_result = self._stop_container(c)  # Stop containers
 
