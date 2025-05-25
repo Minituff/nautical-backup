@@ -154,7 +154,6 @@ class ContainerConfig:
         self.config = config
         self.backup = backup
 
-    # TODO: WAant all the values loaded in the default and overwritten if needed
     @staticmethod
     def from_yml(yml_tag_name: str, yml_data: Dict, default_config=False) -> "ContainerConfig":
 

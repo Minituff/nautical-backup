@@ -3,7 +3,7 @@ from typing import Dict
 
 class JamesPathDictMerger:
     @staticmethod
-    def _set_by_jamespath(dct, jamespath, value):
+    def set_by_jamespath(dct, jamespath, value):
         keys = jamespath.split(".")
         for key in keys[:-1]:
             if key not in dct or not isinstance(dct[key], dict):
@@ -12,7 +12,7 @@ class JamesPathDictMerger:
         dct[keys[-1]] = value
 
     @staticmethod
-    def _get_by_jamespath(dct, jamespath):
+    def get_by_jamespath(dct, jamespath):
         keys = jamespath.split(".")
         for key in keys:
             if isinstance(dct, dict) and key in dct:
@@ -21,20 +21,34 @@ class JamesPathDictMerger:
                 return None
         return dct
 
+    @staticmethod
+    def has_jamespath(dct, jamespath):
+        keys = jamespath.split(".")
+        for key in keys[:-1]:
+            if isinstance(dct, dict) and key in dct:
+                dct = dct[key]
+            else:
+                return False
+        return isinstance(dct, dict) and keys[-1] in dct
+
     @classmethod
     def selective_override(cls, base: Dict, override: Dict, jamespaths_defaults: Dict) -> Dict:
         """
-        In place override of the base dict with values from override dict
-
         jamespaths_defaults: dict mapping jamespath string → default value
-        For each path, apply value from override if it exists, else use default if not present in base.
+        For each path:
+          - If override value is not None, use it.
+          - If override value is None (and key exists in override), use default.
+          - If override key is missing, use default.
         """
         for path, default_value in jamespaths_defaults.items():
-            value = cls._get_by_jamespath(override, path)
-            if value is not None:
-                cls._set_by_jamespath(base, path, value)
-            elif cls._get_by_jamespath(base, path) is None:
-                cls._set_by_jamespath(base, path, default_value)
+            if cls.has_jamespath(override, path):
+                value = cls.get_by_jamespath(override, path)
+                if value is not None:
+                    cls.set_by_jamespath(base, path, value)
+                else:
+                    cls.set_by_jamespath(base, path, default_value)
+            else:
+                cls.set_by_jamespath(base, path, default_value)
         return base
 
 

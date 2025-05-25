@@ -1,3 +1,4 @@
+import copy
 from pathlib import Path
 from typing import Dict, List
 import yaml
@@ -29,12 +30,12 @@ class NauticalConfig:
 
         # Values NOT to get overridden by the DefaultContainerConfig
         self._jamespaths_defaults = {
-            "name": "Default Name",
-            "match.container_name": "Default Container",
+            "name": None,
+            "description": None,
+            "match.container_name": None,
             "match.container_id": None,
-            "match.container_label": "N/A",
+            "match.container_label": None,
             "match.container_image": None,
-            "description": "Default Description",
         }
         # Load the environment variables from config file.
         # If variable is not set, then use the default value from NauticalEnv (Container ENV)
@@ -126,15 +127,19 @@ class NauticalConfig:
             if not container_values:
                 continue
 
-            merged_config = ContainerConfig.merge_defaults(container_values, self.default_container_config.as_dict)
+            merged_config = ContainerConfig.merge_defaults(
+                base=copy.deepcopy(container_values),
+                override=self.default_container_config.as_dict,
+            )
 
             # Allow selective overrides using JamesPathDictMerger
-            JamesPathDictMerger.selective_override(
-                merged_config, self.default_container_config.as_dict, self._jamespaths_defaults
+            config_dict = JamesPathDictMerger.selective_override(
+                base=merged_config,
+                override=container_values,
+                jamespaths_defaults=self._jamespaths_defaults,
             )
-            print(merged_config)
-            print("---")
-            config = ContainerConfig.from_yml(container_yml_tag, container_values)
+
+            config = ContainerConfig.from_yml(container_yml_tag, config_dict)
             self._containers_from_yml_by_tag_name[container_yml_tag] = config
 
             value_match = container_values.get("match", {})

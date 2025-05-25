@@ -90,6 +90,11 @@ containers:
     backup:
       enabled: False # If false, no volumes will be backed up
       require_label: True
+  nautical-backup_devcontainer-devcontainer :
+    match:
+      container_name: "nautical-backup_devcontainer-devcontainer "
+    backup:
+      enabled: False # If false, no volumes will be backed up
 
   watchtower:
     name: Watchtower
