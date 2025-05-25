@@ -51,9 +51,10 @@ class NauticalConfig:
         self.DEST_DATE_PATH_FORMAT = env.get("DEST_DATE_PATH_FORMAT", nauticalEnv.DEST_DATE_PATH_FORMAT)
         self.ADDITIONAL_FOLDERS = env.get("ADDITIONAL_FOLDERS", nauticalEnv.ADDITIONAL_FOLDERS)
         self.ADDITIONAL_FOLDERS_WHEN = env.get("ADDITIONAL_FOLDERS_WHEN", nauticalEnv.ADDITIONAL_FOLDERS_WHEN)
-        self.SECONDARY_DEST_DIRS = env.get("SECONDARY_DEST_DIRS", nauticalEnv.SECONDARY_DEST_DIRS)
         self.PRE_BACKUP_EXEC = env.get("PRE_BACKUP_EXEC", nauticalEnv.PRE_BACKUP_EXEC)
         self.POST_BACKUP_EXEC = env.get("POST_BACKUP_EXEC", nauticalEnv.POST_BACKUP_EXEC)
+
+        self.default_container_config = self._load_default_container_config(self.yml)
 
         self._directory_mappings_list: List[NauticalConfig.DirectoryMapping] = self._directory_mappings_from_yml(
             self.yml
@@ -66,9 +67,6 @@ class NauticalConfig:
         self._containers_from_yml_by_image: Dict[str, ContainerConfig] = {}
         self._containers_from_yml_by_label: Dict[str, ContainerConfig] = {}
         self._load_containers_from_yml(self.yml)
-
-        self.default_container_config: ContainerConfig | None = None
-        self._load_default_container_config(self.yml)
 
     def __repr__(self):
         return str(self.__dict__)
@@ -96,16 +94,18 @@ class NauticalConfig:
     def containers_from_yml_by_label(self) -> Dict[str, ContainerConfig]:
         return self._containers_from_yml_by_label
 
-    def _load_default_container_config(self, yml: Dict) -> None:
+    def _load_default_container_config(self, yml: Dict) -> ContainerConfig:
         """Loads the default container configurations from the yml file"""
         default_container_config = yml.get("DEFAULT_CONTAINER_CONFIG", None)
 
         if default_container_config:
-            self.default_container_config = ContainerConfig.from_yml(
+            return ContainerConfig.from_yml(
                 "DEFAULT_CONTAINER_CONFIG",
                 default_container_config,
                 default_config=True,
             )
+        else:
+            raise ValueError("DEFAULT_CONTAINER_CONFIG not found")
 
     def _load_containers_from_yml(self, yml: Dict) -> None:
         """Loads the container configurations from the yml file"""

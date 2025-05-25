@@ -51,12 +51,6 @@ class NauticalEnv:
         self.ADDITIONAL_FOLDERS_WHEN = os.environ.get("ADDITIONAL_FOLDERS_WHEN", "before")
         self.ADDITIONAL_FOLDERS_USE_DEST_DATE_FOLDER = os.environ.get("ADDITIONAL_FOLDERS_USE_DEST_DATE_FOLDER", "")
 
-        self.SECONDARY_DEST_DIRS: List[Path] = []
-        for dir in os.environ.get("SECONDARY_DEST_DIRS", "").split(","):
-            if not dir or dir.strip() == "":
-                continue
-            self.SECONDARY_DEST_DIRS.append(Path(dir.strip()))
-
         self._PRE_BACKUP_CURL = os.environ.get("PRE_BACKUP_CURL", "")
         self._POST_BACKUP_CURL = os.environ.get("POST_BACKUP_CURL", "")
 

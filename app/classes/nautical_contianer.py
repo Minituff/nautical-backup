@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, List
 from enum import Enum
 
@@ -51,21 +52,39 @@ class ContainerConfig:
         def __repr__(self):
             return str(self.__dict__)
 
-    class Config:
+    class Backup:
         def __init__(self) -> None:
             self.enabled = ""
             self.stop_before_backup = ""
+            self.destination_format: str = ""
+            self.zip: bool = True  # Can be set globally, or override per-container or per-volume
+            self.restore_map: bool = True  # Nautical-manifest file for restoration (future planned)
+            self.dest_dirs: List[Path] = []  # Directories where the containers will be backup to
+
+        @staticmethod
+        def serialize(backup_json: Dict) -> "ContainerConfig.Backup":
+            backup = ContainerConfig.Backup()
+            if not backup_json:
+                return backup
+
+            backup.enabled = backup_json.get("enabled", "")
+            backup.stop_before_backup = backup_json.get("stop_before_backup", "")
+            backup.destination_format = backup_json.get("destination_format", "")
+            backup.zip = backup_json.get("zip", True)
+            backup.restore_map = backup_json.get("restore_map", True)
+            backup.dest_dirs = [Path(dir) for dir in backup_json.get("dest_dirs", [])]
+
+            return backup
+
+    class Config:
+        def __init__(self) -> None:
+            self.enabled = ""
 
             self.group: str = ""
             self.group_priority: int = 100
-            # self.source_dir_required = ""
 
             self.additional_folders: str = ""
             self.additional_folders_when: str = ""
-
-            # self.override_source_dir = ""
-            # self.override_destination_dir = ""
-            # self.keep_src_dir_name = ""
 
             self.exec_before = ""
             self.exec_after = ""
@@ -86,7 +105,6 @@ class ContainerConfig:
                 return config
 
             config.enabled = config_json.get("enabled", "")
-            config.stop_before_backup = config_json.get("stop_before_backup", "")
             config.group = config_json.get("group", "")
             config.group_priority = config_json.get("group_priority", 100)
             config.additional_folders = config_json.get("additional_folders", "")
@@ -116,6 +134,7 @@ class ContainerConfig:
         deny_src: List[str],
         deny_dest: List[str],
         config: Config,
+        backup: Backup,
     ) -> None:
         self.yml_tag_name = yml_tag_name
         self.name = name
@@ -126,7 +145,9 @@ class ContainerConfig:
         self.deny_src: List[str] = deny_src
         self.deny_dest: List[str] = deny_dest
         self.config = config
+        self.backup = backup
 
+    # TODO: WAant all the values loaded in the default and overwritten if needed
     @staticmethod
     def from_yml(yml_tag_name: str, yml_data: Dict, default_config=False) -> "ContainerConfig":
 
@@ -141,8 +162,10 @@ class ContainerConfig:
             )
 
         volumes_json = yml_data.get("volumes", {})
+        filters_json = volumes_json.get("filters", {}) if volumes_json else {}
 
         config = ContainerConfig.Config.serialize(yml_data.get("config", {}))
+        backup = ContainerConfig.Backup.serialize(yml_data.get("backup", {}))
 
         return ContainerConfig(
             yml_tag_name=yml_tag_name,
@@ -150,10 +173,11 @@ class ContainerConfig:
             description=yml_data.get("description", ""),
             match=match,
             config=config,
-            allow_src=list(volumes_json.get("allow_src", [])),
-            allow_dest=list(volumes_json.get("allow_dest", [])),
-            deny_src=list(volumes_json.get("deny_src", [])),
-            deny_dest=list(volumes_json.get("deny_dest", [])),
+            backup=backup,
+            allow_src=list(filters_json.get("allow_src", [])),
+            allow_dest=list(filters_json.get("allow_dest", [])),
+            deny_src=list(filters_json.get("deny_src", [])),
+            deny_dest=list(filters_json.get("deny_dest", [])),
         )
 
     def __repr__(self):

@@ -465,38 +465,6 @@ class NauticalBackup:
             self._start_container(c, attempt=attempt + 1)
         return False
 
-    def _get_src_dir(self, c: Container, log=False) -> Tuple[Path, str]:
-        """Get the source directory for the container
-        Returns a tuple of the source directory and the source directory name
-        """
-        base_src_dir = Path(self.env.SOURCE_LOCATION)
-        src_dir_no_path = str(c.name)
-        src_dir: Path = base_src_dir / src_dir_no_path
-
-        if str(c.name) in self.env.OVERRIDE_SOURCE_DIR:
-            print("FOUND OVERRIDE for", c.name, self.env.OVERRIDE_SOURCE_DIR[str(c.name)])
-            new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.name)]
-            src_dir = base_src_dir / new_src_dir
-            src_dir_no_path = new_src_dir
-            if log == True:
-                self.log_this(f"Overriding source directory for {c.name} to '{new_src_dir}'")
-
-        if str(c.id) in self.env.OVERRIDE_SOURCE_DIR:
-            new_src_dir = self.env.OVERRIDE_SOURCE_DIR[str(c.id)]
-            src_dir = base_src_dir / new_src_dir
-            src_dir_no_path = new_src_dir
-            if log == True:
-                self.log_this(f"Overriding source directory for {c.id} to '{new_src_dir}'")
-
-        label_src = str(self.get_label(c, "override-source-dir", ""))
-        if label_src and label_src != "":
-            if log == True:
-                self.log_this(f"Overriding source directory for {c.name} to '{label_src}' from label")
-            src_dir = base_src_dir / label_src
-            src_dir_no_path = label_src
-
-        return src_dir, src_dir_no_path
-
     def _get_dest_dir(self, c: Container, src_dir_name: str) -> Tuple[Path, str]:
         base_dest_dir = Path(self.env.DEST_LOCATION)
         dest_dir_full: Path = base_dest_dir / str(c.name)
@@ -636,37 +604,37 @@ class NauticalBackup:
             self.log_this(f"Backing up additional folder '{folder}' for container {c.name}")
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
-    def _backup_container_folders(self, c: Container, dest_path: Optional[Path] = None):
-        src_dir, src_dir_no_path = self._get_src_dir(c, log=False)
+    # def _backup_container_folders(self, c: Container, dest_path: Optional[Path] = None):
+    #     src_dir, src_dir_no_path = self._get_src_dir(c, log=False)
 
-        dest_dir, dest_dir_no_path = self._get_dest_dir(c, src_dir_no_path)
+    #     dest_dir, dest_dir_no_path = self._get_dest_dir(c, src_dir_no_path)
 
-        if dest_path:  # Secondary dest given
-            dest_dir = dest_path / dest_dir_no_path
-        else:  # Only container given (no secondary dest)
-            dest_path = Path(self.env.DEST_LOCATION)
+    #     if dest_path:  # Secondary dest given
+    #         dest_dir = dest_path / dest_dir_no_path
+    #     else:  # Only container given (no secondary dest)
+    #         dest_path = Path(self.env.DEST_LOCATION)
 
-        src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
-        if src_dir_required == "true":
-            self.verify_destination_location(dest_path)
-            if not dest_dir.exists():
-                self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
+    #     src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
+    #     if src_dir_required == "true":
+    #         self.verify_destination_location(dest_path)
+    #         if not dest_dir.exists():
+    #             self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
-        if src_dir.exists():
-            self.log_this(f"Backing up {c.name}...", "INFO")
+    #     if src_dir.exists():
+    #         self.log_this(f"Backing up {c.name}...", "INFO")
 
-            rsync_args = self._get_rsync_args(c)
-            self._run_rsync(c, rsync_args, src_dir, dest_dir)
-        elif src_dir_required == "false":
-            # Do nothing. This container is still started and stopped, but there is nothing to backup
-            # Likely this container is part of a group and the source directory is not required
-            pass
-        else:
-            self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
+    #         rsync_args = self._get_rsync_args(c)
+    #         self._run_rsync(c, rsync_args, src_dir, dest_dir)
+    #     elif src_dir_required == "false":
+    #         # Do nothing. This container is still started and stopped, but there is nothing to backup
+    #         # Likely this container is part of a group and the source directory is not required
+    #         pass
+    #     else:
+    #         self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
 
-        additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
-        if not additional_folders_when or additional_folders_when == "during":
-            self._backup_additional_folders(c, dest_path)
+    #     additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
+    #     if not additional_folders_when or additional_folders_when == "during":
+    #         self._backup_additional_folders(c, dest_path)
 
     def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
@@ -742,7 +710,7 @@ class NauticalBackup:
 
         self._run_exec(None, BeforeAfterorDuring.BEFORE, attached_to_container=False)
 
-        dest_dirs = copy.deepcopy(self.env.SECONDARY_DEST_DIRS)
+        dest_dirs = copy.deepcopy([])
         for dir in dest_dirs:
             self.log_this(f"Secondary destination directories '{dir.absolute()}'", "DEBUG")
         dest_dirs.insert(0, Path(self.env.DEST_LOCATION))
@@ -763,25 +731,23 @@ class NauticalBackup:
                 self._run_exec(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
-                for mount in c.mounts:
-                    print(mount)
-
                 additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
                 if additional_folders_when == "before":
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
 
-                src_dir, src_dir_no_path = self._get_src_dir(c)
-                if not src_dir.exists():
-                    src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
-                    if src_dir_required == "false":
-                        self.log_this(
-                            f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
-                        )
-                    else:
-                        self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
-                        self.containers_skipped.add(c.name)
-                        continue
+                for mount in c.mounts:
+                    print(mount.source)
+                    # if not src_dir.exists():
+                    #     src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
+                    #     if src_dir_required == "false":
+                    #         self.log_this(
+                    #             f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
+                    #         )
+                    #     else:
+                    #         self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
+                    #         self.containers_skipped.add(c.name)
+                    #         continue
 
                 stop_result = self._stop_container(c)  # Stop containers
 
@@ -806,11 +772,12 @@ class NauticalBackup:
                         self.containers_skipped.add(c.name)
                         continue
 
-                self._backup_container_folders(c)
-                secondary_dest_dirs = self.env.SECONDARY_DEST_DIRS
-
-                for dir in secondary_dest_dirs:
-                    self._backup_container_folders(c, dir)
+                # self._backup_container_folders(c)
+                dest_dirs = c.config.backup.dest_dirs
+                print("DEST_DIRS", str(dest_dirs))
+                for dir in dest_dirs:
+                    pass
+                    # self._backup_container_folders(c, dir)
 
                 self._run_exec(c, BeforeAfterorDuring.DURING, attached_to_container=True)
 

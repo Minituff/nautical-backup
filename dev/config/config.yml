@@ -31,25 +31,34 @@ env:
 DEFAULT_CONTAINER_CONFIG:
   require_label: False
 
-  # A trailing * is allowed as a wildcard
-  # At minimum, the DEFAULT or container config must have atleast one 'allow' otherwise, all volumes wil be skipped
+  backup:
+    enabled: True # If false, no volumes will be backed up
+    destination_format: ""
+    zip: true      # Can be set globally, or override per-container or per-volume
+    restore_map: true   # Nautical-manifest file for restoration (future planned)
+    dest_dirs:  # Directories where the conainers will be backup to
+      - "/data/desitination"
+      - "/data/destination2"
+
   volumes:
-    none: False # If enabled, no volumes will be backed up
     max_size: 10gb # Global Size limit for all volumes
-    
-    # The volume will only be processed if the host path (source) starts with any of these paths. 
-    allow_src:
-      - "/workspaces/nautical-backup/dev/*"
-      - "/var/lib/docker/volumes/*"
-    
-    allow_dest:
-      - "/data"
 
-    deny_src:
-      - "/var/run/docker.sock"
+    # A trailing * is allowed as a wildcard
+    # At least one allow_* is required, or all volumes will be skipped
+    filters:
+      # The volume will only be processed if the host path (source) starts with any of these paths. 
+      allow_src:
+        - "/workspaces/nautical-backup/dev/*"
+        - "/var/lib/docker/volumes/*"
+      
+      allow_dest:
+        - "/data"
 
-    deny_dest: 
-      - "/var/run/docker.sock"
+      deny_src:
+        - "/var/run/docker.sock"
+
+      deny_dest: 
+        - "/var/run/docker.sock"
 
 containers:
   Nautical-Backup:
