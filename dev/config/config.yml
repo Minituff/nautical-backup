@@ -43,7 +43,7 @@ DEFAULT_CONTAINER_CONFIG:
       - "/data/destination2"
 
   volumes:
-    max_size: 10gb # Global Size limit for all volumes
+    max_size: 10gb # Global Size limit for all volumes. Adds additional time to compute--recommended to use on a per container basis
 
     # Regex must match the entire path: https://regex101.com
     # At least one allow is required, or all volumes will be skipped

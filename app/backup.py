@@ -802,6 +802,7 @@ class NauticalBackup:
                     if not src_dir.exists():
                         self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR")
                         read_access_amount += 1
+                    # TODO Check folder size
 
                 if read_access_amount == 0:
                     self.log_this(f"Skipping backup of {c.name} because source directories do not exist", "ERROR")
