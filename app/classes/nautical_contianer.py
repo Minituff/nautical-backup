@@ -1,8 +1,12 @@
+import os
 from pathlib import Path
 from typing import Dict, List
 from enum import Enum
+import re
 
 from docker.models.containers import Container
+from app.logger import Logger, LogType, LogLevel
+from functions.helpers import convert_bytes, get_folder_size, separate_number_and_unit
 
 
 class ContainerConfig:
@@ -32,22 +36,19 @@ class ContainerConfig:
             return str(self.__dict__)
 
     class Volumes:
-        class Volume:
-            def __init__(self, source: str, dest: str) -> None:
-                self.source = source
-                self.dest = dest
-
-            def __repr__(self):
-                return str(self.__dict__)
-
-        def __init__(self) -> None:
-            self.skip_volumes: List[ContainerConfig.Volumes.Volume] = []
-            self.only_volumes: List[ContainerConfig.Volumes.Volume] = []
-
-            self.allow_src: List[str] = []
-            self.allow_dest: List[str] = []
-            self.skip_if_host_path_starts_with: List[str] = []
-            self.skip_if_nautical_path_starts_with: List[str] = []
+        def __init__(
+            self,
+            allow_src: List[str],
+            allow_dest: List[str],
+            deny_src: List[str],
+            deny_dest: List[str],
+            max_size: str | None = None,
+        ) -> None:
+            self.max_size: str | None = max_size
+            self.allow_src: List[str] = allow_src
+            self.allow_dest: List[str] = allow_dest
+            self.deny_src: List[str] = deny_src
+            self.deny_dest: List[str] = deny_dest
 
         def __repr__(self):
             return str(self.__dict__)
@@ -135,10 +136,8 @@ class ContainerConfig:
         name: str,
         description: str,
         match: Match | None,
-        allow_src: List[str],
-        allow_dest: List[str],
-        deny_src: List[str],
-        deny_dest: List[str],
+        volumes: Volumes,
+        filtered_volumes: "List[NauticalContainer.Mount] | None",
         config: Config,
         backup: Backup,
     ) -> None:
@@ -147,10 +146,9 @@ class ContainerConfig:
         self.name = name
         self.description = description
         self.match = match
-        self.allow_src: List[str] = allow_src
-        self.allow_dest: List[str] = allow_dest
-        self.deny_src: List[str] = deny_src
-        self.deny_dest: List[str] = deny_dest
+        self.volumes = volumes
+        self.filtered_volumes = filtered_volumes
+
         self.config = config
         self.backup = backup
 
@@ -173,6 +171,14 @@ class ContainerConfig:
         config = ContainerConfig.Config.serialize(yml_data.get("config", {}))
         backup = ContainerConfig.Backup.serialize(yml_data.get("backup", {}))
 
+        volumes = ContainerConfig.Volumes(
+            allow_src=list(filters_json.get("allow_src", [])),
+            allow_dest=list(filters_json.get("allow_dest", [])),
+            deny_src=list(filters_json.get("deny_src", [])),
+            deny_dest=list(filters_json.get("deny_dest", [])),
+            max_size=filters_json.get("max_size", None),
+        )
+
         return ContainerConfig(
             yml_tag_name=yml_tag_name,
             as_dict=yml_data,
@@ -181,10 +187,8 @@ class ContainerConfig:
             match=match,
             config=config,
             backup=backup,
-            allow_src=list(filters_json.get("allow_src", [])),
-            allow_dest=list(filters_json.get("allow_dest", [])),
-            deny_src=list(filters_json.get("deny_src", [])),
-            deny_dest=list(filters_json.get("deny_dest", [])),
+            volumes=volumes,
+            filtered_volumes=None,
         )
 
     def __repr__(self):
@@ -221,38 +225,6 @@ class NauticalContainer(Container):
     class MountRW(Enum):
         READ_ONLY = False
         READ_WRITE = True
-
-    def __init__(
-        self,
-        container: Container,
-        container_config: ContainerConfig | None = None,
-        mounts: list["NauticalContainer.Mount"] | None = None,
-    ) -> None:
-        self._config: ContainerConfig | None = container_config
-        self.mounts: list[NauticalContainer.Mount] = mounts or []
-        super().__init__(container.attrs, client=container.client, collection=container.collection)  # type: ignore
-
-    def __repr__(self) -> str:
-        return str(
-            {
-                "Nautical Container Name": super().name,
-                "Image": super().image,
-            }
-        )
-
-    @classmethod
-    def from_container(cls, container: Container, container_config: ContainerConfig | None) -> "NauticalContainer":
-        mounts = container.attrs.get("Mounts", [])
-        volume_mounts = [cls.Mount.from_dict(m) for m in mounts]
-        return cls(container, container_config, mounts=volume_mounts)
-
-    @property
-    def config(self) -> ContainerConfig:
-        return self._config  # type: ignore
-
-    @config.setter
-    def config(self, value: ContainerConfig) -> None:
-        self._config = value
 
     class Mount:
         def __init__(
@@ -305,3 +277,174 @@ class NauticalContainer(Container):
                 "RW": self.RW.value,
                 "Propagation": self.propagation,
             }
+
+    def __init__(
+        self,
+        container: Container,
+        container_config: ContainerConfig | None = None,
+        mounts: list["NauticalContainer.Mount"] | None = None,
+    ) -> None:
+        self._config: ContainerConfig | None = container_config
+        self.mounts: list[NauticalContainer.Mount] = mounts or []
+        super().__init__(container.attrs, client=container.client, collection=container.collection)  # type: ignore
+
+    def __repr__(self) -> str:
+        return str(
+            {
+                "Nautical Container Name": super().name,
+                "Image": super().image,
+            }
+        )
+
+    @classmethod
+    def from_container(cls, container: Container, container_config: ContainerConfig | None) -> "NauticalContainer":
+        mounts = container.attrs.get("Mounts", [])
+        volume_mounts = [cls.Mount.from_dict(m) for m in mounts]
+        return cls(container, container_config, mounts=volume_mounts)
+
+    @property
+    def config(self) -> ContainerConfig:
+        return self._config  # type: ignore
+
+    @config.setter
+    def config(self, value: ContainerConfig) -> None:
+        self._config = value
+
+
+class ContainerFunctions:
+    def __init__(self) -> None:
+        self.logger = Logger()
+
+    def log_this(self, log_message, log_level: LogLevel, log_type=LogType.DEFAULT) -> None:
+        """Wrapper for log this"""
+        return self.logger.log_this(log_message, log_level, log_type)
+
+    def check_folder_exists(self, path: str, c: NauticalContainer) -> bool:
+        """
+        Check if the given path exists and is a directory.
+        Returns True if it exists and is a directory, False otherwise.
+        """
+        if not path:
+            self.log_this(f"{c.name} - Path is empty or None", LogLevel.WARN)
+            return False
+
+        # Check if the path exists and is a directory
+        if os.path.isdir(path):
+            self.log_this(f"{c.name} - Mount source '{path}' exists and is a directory", LogLevel.TRACE)
+            return True
+
+        self.log_this(f"{c.name} - Mount source '{path}' does not exist or is not a directory", LogLevel.WARN)
+        return False
+
+    def check_read_access(self, path: str, c: NauticalContainer) -> bool:
+        """
+        Check if the given path has read access.
+        Returns True if readable, False otherwise.
+        """
+        if not path:
+            self.log_this(f"{c.name} - Path is empty or None", LogLevel.WARN)
+            return False
+
+        # Check read access
+        if os.access(path, os.R_OK):
+            self.log_this(f"{c.name} - Read access verified for mount source '{path}'", LogLevel.TRACE)
+            return True
+
+        self.log_this(f"{c.name} - Cannot verify read access to mount source '{path}'", LogLevel.WARN)
+        return False
+
+    def check_mount_size(self, path, max_size: str | None, c: NauticalContainer) -> bool:
+        if max_size is None:
+            self.log_this(f"{c.name} - Max size is not set for mount source '{path}'", LogLevel.TRACE)
+            return True  # Allow all if max size is not set
+
+        size_in_bytes = get_folder_size(path)
+        max_size_as_float, unit = separate_number_and_unit(str(max_size))
+
+        max_size_in_bytes = convert_bytes(max_size_as_float, unit)
+        if size_in_bytes > max_size_in_bytes:
+            self.log_this(f"{c.name} - Mount source '{path}' exceeds maximum size of {max_size}", LogLevel.WARN)
+            return False
+        return True
+
+    def process_allow_and_deny_for_mounts(self, c: NauticalContainer) -> List[NauticalContainer.Mount]:
+        allow_src = c.config.volumes.allow_src
+        deny_src = c.config.volumes.deny_src
+
+        allow_dest = c.config.volumes.allow_dest
+        deny_dest = c.config.volumes.deny_dest
+
+        def finalize_folder_validation(path) -> bool:
+            if not self.check_folder_exists(path, c):
+                return False
+            if not self.check_read_access(path, c):
+                return False
+            if not self.check_mount_size(path, c.config.volumes.max_size, c):
+                return False
+            return True
+
+        allowed_mounts: List[NauticalContainer.Mount] = []
+        for mount in c.mounts:
+            self.log_this(f"{c.name} - Processing mount '{mount.source}:{mount.destination}'", LogLevel.TRACE)
+            deny_mount = False
+
+            # Regex match
+            for denied_dest in deny_dest:
+                if re.fullmatch(denied_dest, mount.source):
+                    self.log_this(
+                        f"{c.name} - Denied mount '{mount.source}' by source regex '{denied_dest}'", LogLevel.DEBUG
+                    )
+                    deny_mount = True
+                    break
+            if deny_mount:
+                continue  # Skip this mount
+
+            for denied_src in deny_src:
+                if re.fullmatch(denied_src, mount.destination):
+                    self.log_this(
+                        f"{c.name} - Denied mount '{mount.destination}' by destination regex '{denied_src}'",
+                        LogLevel.DEBUG,
+                    )
+                    deny_mount = True
+                    break
+
+            if deny_mount:
+                continue  # Skip this mount
+
+            allow_mount = False
+            for allowed_src in allow_src:
+                if re.fullmatch(allowed_src, mount.source):
+                    self.log_this(
+                        f"{c.name} - Allowed mount '{mount.source}' by source regex '{allowed_src}'", LogLevel.DEBUG
+                    )
+
+                    allow_mount = True
+                    if not finalize_folder_validation(mount.source):
+                        continue
+                    allowed_mounts.append(mount)
+                    break
+
+            if allow_mount:
+                continue  # No need to continue checking destinations
+
+            for allowed_dest in allow_dest:
+                if re.fullmatch(allowed_dest, mount.destination):
+                    self.log_this(
+                        f"{c.name} - Allowed mount '{mount.source}:{mount.destination}' by destination regex '{allowed_dest}'",
+                        LogLevel.DEBUG,
+                    )
+
+                    allow_mount = True
+                    if not finalize_folder_validation(mount.source):
+                        continue
+                    allowed_mounts.append(mount)
+                    break
+            if allow_mount:
+                continue  # No need to continue checking other mounts
+
+            self.log_this(
+                f"{c.name} - Denied mount '{mount.source}:{mount.destination}' because it was not matched in allow list",
+                LogLevel.DEBUG,
+            )
+        print(f"{c.name} - Allowed mounts after processing: {len(allowed_mounts)}")
+        return allowed_mounts

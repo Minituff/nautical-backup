@@ -22,7 +22,8 @@ from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
 from app.config import ContainerConfig, NauticalConfig
-from classes.nautical_contianer import NauticalContainer
+from classes.nautical_contianer import NauticalContainer, ContainerFunctions
+from functions.helpers import get_folder_size, convert_bytes
 
 
 class BeforeOrAfter(Enum):
@@ -702,53 +703,6 @@ class NauticalBackup:
         self.db.put("completed", "0")
         self.db.put("backup_running", False)
 
-    def process_allow_and_deny_for_mounts(self, c: NauticalContainer) -> List[NauticalContainer.Mount]:
-        allow_src = c.config.allow_src
-        deny_src = c.config.deny_src
-
-        allow_dest = c.config.allow_dest
-        deny_dest = c.config.deny_dest
-
-        allowed_mounts: List[NauticalContainer.Mount] = []
-
-        for mount in c.mounts:
-            deny_mount = False
-
-            # Regex match
-            for denied_dest in deny_dest:
-                if re.fullmatch(denied_dest, mount.source):
-                    self.log_this(f"Denied mount '{mount.source}' by source regex '{denied_dest}'", "DEBUG")
-                    deny_mount = True
-                    break
-            if deny_mount:
-                continue  # Skip this mount
-
-            for denied_src in deny_src:
-                if re.fullmatch(denied_src, mount.destination):
-                    self.log_this(f"Denied mount '{mount.destination}' by destination regex '{denied_src}'", "DEBUG")
-                    deny_mount = True
-                    break
-
-            if deny_mount:
-                continue  # Skip this mount
-
-            for allowed_src in allow_src:
-                if re.fullmatch(allowed_src, mount.source):
-                    self.log_this(f"Allowed mount '{mount.source}' by source regex '{allowed_src}'", "DEBUG")
-                    allowed_mounts.append(mount)
-                    break
-
-            for allowed_dest in allow_dest:
-                if re.fullmatch(allowed_dest, mount.destination):
-                    self.log_this(f"Allowed mount '{mount.destination}' by destination regex '{allowed_dest}'", "DEBUG")
-                    allowed_mounts.append(mount)
-                    break
-
-            self.log_this(
-                f"Denied mount '{mount.source}:{mount.destination}' because it was matched in allow list", "DEBUG"
-            )
-        return allowed_mounts
-
     def backup(self):
         if self.env.REPORT_FILE == True:
             self.logger._create_new_report_file()
@@ -789,7 +743,9 @@ class NauticalBackup:
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
 
-                mounts = self.process_allow_and_deny_for_mounts(c)
+                c.config.filtered_volumes = ContainerFunctions().process_allow_and_deny_for_mounts(c)
+                mounts = c.config.filtered_volumes
+                print("Filtered mounts:", mounts)
 
                 if len(mounts) == 0:
                     self.log_this(f"{c.name} - No mounts allowed. Skipping backup for {c.name}", "DEBUG")
@@ -802,7 +758,8 @@ class NauticalBackup:
                     if not src_dir.exists():
                         self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR")
                         read_access_amount += 1
-                    # TODO Check folder size
+                    elif not os.access(src_dir, os.R_OK):
+                        get_folder_size(src_dir)
 
                 if read_access_amount == 0:
                     self.log_this(f"Skipping backup of {c.name} because source directories do not exist", "ERROR")
