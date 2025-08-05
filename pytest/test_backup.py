@@ -7,6 +7,7 @@ from pathlib import Path
 import docker
 from docker.models.containers import Container
 from itertools import cycle
+import shlex
 from mock import call
 
 from app.nautical_env import NauticalEnv
@@ -306,9 +307,8 @@ class TestBackup:
         mock_subprocess_run.assert_called_once()
 
         mock_subprocess_run.assert_any_call(
-            ["-raq", f"{self.src_location}/container1/", f"{self.dest_location}/container1/"],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -451,15 +451,13 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            ["-raq", f"{self.src_location}/container1-override/", f"{self.dest_location}/container1-override/"],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1-override/ {self.dest_location}/container1-override/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
         mock_subprocess_run.assert_any_call(
-            ["-raq", f"{self.src_location}/container2-new/", f"{self.dest_location}/container2-new/"],
+            f"/usr/bin/rsync -raq  {self.src_location}/container2-new/ {self.dest_location}/container2-new/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
         assert mock_subprocess_run.call_count == 3
@@ -493,13 +491,8 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            [
-                "-raq",
-                f"{self.src_location}/container1-override-label/",
-                f"{self.dest_location}/container1-override-label/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1-override-label/ {self.dest_location}/container1-override-label/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -530,15 +523,13 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            ["-raq", f"{self.src_location}/container1/", f"{self.dest_location}/container1-override/"],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1-override/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
         mock_subprocess_run.assert_any_call(
-            ["-raq", f"{self.src_location}/container2/", f"{self.dest_location}/container2-new/"],
+            f"/usr/bin/rsync -raq  {self.src_location}/container2/ {self.dest_location}/container2-new/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
         assert mock_subprocess_run.call_count == 3
@@ -568,13 +559,8 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            [
-                "-raq",
-                f"{self.src_location}/container1/",
-                f"{self.dest_location}/container1-override-label/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1-override-label/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -716,13 +702,8 @@ class TestBackup:
         # Rsync should be called with custom args
         # Rsync custom args should overwrite the default args
         mock_subprocess_run.assert_called_once_with(
-            [
-                "-aq",
-                f"{self.src_location}/container1/",
-                f"{self.dest_location}/container1/",
-            ],
+            f"/usr/bin/rsync  -aq {self.src_location}/container1/ {self.dest_location}/container1/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -754,13 +735,8 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            [
-                "-aq",
-                f"{self.src_location}/container1/",
-                f"{self.dest_location}/container1/",
-            ],
+            f"/usr/bin/rsync  -aq {self.src_location}/container1/ {self.dest_location}/container1/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -791,11 +767,10 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        assert mock_subprocess_run.call_args_list[0][0][0] == [
-            "--exclude=AsdF",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[0][0][0]
+            == f"/usr/bin/rsync  --exclude=AsdF {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -832,25 +807,15 @@ class TestBackup:
 
         # Container 1 will use the label's custom rsync args
         mock_subprocess_run.assert_any_call(
-            [
-                "-aq",
-                f"{self.src_location}/container1/",
-                f"{self.dest_location}/container1/",
-            ],
+            f"/usr/bin/rsync  -aq {self.src_location}/container1/ {self.dest_location}/container1/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
         # Container 2 will use env custom rsync args
         mock_subprocess_run.assert_any_call(
-            [
-                "-something",
-                f"{self.src_location}/container2/",
-                f"{self.dest_location}/container2/",
-            ],
+            f"/usr/bin/rsync  -something {self.src_location}/container2/ {self.dest_location}/container2/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -884,13 +849,8 @@ class TestBackup:
         # Rsync should be called with custom args
         # Rsync custom args should overwrite the default args
         mock_subprocess_run.assert_called_once_with(
-            [
-                "-raq",
-                f"{self.src_location}/pialert/",
-                f"{self.dest_location}/Pi.Alert/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/pialert/ {self.dest_location}/Pi.Alert/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -924,13 +884,8 @@ class TestBackup:
         # Rsync should be called with custom args
         # Rsync custom args should overwrite the default args
         mock_subprocess_run.assert_called_once_with(
-            [
-                "-raq",
-                f"{self.src_location}/container1-override/",
-                f"{self.dest_location}/container1-override/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1-override/ {self.dest_location}/container1-override/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -966,13 +921,8 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            [
-                "-raq",
-                f"{self.src_location}/container1-new/",
-                f"{self.dest_location}/container1/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1-new/ {self.dest_location}/container1/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -1008,13 +958,8 @@ class TestBackup:
         nb.backup()
 
         mock_subprocess_run.assert_any_call(
-            [
-                "-raq",
-                f"{self.src_location}/container1-new/",
-                f"{self.dest_location}/container1-new/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1-new/ {self.dest_location}/container1-new/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
 
@@ -1258,11 +1203,11 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 2
 
-        # Src location
-        assert mock_subprocess_run.call_args_list[1][0][0][1] == f"{self.src_location}/add1/"
-
-        # Dest location
-        assert mock_subprocess_run.call_args_list[1][0][0][2] == f"{self.dest_location}/{time_format}/add1/"
+        # Check the full command for the additional folder
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/{time_format}/add1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1302,11 +1247,11 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 2
 
-        # Src location
-        assert mock_subprocess_run.call_args_list[1][0][0][1] == f"{self.src_location}/add1/"
-
-        # Dest location
-        assert mock_subprocess_run.call_args_list[1][0][0][2] == f"{self.dest_location}/{time_format}/add1/"
+        # Check the full command for the additional folder
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/{time_format}/add1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1351,11 +1296,15 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 4
 
-        # Destination Location verification
+        # Check the full commands for secondary destination backups
         assert (
-            mock_subprocess_run.call_args_list[2][0][0][2] == f"{self.dest_location}/backup/{time_format}/container1/"
+            mock_subprocess_run.call_args_list[2][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/backup/{time_format}/container1/"
         )
-        assert mock_subprocess_run.call_args_list[3][0][0][2] == f"{self.dest_location}/backup/{time_format}/add1/"
+        assert (
+            mock_subprocess_run.call_args_list[3][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/backup/{time_format}/add1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1392,12 +1341,13 @@ class TestBackup:
         nb.backup()
 
         assert mock_subprocess_run.call_count == 2
+        args = shlex.split(mock_subprocess_run.call_args_list[1][0][0])
 
         # Src location
-        assert mock_subprocess_run.call_args_list[1][0][0][1] == f"{self.src_location}/add1/"
+        assert args[2] == f"{self.src_location}/add1/"
 
         # Dest location
-        assert mock_subprocess_run.call_args_list[1][0][0][2] == f"{self.dest_location}/add1/{time_format}/"
+        assert args[3] == f"{self.dest_location}/add1/{time_format}/"
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1424,15 +1374,9 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        print(mock_subprocess_run.call_args_list)
         mock_subprocess_run.assert_any_call(
-            [
-                "-raq",
-                f"{self.src_location}/container1/",
-                f"{self.dest_location}/{time_format}/container1/",
-            ],
+            f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/{time_format}/container1/",
             shell=True,
-            executable="/usr/bin/rsync",
             capture_output=False,
         )
         rm_tree(Path(self.dest_location) / time_format / "container1")
@@ -1463,25 +1407,22 @@ class TestBackup:
         time_format = time.strftime("%Y-%m-%d")
 
         # Additional folder 1
-        assert mock_subprocess_run.call_args_list[0][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/{time_format}/add1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[0][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/{time_format}/add1/"
+        )
 
         # Additional folder 2
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/add2/",
-            f"{self.dest_location}/{time_format}/add2/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add2/ {self.dest_location}/{time_format}/add2/"
+        )
 
         # Container
-        assert mock_subprocess_run.call_args_list[2][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1517,11 +1458,10 @@ class TestBackup:
         time_format = time.strftime("%Y-%m-%d")
 
         # Additional folder 1
-        assert mock_subprocess_run.call_args_list[0][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1-override/",
-            f"{self.dest_location}/{time_format}/container1-override/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[0][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1-override/ {self.dest_location}/{time_format}/container1-override/"
+        )
 
         rm_tree(Path(self.src_location) / "container1-override")
         rm_tree(Path(self.dest_location) / time_format / "container1-override")
@@ -1549,21 +1489,18 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        assert mock_subprocess_run.call_args_list[0][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/add1/",
-        ]
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/add2/",
-            f"{self.dest_location}/add2/",
-        ]
-        assert mock_subprocess_run.call_args_list[2][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[0][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/add1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add2/ {self.dest_location}/add2/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
@@ -1602,29 +1539,25 @@ class TestBackup:
         # 6th call is for container1 to secondary dest dir #2
         assert mock_subprocess_run.call_count == 6
 
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/backup/add1/",
-        ]
-        assert mock_subprocess_run.call_args_list[2][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/backup2/add1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/backup/add1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/backup2/add1/"
+        )
 
         # 3rd call is for container1 to dest dir (tested elsewhere)
 
-        assert mock_subprocess_run.call_args_list[4][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/backup/container1/",
-        ]
-        assert mock_subprocess_run.call_args_list[5][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/backup2/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[4][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/backup/container1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[5][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/backup2/container1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
@@ -1665,31 +1598,26 @@ class TestBackup:
 
         # 1st call is for container1 to dest dir (tested elsewhere)
 
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/backup/container1/",
-        ]
-        assert mock_subprocess_run.call_args_list[2][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/backup2/container1/",
-        ]
-        assert mock_subprocess_run.call_args_list[3][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/add1/",
-        ]
-        assert mock_subprocess_run.call_args_list[4][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/backup/add1/",
-        ]
-        assert mock_subprocess_run.call_args_list[5][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/backup2/add1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/backup/container1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/backup2/container1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[3][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/add1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[4][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/backup/add1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[5][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/backup2/add1/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
@@ -1714,21 +1642,18 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        assert mock_subprocess_run.call_args_list[0][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/add1/",
-            f"{self.dest_location}/add1/",
-        ]
-        assert mock_subprocess_run.call_args_list[2][0][0] == [
-            "-raq",
-            f"{self.src_location}/add2/",
-            f"{self.dest_location}/add2/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[0][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/add1/"
+        )
+        assert (
+            mock_subprocess_run.call_args_list[2][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/add2/ {self.dest_location}/add2/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -1766,23 +1691,13 @@ class TestBackup:
         # This specifies the order. Additional folders must come after container1
         expected_calls = [
             call(
-                [
-                    "-raq",
-                    f"{self.src_location}/container1/",
-                    f"{self.dest_location}/container1/",
-                ],
+                f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/",
                 shell=True,
-                executable="/usr/bin/rsync",
                 capture_output=False,
             ),
             call(
-                [
-                    "-raq",
-                    f"{self.src_location}/add1/",
-                    f"{self.dest_location}/add1/",
-                ],
+                f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/add1/",
                 shell=True,
-                executable="/usr/bin/rsync",
                 capture_output=False,
             ),
         ]
@@ -1825,23 +1740,13 @@ class TestBackup:
         # This specifies the order. Additional folders must come after container1
         expected_calls = [
             call(
-                [
-                    "-raq",
-                    f"{self.src_location}/add1/",
-                    f"{self.dest_location}/add1/",
-                ],
+                f"/usr/bin/rsync -raq  {self.src_location}/add1/ {self.dest_location}/add1/",
                 shell=True,
-                executable="/usr/bin/rsync",
                 capture_output=False,
             ),
             call(
-                [
-                    "-raq",
-                    f"{self.src_location}/container1/",
-                    f"{self.dest_location}/container1/",
-                ],
+                f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/",
                 shell=True,
-                executable="/usr/bin/rsync",
                 capture_output=False,
             ),
         ]
@@ -1921,11 +1826,10 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 3
         assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'google.com'"
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'bing.com'"
 
     @mock.patch("subprocess.run")
@@ -1952,11 +1856,10 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 3
         assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'google.com'"
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'bing.com'"
 
     @mock.patch("subprocess.run")
@@ -1989,11 +1892,10 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 4
         assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'aol.com'"
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
         assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
 
@@ -2027,11 +1929,10 @@ class TestBackup:
 
         assert mock_subprocess_run.call_count == 4
         assert mock_subprocess_run.call_args_list[0][0][0] == "curl -X GET 'aol.com'"
-        assert mock_subprocess_run.call_args_list[1][0][0] == [
-            "-raq",
-            f"{self.src_location}/container1/",
-            f"{self.dest_location}/container1/",
-        ]
+        assert (
+            mock_subprocess_run.call_args_list[1][0][0]
+            == f"/usr/bin/rsync -raq  {self.src_location}/container1/ {self.dest_location}/container1/"
+        )
         assert mock_subprocess_run.call_args_list[2][0][0] == "curl -X GET 'msn.com'"
         assert mock_subprocess_run.call_args_list[3][0][0] == "curl -X GET 'espn.com'"
 
@@ -2606,8 +2507,10 @@ class TestBackup:
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        assert mock_subprocess_run.call_args_list[0][0][0][1] == f"{nautical_env.SOURCE_LOCATION}/immich/database/"
-        assert mock_subprocess_run.call_args_list[0][0][0][2] == f"{nautical_env.DEST_LOCATION}/immich/database/"
+        assert (
+            mock_subprocess_run.call_args_list[0][0][0]
+            == f"/usr/bin/rsync -raq  {nautical_env.SOURCE_LOCATION}/immich/database/ {nautical_env.DEST_LOCATION}/immich/database/"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(

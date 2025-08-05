@@ -51,8 +51,8 @@ class NauticalBackup:
         if self.env.REPORT_FILE == True and self.env.REPORT_FILE_ON_BACKUP_ONLY == False:
             self.logger._create_new_report_file()
 
-        self.verify_nautcical_mounted_source_location(self.env.SOURCE_LOCATION)
-        self.verify_nautiucal_mounted_destination_location(self.env.DEST_LOCATION, create_if_not_exists=False)
+        self.verify_nautical_mounted_source_location(self.env.SOURCE_LOCATION)
+        self.verify_nautical_mounted_destination_location(self.env.DEST_LOCATION, create_if_not_exists=False)
 
     def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
@@ -64,7 +64,7 @@ class NauticalBackup:
         """
         return container.labels.get(f"{self.prefix}.{target}", default)
 
-    def verify_nautcical_mounted_source_location(self, src_dir: str):
+    def verify_nautical_mounted_source_location(self, src_dir: str):
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", LogType.INIT)
         if not os.path.isdir(src_dir):
             self.log_this(f"Source directory '{src_dir}' does not exist.", "ERROR", LogType.INIT)
@@ -75,7 +75,7 @@ class NauticalBackup:
 
         self.log_this(f"Source directory '{src_dir}' READ access verified", "TRACE", LogType.INIT)
 
-    def verify_nautiucal_mounted_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True):
+    def verify_nautical_mounted_destination_location(self, dest_dir: Union[str, Path], create_if_not_exists=True):
         self.log_this(f"Verifying Nautical destination directory '{dest_dir}'...", "DEBUG", LogType.INIT)
 
         if not os.path.exists(dest_dir) and create_if_not_exists:
@@ -230,7 +230,7 @@ class NauticalBackup:
 
         return containers_by_group
 
-    def _set_exec_enviornment_variables(self, vars: Dict[str, str]):
+    def _set_exec_environment_variables(self, vars: Dict[str, str]):
         """Set the environment variables for the exec command"""
         for k, v in vars.items():  # Loop through all the variables in the class
             self.log_this(f"Setting environment variable {k} to {v}", "TRACE")
@@ -321,7 +321,7 @@ class NauticalBackup:
             vars["NB_EXEC_TOTAL_CONTAINERS_SKIPPED"] = str(self.db.get("containers_skipped", ""))
             vars["NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS"] = str(self.db.get("number_of_containers", ""))
 
-        self._set_exec_enviornment_variables(vars)
+        self._set_exec_environment_variables(vars)
 
         self.log_this(f"Running EXEC command: {command}")
         out = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True)
@@ -625,9 +625,9 @@ class NauticalBackup:
 
         self.log_this(f"RUNNING: 'rsync {command}'", "DEBUG")
 
-        args = command.split()  # Split the command into a list of arguments
-
-        out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
+        # args = command.split()  # Split the command into a list of arguments
+        out = subprocess.run(f"/usr/bin/rsync {command}", shell=True, capture_output=False)
+        # out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
 
     def _get_rsync_args(self, c: Optional[Container], log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
