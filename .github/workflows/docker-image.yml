@@ -24,7 +24,7 @@ jobs:
       contents: read
     needs: [call_tests] # Will not run until tests have completed successfully
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up QEMU # Allow multi-arch (arm64) builds
       uses: docker/setup-qemu-action@v3
