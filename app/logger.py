@@ -52,7 +52,7 @@ class Logger:
         if isinstance(log_level, LogLevel):
             return log_level
 
-        # Override the defaults with environment variables if they exist
+        # Map a string log level to LogLevel, returning None for unknown values.
         if log_level.lower().strip() == "trace":
             return LogLevel.TRACE
         elif log_level.lower().strip() == "debug":
