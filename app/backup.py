@@ -133,8 +133,10 @@ class NauticalBackup:
 
         if "minituff/nautical-backup" in str(c.image):
             self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'minituff/nautical-backup'.", "TRACE")
+            return True
         if c.labels.get("org.opencontainers.image.title") == "nautical-backup":
             self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'nautical-backup'.", "TRACE")
+            return True
         if c.id == SELF_CONTAINER_ID:
             self.log_this(f"Skipping {c.name} {c.id} because it's ID is the same as Nautical", "TRACE")
             return True
