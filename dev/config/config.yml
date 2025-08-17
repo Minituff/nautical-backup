@@ -1,8 +1,8 @@
 env:
-  RUN_ONCE: False
-  REPORT_FILE: True
+  RUN_ONCE: false
+  REPORT_FILE: true
   LOG_LEVEL: Debug
-  REQUIRE_LABEL: False
+  REQUIRE_LABEL: false
   SKIP_CONTAINERS: ""
   SKIP_STOPPING: ""
   SELF_CONTAINER_ID: ""
@@ -13,8 +13,9 @@ env:
   KEEP_SRC_DIR_NAME: ""
   OVERRIDE_SOURCE_DIR: "" 
   OVERRIDE_DEST_DIR: ""
+  DEFAULT_RSYNC_ARGS: ""
   DEFAULT_RNC_ARGS: ""
-  USE_DEFAULT_RSYNC_ARGS: "" 
+  USE_DEFAULT_RSYNC_ARGS: ""
   RSYNC_CUSTOM_ARGS: ""
   USE_DEST_DATE_FOLDER: '%Y-%m-%d'
   DEST_DATE_FORMAT: "date/container"
@@ -25,26 +26,26 @@ env:
   PRE_BACKUP_EXEC: ""
   POST_BACKUP_EXEC: ""
 
-# All container configs will use these configs unless overriden
+# All container configs will use these configs unless overridden
 # This name MUST be exactly as is
 # All values can be overridden by [containers] config
 DEFAULT_CONTAINER_CONFIG:
   name: DEFAULT CONFIG
-  description: All container configs will use these configs unless overriden. Do not delete
+  description: All container configs will use these configs unless overridden. Do not delete
 
   backup:
-    enabled: True # If false, no volumes will be backed up
-    require_label: False
+    enabled: true # If false, no volumes will be backed up
+    require_label: false
     destination_format: ""
     zip: true      # Can be set globally, or override per-container or per-volume
     restore_map: true   # Nautical-manifest file for restoration (future planned)
-    dest_dirs:  # Directories where the conainers will be backup to
-      - "/data/desitination"
+    dest_dirs:  # Directories where the containers will be backed up to
+      - "/data/destination"
       - "/data/destination2"
 
   volumes:
-   # Global Size limit for all volumes. Adds additional time to compute--recommended to use on a per container basis
-   # Accpeted united units = ["B", "KB", "MB", "GB", "TB"] 
+   # Global size limit for all volumes. Adds additional time to compute—recommended to use on a per-container basis
+   # Accepted units = ["B", "KB", "MB", "GB", "TB"] 
     max_size: 10gb
 
     # Regex must match the entire path: https://regex101.com
@@ -74,13 +75,13 @@ containers:
       container_id: "123abc"
       container_label: "container_1" # Applied using "nautical-backup.match.container_label=container_1"
       container_image: "minituff/nautical-backup"
-    require_label: False
+    require_label: false
     group:
       name: test
       priority: 100
     volumes:
-      none: True # No volumes should be associate with this container
-      max_size: 10gb # Do not backup anothing over this size.
+      none: true # No volumes should be associated with this container
+      max_size: 10gb # Do not back up anything over this size.
 
   vscode_devcontainer:
     name: VSCODE dev
@@ -90,14 +91,14 @@ containers:
       container_id: "038e21324e573026236ae13c4220d47a5d6e474448fda627245543d0f713a3b7"
       container_name: "relaxed_ptolemy"
     backup:
-      enabled: False # If false, no volumes will be backed up
-      require_label: True
+      enabled: false # If false, no volumes will be backed up
+      require_label: true
   
-  nautical-backup_devcontainer-devcontainer :
+  nautical-backup_devcontainer-devcontainer:
     match:
-      container_name: "nautical-backup_devcontainer-devcontainer "
+      container_name: "nautical-backup_devcontainer-devcontainer"
     backup:
-      enabled: False # If false, no volumes will be backed up
+      enabled: false # If false, no volumes will be backed up
 
   watchtower:
     name: Watchtower
@@ -113,8 +114,8 @@ directory:
       description: "Idk"
   
     docker_volumes:
-      host_path: /var/lib/docker/volumes" # The path on the host machine we are mapping 
+      host_path: "/var/lib/docker/volumes" # The path on the host machine we are mapping
       nautical_path: "/data/volumes" # That path within Nautical we map the host_path to
-      description: "Docker Native volumes"
+      description: "Docker native volumes"
 
 # TODO: Load config on startup, whether or not BACKUP_ON_START is true. This allows for immediate validation of configs
