@@ -87,22 +87,27 @@ class NauticalConfig:
 
     @property
     def containers_from_yml_by_id(self) -> Dict[str, ContainerConfig]:
+        """Locate the container configuration by its ID"""
         return self._containers_from_yml_by_id
 
     @property
     def containers_from_yml_by_name(self) -> Dict[str, ContainerConfig]:
+        """Locate the container configuration by its name"""
         return self._containers_from_yml_by_name
 
     @property
     def containers_from_yml_by_tag_name(self) -> Dict[str, ContainerConfig]:
+        """Locate the container configuration by its tag name"""
         return self._containers_from_yml_by_tag_name
 
     @property
     def containers_from_yml_by_image(self) -> Dict[str, ContainerConfig]:
+        """Locate the container configuration by its image"""
         return self._containers_from_yml_by_image
 
     @property
     def containers_from_yml_by_label(self) -> Dict[str, ContainerConfig]:
+        """Locate the container configuration by its label"""
         return self._containers_from_yml_by_label
 
     def _load_default_container_config(self, yml: Dict) -> ContainerConfig:
