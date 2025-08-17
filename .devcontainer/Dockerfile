@@ -28,5 +28,12 @@ RUN echo "Installing python packages (for api)..." && \
   python3 -m pip --no-cache-dir install -r /tmp/nautical/requirements-dev.txt && \
   echo "Installation complete."
 
+RUN echo "Setting up bash history persistance..." && \
+  SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" &&  \
+  echo "$SNIPPET" >> "/root/.bashrc" && \
+  SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.zsh_history" && \
+  echo "$SNIPPET" >> "/root/.zshrc" && \
+  echo "Bash history persistence setup complete."
+  
 # For development, prevents Nautical from stopping VSCode DevContainer itself
 LABEL nautical-backup.enable=false
