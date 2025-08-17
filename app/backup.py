@@ -22,8 +22,8 @@ from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
 from app.config import ContainerConfig, NauticalConfig
-from classes.nautical_contianer import NauticalContainer, ContainerFunctions
-from functions.helpers import get_folder_size, convert_bytes
+from app.classes.nautical_contianer import NauticalContainer, ContainerFunctions
+from app.functions.helpers import get_folder_size, convert_bytes
 
 
 class BeforeOrAfter(Enum):

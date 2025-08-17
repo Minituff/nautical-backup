@@ -28,11 +28,11 @@ class TestADB:
         assert db.get("test", {}) == {}
 
     def test_db_paths(self, tmp_path: Path):
-        db = DB(os.path.join(tmp_path, "test-db.json"))
-        assert db.db_path.endswith("test-db.json")
+        db = DB(os.path.join(tmp_path, "test-db.db"))
+        assert db.db_path.endswith("test-db.db")
 
         db = DB(tmp_path)
-        assert db.db_path.endswith("nautical-db.json")
+        assert db.db_path.endswith("nautical.db")
 
     def test_db_get(self, tmp_path):
         db = DB(tmp_path)
@@ -64,19 +64,19 @@ class TestADB:
     @pytest.fixture(scope="function", autouse=True)
     def test_db_env(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("NAUTICAL_DB_PATH", "fake-path")
-        monkeypatch.setenv("NAUTICAL_DB_NAME", "test-db.json")
+        monkeypatch.setenv("NAUTICAL_DB_NAME", "test-db.db")
 
         db = DB()
-        assert db.db_path == "fake-path/test-db.json"
+        assert db.db_path == "fake-path/test-db.db"
 
         monkeypatch.setenv("NAUTICAL_DB_PATH", "fake-path2")
-        monkeypatch.setenv("NAUTICAL_DB_NAME", "test-db2.json")
+        monkeypatch.setenv("NAUTICAL_DB_NAME", "test-db2.db")
 
         db = DB()
-        assert db.db_path == "fake-path2/test-db2.json"
+        assert db.db_path == "fake-path2/test-db2.db"
 
         monkeypatch.setenv("NAUTICAL_DB_PATH", "fake-path3")
         # Should not be used since we only pass a folder. the default name should be used
-        monkeypatch.setenv("NAUTICAL_DB_NAME", "test-db3.json")
+        monkeypatch.setenv("NAUTICAL_DB_NAME", "test-db3.db")
         db = DB(tmp_path)
-        assert db.db_path.endswith("nautical-db.json")
+        assert db.db_path.endswith("nautical.db")

@@ -6,3 +6,4 @@ pytz==2025.2
 docker==7.1.0
 pydantic-settings==2.9.1
 PyYAML==6.0.2
+SQLAlchemy==2.0.31

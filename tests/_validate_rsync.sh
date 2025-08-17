@@ -28,9 +28,9 @@ test_watchtower_backup_file() {
 }
 
 
-test_config_json_file() {
+test_config_db_file() {
 
-  local report_file="nautical-db.json"
+  local report_file="nautical.db"
   local dest_location="config"
 
   local file_path="$dest_location/$report_file"
@@ -45,4 +45,4 @@ test_config_json_file() {
 }
 
 test_watchtower_backup_file
-test_config_json_file
+test_config_db_file

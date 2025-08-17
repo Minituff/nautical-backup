@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Dict, List
 import yaml
 from pprint import pprint
-from nautical_env import NauticalEnv
-from classes.nautical_contianer import ContainerConfig
-from classes.jamespath_overrides import JamesPathDictMerger
+from app.nautical_env import NauticalEnv
+from app.classes.nautical_contianer import ContainerConfig
+from app.classes.jamespath_overrides import JamesPathDictMerger
 
 
 class NauticalConfig:

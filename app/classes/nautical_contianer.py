@@ -6,7 +6,7 @@ import re
 
 from docker.models.containers import Container
 from app.logger import Logger, LogType, LogLevel
-from functions.helpers import convert_bytes, get_folder_size, separate_number_and_unit
+from app.functions.helpers import convert_bytes, get_folder_size, separate_number_and_unit
 
 
 class ContainerConfig:
