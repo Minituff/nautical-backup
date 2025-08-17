@@ -1,10 +1,24 @@
-Nautical provides configuration in the form of Docker environment variables.
+Nautical can be configured via a YAML file, Docker labels, and environment variables.
 
-See the [Installation Section](./installation.md), which contains a few examples of applying environment variables.
+See the [Installation Section](./installation.md) for examples, and the new [User Guide](./user-guide.md) for a friendly walkthrough.
 
-### Environment Variable vs Label Priority
-If a container has an Environment Variable applied as well as a conflicting Label, then:
-> The container Label takes priority over the global Nautical environment variable.
+### Configuration Sources and Precedence
+When the same option is set in multiple places, Nautical resolves it using this order (highest wins):
+
+1) YAML per-container config (`config.yml`)
+2) Docker labels on the container
+3) Global environment variables
+
+This applies to features like: grouping, rsync args, additional folders, lifecycle/exec hooks, and skip/require options. Some global-only settings (such as PRE/POST backup exec) remain environment-driven.
+
+### YAML Config Path
+Set the path to your Nautical YAML configuration file.
+
+> Default: `/config/config.yml`
+
+```properties
+NAUTICAL_CONFIG_PATH=/config/config.yml
+```
 
 ## Time Zone
 

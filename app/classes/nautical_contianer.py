@@ -60,7 +60,7 @@ class ContainerConfig:
         def __init__(self) -> None:
             self.enabled = ""
             self.stop_before_backup = ""
-            self.require_label: bool = False
+            self.require_label: Optional[bool] = None
             self.destination_format: str = ""
             self.zip: bool = True  # Can be set globally, or override per-container or per-volume
             self.restore_map: bool = True  # Nautical-manifest file for restoration (future planned)
@@ -81,7 +81,8 @@ class ContainerConfig:
             backup.zip = backup_json.get("zip", True)
             backup.restore_map = backup_json.get("restore_map", True)
             backup.dest_dirs = [Path(dir) for dir in backup_json.get("dest_dirs", [])]
-            backup.require_label = backup_json.get("require_label", True)
+            # Only set require_label when explicitly provided; defer to env otherwise
+            backup.require_label = backup_json.get("require_label", None)
 
             return backup
 
