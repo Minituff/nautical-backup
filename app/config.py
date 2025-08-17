@@ -6,6 +6,8 @@ from pprint import pprint
 from app.nautical_env import NauticalEnv
 from app.classes.nautical_contianer import ContainerConfig
 from app.classes.jamespath_overrides import JamesPathDictMerger
+from pydantic import ValidationError
+from app.schema import NauticalConfigModel
 
 
 class NauticalConfig:
@@ -17,7 +19,8 @@ class NauticalConfig:
             self.host_path = host_path
             self.nautical_path = nautical_path
             self.description = description
-            self.final_path = final_path
+            # Ensure final_path is always a Path; default to the base nautical_path
+            self.final_path: Path = final_path if final_path is not None else Path(nautical_path)
 
         def __repr__(self):
             return str(self.__dict__)
@@ -26,6 +29,12 @@ class NauticalConfig:
         self.nauticalEnv = nauticalEnv
         self.config_path = config_path if config_path else Path(nauticalEnv.NAUTICAL_CONFIG_PATH)
         self.yml = self._load_yaml(config_path)
+
+        # Validate YAML against schema (fail fast with clear errors)
+        try:
+            self._validated_schema = NauticalConfigModel.model_validate(self.yml)
+        except ValidationError as e:
+            raise ValueError(f"Invalid Nautical YAML configuration: {e}")
         env = self.yml.get("env", {})
 
         # Values NOT to get overridden by the DefaultContainerConfig
@@ -238,4 +247,4 @@ if __name__ == "__main__":
     config_path = Path("dev/config/config.yml")
     env = NauticalEnv()
     config = NauticalConfig(env, config_path)
-    # pprint(config.print())
+    pprint(config)

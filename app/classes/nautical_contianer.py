@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 from enum import Enum
 import re
 
 from docker.models.containers import Container
 from app.logger import Logger, LogType, LogLevel
+from app.effective_config import EffectiveContainerConfig
 from app.functions.helpers import convert_bytes, get_folder_size, separate_number_and_unit
 
 
@@ -43,12 +44,14 @@ class ContainerConfig:
             deny_src: List[str],
             deny_dest: List[str],
             max_size: str | None = None,
+            none: bool = False,
         ) -> None:
             self.max_size: str | None = max_size
             self.allow_src: List[str] = allow_src
             self.allow_dest: List[str] = allow_dest
             self.deny_src: List[str] = deny_src
             self.deny_dest: List[str] = deny_dest
+            self.none: bool = none
 
         def __repr__(self):
             return str(self.__dict__)
@@ -171,12 +174,15 @@ class ContainerConfig:
         config = ContainerConfig.Config.serialize(yml_data.get("config", {}))
         backup = ContainerConfig.Backup.serialize(yml_data.get("backup", {}))
 
+        # Support max_size from either volumes.max_size or volumes.filters.max_size
+        max_size = volumes_json.get("max_size", filters_json.get("max_size", None))
         volumes = ContainerConfig.Volumes(
             allow_src=list(filters_json.get("allow_src", [])),
             allow_dest=list(filters_json.get("allow_dest", [])),
             deny_src=list(filters_json.get("deny_src", [])),
             deny_dest=list(filters_json.get("deny_dest", [])),
-            max_size=filters_json.get("max_size", None),
+            max_size=max_size,
+            none=bool(volumes_json.get("none", False)),
         )
 
         return ContainerConfig(
@@ -286,6 +292,8 @@ class NauticalContainer(Container):
     ) -> None:
         self._config: ContainerConfig | None = container_config
         self.mounts: list[NauticalContainer.Mount] = mounts or []
+        # Centralized effective config (resolved precedence)
+        self.effective: Optional[EffectiveContainerConfig] = None
         super().__init__(container.attrs, client=container.client, collection=container.collection)  # type: ignore
 
     def __repr__(self) -> str:
@@ -368,6 +376,13 @@ class ContainerFunctions:
         return True
 
     def process_allow_and_deny_for_mounts(self, c: NauticalContainer) -> List[NauticalContainer.Mount]:
+        # Skip all mounts if volumes.none is set
+        if c.config and c.config.volumes and c.config.volumes.none:
+            self.log_this(
+                f"{c.name} - volumes.none=true; skipping all volume backups for this container", LogLevel.DEBUG
+            )
+            return []
+
         allow_src = c.config.volumes.allow_src
         deny_src = c.config.volumes.deny_src
 

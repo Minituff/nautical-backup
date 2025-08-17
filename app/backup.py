@@ -22,6 +22,7 @@ from app.db import DB
 from app.logger import Logger, LogType
 from app.nautical_env import NauticalEnv
 from app.config import ContainerConfig, NauticalConfig
+from app.effective_config import EffectiveContainerConfig
 from app.classes.nautical_contianer import NauticalContainer, ContainerFunctions
 from app.functions.helpers import get_folder_size, convert_bytes
 
@@ -66,11 +67,69 @@ class NauticalBackup:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, log_type)
 
-    def get_label(self, container: Container, target: str, default=None):
+    def get_label(self, container: NauticalContainer, target: str, default=None):
         """Apply the label prefix and return the label value
         By default the label will look like: `nautical-backup.enable`
         """
         return container.labels.get(f"{self.prefix}.{target}", default)
+
+    # Precedence helpers: YAML (per-container) > labels > env/defaults
+    @staticmethod
+    def _is_set(val) -> bool:
+        if val is None:
+            return False
+        if isinstance(val, str):
+            return val.strip() != "" and val.lower() != "none"
+        if isinstance(val, (list, tuple, set, dict)):
+            return len(val) > 0
+        return True
+
+    def _get_prec_str(
+        self,
+        c: Optional[NauticalContainer],
+        yaml_val: Optional[str],
+        label_key: Optional[str],
+        env_val: Optional[str],
+        default: str = "",
+    ) -> str:
+        if self._is_set(yaml_val):
+            return str(yaml_val)
+        label_val = None
+        if c is not None and label_key:
+            label_val = self.get_label(c, label_key, "")
+        if self._is_set(label_val):
+            return str(label_val)
+        if self._is_set(env_val):
+            return str(env_val)
+        return default
+
+    def _get_prec_bool(
+        self,
+        c: Optional[NauticalContainer],
+        yaml_val: Optional[bool | str],
+        label_key: Optional[str],
+        env_val: Optional[bool | str],
+        default: Optional[bool] = None,
+    ) -> bool:
+        def to_bool(v) -> Optional[bool]:
+            if v is None:
+                return None
+            s = str(v).strip().lower()
+            if s in ("true", "1", "yes", "y", "on"):
+                return True
+            if s in ("false", "0", "no", "n", "off"):
+                return False
+            return None
+
+        candidates = [yaml_val]
+        if c is not None and label_key:
+            candidates.append(self.get_label(c, label_key, ""))
+        candidates.extend([env_val, default])
+        for candidate in candidates:
+            b = to_bool(candidate)
+            if b is not None:
+                return b
+        return False
 
     def verify_nautcical_mounted_source_location(self, src_dir: str):
         self.log_this(f"Verifying source directory '{src_dir}'...", "DEBUG", LogType.INIT)
@@ -127,7 +186,7 @@ class NauticalBackup:
         self.log_this(f"Destination directory '{dest_dir}' READ/WRITE access verified", "TRACE")
         return True
 
-    def _should_skip_container(self, c: Container) -> bool:
+    def _should_skip_container(self, c: NauticalContainer) -> bool:
         """Use logic to determine if a container should be skipped by nautical completely"""
 
         SELF_CONTAINER_ID = self.env.SELF_CONTAINER_ID  # Used to skip self
@@ -158,23 +217,27 @@ class NauticalBackup:
         # Convert the strings into lists
         skip_containers_set = set(SKIP_CONTAINERS.split(","))
 
-        nautical_backup_enable_str = str(self.get_label(c, "enable", ""))
-        if nautical_backup_enable_str.lower() == "false":
-            nautical_backup_enable = False
-        elif nautical_backup_enable_str.lower() == "true":
-            nautical_backup_enable = True
-        else:
-            nautical_backup_enable = None
+        # Centralized precedence decision
+        eff = c.effective
+        label_enable_str = str(self.get_label(c, "enable", ""))
+        label_enable = label_enable_str.lower() == "true" if label_enable_str else None
 
-        if nautical_backup_enable == False:
+        # YAML explicit disable wins
+        if eff and eff.backup_enabled_yaml is False:
+            self.log_this(f"Skipping {c.name} because YAML backup.enabled=false", "DEBUG")
+            return True
+        # Label explicit disable wins
+        if label_enable is False:
             self.log_this(f"Skipping {c.name} based on label", "DEBUG")
             return True
-
-        if self.env.REQUIRE_LABEL == True and nautical_backup_enable is not True:
-            self.log_this(
-                f"Skipping {c.name} as '{self.prefix}.enable=true' was not found and REQUIRE_LABEL is true.", "DEBUG"
-            )
-            return True
+        # Require label enforcement
+        if eff and eff.require_label:
+            if label_enable is not True:
+                self.log_this(
+                    f"Skipping {c.name} as '{self.prefix}.enable=true' was not found and require_label is true.",
+                    "DEBUG",
+                )
+                return True
 
         if c.name in skip_containers_set:
             self.log_this(f"Skipping {c.name} based on name", "DEBUG")
@@ -251,21 +314,26 @@ class NauticalBackup:
         containers_by_group_in_process: Dict[str, List[Tuple[int, NauticalContainer]]] = {}
 
         for c in containers:
+            # Resolve effective config once per container for precedence
+            c.effective = EffectiveContainerConfig.resolve(c.config, c.labels, self.env, self.prefix)
             if self._should_skip_container(c) == True:
                 self.containers_skipped.add(c.name)
                 continue  # Skip this container
 
             # Create a default group, so ungrouped items are not grouped together
             default_group = f"{self.default_group_pfx_sfx}{str(c.id)[0:12]}{self.default_group_pfx_sfx}"
-            group = str(self.get_label(c, "group", default_group))
+            eff = c.effective
+            group = eff.group if eff else ""
+            if not group:
+                group = default_group
             if not group or group == "":
                 group = default_group
 
             # Split the group string into a list of groups by comma
             groups = group.split(",")
             for g in groups:
-                # Get priority. Default=100
-                priority = int(self.get_label(c, f"group.{g}.priority", 100))
+                # Get priority. Prefer YAML config.group_priority else label value for that group.
+                priority = int(c.effective.group_priority) if c.effective else 100
 
                 if g not in containers_by_group_in_process:
                     containers_by_group_in_process[g] = [(priority, c)]
@@ -296,7 +364,7 @@ class NauticalBackup:
 
     def _run_exec(
         self,
-        c: Optional[Container],
+        c: Optional[NauticalContainer],
         when: BeforeAfterorDuring,
         attached_to_container=False,
     ) -> Optional[subprocess.CompletedProcess[bytes]]:
@@ -305,8 +373,9 @@ class NauticalBackup:
 
         if attached_to_container == True and c:
             if when == BeforeAfterorDuring.BEFORE:
+                # Use resolved YAML/label precedence via effective config
+                command = str(c.effective.exec_before) if c.effective else ""
                 curl_command = str(self.get_label(c, "curl.before", ""))
-                command = str(self.get_label(c, "exec.before", curl_command))
 
                 if curl_command and curl_command != "":
                     self.log_this(
@@ -316,8 +385,8 @@ class NauticalBackup:
                 if command and command != "":
                     self.log_this("Running PRE-backup exec command for $name", "DEBUG")
             elif when == BeforeAfterorDuring.DURING:
+                command = str(c.effective.exec_during) if c.effective else ""
                 curl_command = str(self.get_label(c, "curl.during", ""))
-                command = str(self.get_label(c, "exec.during", curl_command))
 
                 if curl_command and curl_command != "":
                     self.log_this(
@@ -327,8 +396,8 @@ class NauticalBackup:
                 if command and command != "":
                     self.log_this("Running DURING-backup exec command for $name", "DEBUG")
             elif when == BeforeAfterorDuring.AFTER:
+                command = str(c.effective.exec_after) if c.effective else ""
                 curl_command = str(self.get_label(c, "curl.after", ""))
-                command = str(self.get_label(c, "exec.after", curl_command))
                 if curl_command and curl_command != "":
                     self.log_this(
                         f"Deprecated: '{self.prefix}.curl.after' has been moved to '{self.prefix}.exec.after'",
@@ -392,16 +461,18 @@ class NauticalBackup:
 
         return out
 
-    def _run_lifecyle_hook(self, c: Container, when: BeforeOrAfter):
+    def _run_lifecyle_hook(self, c: NauticalContainer, when: BeforeOrAfter):
         """Runs a commend inside the child container"""
         if when == BeforeOrAfter.BEFORE:
-            command = str(self.get_label(c, "lifecycle.before", ""))
-            timeout = str(self.get_label(c, "lifecycle.before.timeout", "60"))
+            eff = c.effective
+            command = str(eff.lifecycle_before) if eff else ""
+            timeout = str(eff.lifecycle_before_timeout) if eff else "60"
             if command and command != "":
                 self.log_this("Running DURING-backup lifecycle hook for $name", "DEBUG")
         elif when == BeforeOrAfter.AFTER:
-            timeout = str(self.get_label(c, "lifecycle.after.timeout", "60"))
-            command = str(self.get_label(c, "lifecycle.after", ""))
+            eff = c.effective
+            timeout = str(eff.lifecycle_after_timeout) if eff else "60"
+            command = str(eff.lifecycle_after) if eff else ""
             if command and command != "":
                 self.log_this("Running AFTER-backup lifecycle hook for $name", "DEBUG")
         else:
@@ -414,7 +485,7 @@ class NauticalBackup:
         self.log_this(f"RUNNING '{command}'", "DEBUG")
         c.exec_run(command)
 
-    def _stop_container(self, c: Container, attempt=1) -> bool:
+    def _stop_container(self, c: NauticalContainer, attempt=1) -> bool:
         c.reload()  # Refresh the status for this container
 
         SKIP_STOPPING = self.env.SKIP_STOPPING
@@ -449,7 +520,7 @@ class NauticalBackup:
             self._stop_container(c, attempt=attempt + 1)
         return False
 
-    def _start_container(self, c: Container, attempt=1) -> bool:
+    def _start_container(self, c: NauticalContainer, attempt=1) -> bool:
         c.reload()  # Refresh the status for this container
 
         if c.status != "exited":
@@ -472,7 +543,7 @@ class NauticalBackup:
             self._start_container(c, attempt=attempt + 1)
         return False
 
-    def _get_dest_dir(self, c: Container, src_dir_name: str) -> Tuple[Path, str]:
+    def _get_dest_dir(self, c: NauticalContainer, src_dir_name: str) -> Tuple[Path, str]:
         base_dest_dir = Path(self.env.DEST_LOCATION)
         dest_dir_full: Path = base_dest_dir / str(c.name)
         dest_dir_name = str(c.name)
@@ -588,13 +659,14 @@ class NauticalBackup:
             self.log_this(f"Backing up standalone additional folder '{folder}'")
             self._run_rsync(None, rsync_args, src_dir, dest_dir)
 
-    def _backup_additional_folders(self, c: Container, base_dest_dir: Path):
-        additional_folders = str(self.get_label(c, "additional-folders", ""))
+    def _backup_additional_folders(self, c: NauticalContainer, base_dest_dir: Path):
+        # Use resolved additional folders from effective config
+        additional_folders = ",".join(c.effective.additional_folders) if c.effective else ""
         base_src_dir = Path(self.env.SOURCE_LOCATION)
 
         rsync_args = self._get_rsync_args(c, log=False)
 
-        for folder in additional_folders.split(","):
+        for folder in str(additional_folders).split(","):
             if not folder or folder.strip() == "":
                 continue
 
@@ -643,7 +715,7 @@ class NauticalBackup:
     #     if not additional_folders_when or additional_folders_when == "during":
     #         self._backup_additional_folders(c, dest_path)
 
-    def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
+    def _run_rsync(self, c: Optional[NauticalContainer], rsync_args: str, src_dir: Path, dest_dir: Path):
         src_folder = f"{src_dir.absolute()}/"
         dest_folder = f"{dest_dir.absolute()}/"
 
@@ -655,41 +727,20 @@ class NauticalBackup:
 
         out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
 
-    def _get_rsync_args(self, c: Optional[Container], log=False) -> str:
+    def _get_rsync_args(self, c: Optional[NauticalContainer], log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
-        custom_rsync_args = ""
-        used_default_args = True
-
-        if str(self.env.USE_DEFAULT_RSYNC_ARGS).lower() == "false":
-            if log == True:
+        # Use centralized effective config when available
+        eff = c.effective if c is not None else None
+        use_default = eff.use_default_rsync_args if eff else True
+        if not use_default:
+            if log:
                 self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
             default_rsync_args = ""
-
-        if c:
-            use_default_args = str(self.get_label(c, "use-default-rsync-args", "")).lower()
-            if use_default_args == "false":
-                if log == True:
-                    self.log_this(f"Disabling default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
-                default_rsync_args = ""
-
-        if str(self.env.RSYNC_CUSTOM_ARGS) != "":
-            custom_rsync_args = str(self.env.RSYNC_CUSTOM_ARGS)
-            if log == True:
-                self.log_this(f"Adding custom rsync arguments ({custom_rsync_args})", "DEBUG")
-            used_default_args = False
-
-        if c:
-            custom_rsync_args_label = str(self.get_label(c, "rsync-custom-args", ""))
-            if custom_rsync_args_label != "":
-                if log == True:
-                    self.log_this(f"Setting custom rsync args from label ({custom_rsync_args_label})", "DEBUG")
-                custom_rsync_args = custom_rsync_args_label
-                used_default_args = False
-
-        if log == True:
-            if used_default_args == True:
+        custom_rsync_args = eff.rsync_custom_args if eff else str(self.env.RSYNC_CUSTOM_ARGS or "")
+        if log:
+            if use_default:
                 self.log_this(f"Using default rsync arguments ({self.env.DEFAULT_RNC_ARGS})", "DEBUG")
-            else:
+            if custom_rsync_args:
                 self.log_this(f"Using custom rsync arguments ({custom_rsync_args})", "DEBUG")
 
         return f"{default_rsync_args} {custom_rsync_args}"
@@ -720,12 +771,13 @@ class NauticalBackup:
         dest_dirs = copy.deepcopy([])
         for dir in dest_dirs:
             self.log_this(f"Secondary destination directories '{dir.absolute()}'", "DEBUG")
+        # Global primary destination for standalone additional folders
         dest_dirs.insert(0, Path(self.env.DEST_LOCATION))
 
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.BEFORE, dir)
 
-        containers_by_group = self.group_containers()
+        containers_by_group: Dict[str, List[NauticalContainer]] = self.group_containers()
 
         for group, containers in containers_by_group.items():
             # No need to print group for individual containers
@@ -738,14 +790,16 @@ class NauticalBackup:
                 self._run_exec(c, BeforeAfterorDuring.BEFORE, attached_to_container=True)
                 self._run_lifecyle_hook(c, BeforeOrAfter.BEFORE)
 
-                additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
+                # Determine per-container destination directories from effective config
+                ctr_dest_dirs = list(c.effective.dest_dirs) if c.effective else [Path(self.env.DEST_LOCATION)]
+
+                additional_folders_when = str(c.effective.additional_folders_when).lower() if c.effective else "during"
                 if additional_folders_when == "before":
-                    for dir in dest_dirs:
+                    for dir in ctr_dest_dirs:
                         self._backup_additional_folders(c, dir)
 
                 c.config.filtered_volumes = ContainerFunctions().process_allow_and_deny_for_mounts(c)
                 mounts = c.config.filtered_volumes
-                print("Filtered mounts:", mounts)
 
                 if len(mounts) == 0:
                     self.log_this(f"{c.name} - No mounts allowed. Skipping backup for {c.name}", "DEBUG")
@@ -760,9 +814,13 @@ class NauticalBackup:
                         read_access_amount += 1
                     elif not os.access(src_dir, os.R_OK):
                         get_folder_size(src_dir)
+                        # Count as an access issue
+                        read_access_amount += 1
 
-                if read_access_amount == 0:
-                    self.log_this(f"Skipping backup of {c.name} because source directories do not exist", "ERROR")
+                if read_access_amount > 0:
+                    self.log_this(
+                        f"Skipping backup of {c.name} because one or more source directories are inaccessible", "ERROR"
+                    )
                     self.containers_skipped.add(c.name)
 
                 stop_result = self._stop_container(c)  # Stop containers
@@ -772,7 +830,8 @@ class NauticalBackup:
                 # Backup containers
                 c.reload()  # Refresh the status for this container
                 if c.status != "exited":
-                    stop_before_backup = str(self.get_label(c, "stop-before-backup", "true"))
+                    # Determine whether stop-before-backup is required from effective config
+                    stop_before_backup = bool(c.effective.stop_before_backup) if c.effective else True
 
                     # Allow the user to skip stopping the container before backup
                     # Here we allow the Enviorment variable to supercede the EMPTY label
@@ -782,18 +841,46 @@ class NauticalBackup:
                     if c.name in skip_stopping_set or c.id in skip_stopping_set:
                         stop_before_backup_env = False
 
-                    if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
+                    if stop_before_backup and stop_before_backup_env == True:
                         if c.name not in self.containers_skipped:
                             self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
                         self.containers_skipped.add(c.name)
                         continue
 
                 # self._backup_container_folders(c)
-                dest_dirs = c.config.backup.dest_dirs
-                print("DEST_DIRS", str(dest_dirs))
-                for dir in dest_dirs:
-                    pass
-                    # self._backup_container_folders(c, dir)
+                ctr_dest_dirs = list(c.effective.dest_dirs) if c.effective else [Path(self.env.DEST_LOCATION)]
+                rsync_args = self._get_rsync_args(c, log=False)
+                # For each destination directory, apply directory mappings and rsync allowed mounts
+                for base_dest_dir in ctr_dest_dirs:
+                    # Ensure base destination exists and is writable
+                    self.verify_destination_location(base_dest_dir)
+
+                    # Iterate mounts and back them up according to directory mappings
+                    for mount in c.config.filtered_volumes or []:
+                        try:
+                            ndm = self.config.get_directory_mappings_with_precedence(mount.source, None)
+                        except Exception as e:
+                            self.log_this(
+                                f"{c.name} - No directory mapping for source '{mount.source}'. Skipping this mount.",
+                                "WARN",
+                            )
+                            continue
+
+                        # Build destination path, honoring date folder settings when enabled
+                        if str(self.env.USE_DEST_DATE_FOLDER).lower() == "true":
+                            dest_dir = self._format_dated_folder(base_dest_dir, ndm.final_path.as_posix())
+                        else:
+                            dest_dir = base_dest_dir / ndm.final_path
+
+                        # Make sure destination exists prior to rsync
+                        self.verify_destination_location(dest_dir)
+
+                        src_dir = Path(mount.source)
+                        self.log_this(
+                            f"{c.name} - Backing up mount '{src_dir}' -> '{dest_dir}' using mapping '{ndm.name}'",
+                            "INFO",
+                        )
+                        self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
                 self._run_exec(c, BeforeAfterorDuring.DURING, attached_to_container=True)
 
@@ -805,9 +892,12 @@ class NauticalBackup:
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
                 self._run_exec(c, BeforeAfterorDuring.AFTER, attached_to_container=True)
 
-                additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
+                # Determine per-container destination directories from effective config
+                ctr_dest_dirs = list(c.effective.dest_dirs) if c.effective else [Path(self.env.DEST_LOCATION)]
+
+                additional_folders_when = str(c.effective.additional_folders_when).lower() if c.effective else "during"
                 if additional_folders_when == "after":
-                    for dir in dest_dirs:
+                    for dir in ctr_dest_dirs:
                         self._backup_additional_folders(c, dir)
 
                 if c.name not in self.containers_skipped:
