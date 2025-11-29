@@ -1,4 +1,4 @@
-fastapi==0.121.3
+fastapi==0.122.0
 pydantic==2.12.4
 uvicorn==0.38.0
 croniter==6.0.0
