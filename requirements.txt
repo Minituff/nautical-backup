@@ -1,6 +1,6 @@
 fastapi==0.127.0
 pydantic==2.12.5
-uvicorn==0.38.0
+uvicorn==0.40.0
 croniter==6.0.0
 pytz==2025.2
 docker==7.1.0
