@@ -68,7 +68,7 @@ jobs:
         files: coverage.xml
 
     - name: Archive code coverage results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: python-code-coverage
         path: htmlcov/
