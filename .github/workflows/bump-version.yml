@@ -19,7 +19,7 @@ jobs:
       contents: write
     
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       
       # Bump the `patch` level
       - name: Bump version and push tag
