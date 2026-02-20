@@ -1,0 +1,1469 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A simple Docker volume backup tool.">
+      
+      
+        <meta name="author" content="James Tufarelli">
+      
+      
+        <link rel="canonical" href="https://minituff.github.io/nautical-backup/updates/">
+      
+      
+        <link rel="prev" href="../labels/">
+      
+      
+        <link rel="next" href="../rest-api/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Updating Nautical - Nautical Backup</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#understanding-semantic-versioning" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Nautical Backup" class="md-header__button md-logo" aria-label="Nautical Backup" data-md-component="logo">
+      
+  <img src="../media/Logo-large.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Nautical Backup
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Updating Nautical
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="orange"  aria-label="Burn my eyes!"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Burn my eyes!" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Love my eyes!"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Love my eyes!" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/minituff/nautical-backup" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Nautical Backup" class="md-nav__button md-logo" aria-label="Nautical Backup" data-md-component="logo">
+      
+  <img src="../media/Logo-large.png" alt="logo">
+
+    </a>
+    Nautical Backup
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/minituff/nautical-backup" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../labels/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updating Nautical
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updating Nautical
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-semantic-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Semantic Versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatic-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rest API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-socket-proxy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Socket Proxy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source & Destination Mappings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/nfs-share/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NFS Shares
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/remote-backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remote Backups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/homepage-dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../q-and-a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Q & A
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Documentation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Documentation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/dev-container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev Container
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to the Docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Env Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-semantic-versioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Semantic Versioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#manual-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatic-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+  
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+  
+    <a href="https://github.com/minituff/nautical-backup/edit/main/docs/updates.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/minituff/nautical-backup/raw/main/docs/updates.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+  <h1>Updating Nautical</h1>
+
+<p>Updating Nautical <small>(and any container)</small> is a balance between <em>convenience</em>, <em>reliability</em> and <em>security</em>.</p>
+<p>Updating your container can bring new features, bug fixes and security patches, but can also introduce unintended behavior.</p>
+<h2 id="understanding-semantic-versioning">Understanding Semantic Versioning<a class="headerlink" href="#understanding-semantic-versioning" title="Permanent link">&para;</a></h2>
+<p><a href="https://semver.org">Semver</a> is a means to communicate the changes to an application just by looking at the version number.
+Nautical uses <a href="https://semver.org">Semver</a> like this.</p>
+<p><code>vMAJOR.MINOR.PATCH</code>, for example:
+<a href="https://hub.docker.com/r/minituff/nautical-backup"><img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/minituff/nautical-backup/latest?label= " /></a></p>
+<ul>
+<li><strong>MAJOR</strong> - A large change that breaks/reworks an existing feature. <ul>
+<li>This usually means you will need to change the Nautical configuration.</li>
+</ul>
+</li>
+<li><strong>MINOR</strong> - Add functionality in a backward compatible manner.<ul>
+<li>Everything <em>should</em> continue working without changes to the Nautical configuration.</li>
+</ul>
+</li>
+<li><strong>PATCH</strong> - A small change such as updating a dependency, log output, or minor fix.<ul>
+<li>From the user perspective, nothing will have changed, but under the hood, small improvements were made.</li>
+</ul>
+</li>
+</ul>
+<h2 id="manual-updates">Manual Updates<a class="headerlink" href="#manual-updates" title="Permanent link">&para;</a></h2>
+<p>To manually update Nautical, simply re-deploy using either of these configs, but specify the latest version of the Nautical.
+Currently, the latest version of Nautical is <a href="https://hub.docker.com/r/minituff/nautical-backup"><img alt="Docker Image Version (latest semver)" src="https://img.shields.io/docker/v/minituff/nautical-backup/latest?label= " /></a>. <small>(do not add the <code>v</code>)</small></p>
+<p>This will need to be done each time a new version is released.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Docker Compose</label><label for="__tabbed_1_2">Docker Cli</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nautical-backup</span><span class="p">:</span>
+<span class="hll"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minituff/nautical-backup:2.14.38</span><span class="w"> </span><span class="c1"># Change this to the latest version</span>
+</span><span class="w">    </span><span class="c1"># Rest of config...</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>nautical-backup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\ </span><span class="c1">#(1)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/config:/config<span class="w"> </span><span class="se">\ </span><span class="c1">#(9)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/source:/app/source<span class="w"> </span><span class="se">\ </span><span class="c1">#(2)!</span>
+<span class="hll"><span class="w">  </span>-v<span class="w"> </span>/destination:/app/destination<span class="w"> </span><span class="se">\ </span><span class="c1">#(3)!</span>
+</span><span class="w">  </span>minituff/nautical-backup:2.14.38
+
+<span class="w">  </span><span class="c1"># Update the version number in the line above</span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+</ol>
+</div>
+</div>
+</div>
+<h2 id="automatic-updates">Automatic Updates<a class="headerlink" href="#automatic-updates" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/containrrr/watchtower/">Watchtower</a> is an excellent tool to keep your Docker containers updated.</p>
+<p>While convenient, automatic updates may break things. For this reason we recommend only automatically updating to the latest <code>PATCH</code> version.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Patch Updates Only</label><label for="__tabbed_2_2">Minor And Patch Updates</label><label for="__tabbed_2_3">Latest Updates (All)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition note">
+<p>These examples only specify the <a href="https://semver.org">Semver</a> <code>vMAJOR.MINOR</code> numbers, leaving <code>PATCH</code> out--this means that Watchtower will update the <code>PATCH</code> number if available.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Docker Compose</label><label for="__tabbed_3_2">Docker Cli</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nautical-backup</span><span class="p">:</span>
+<span class="hll"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minituff/nautical-backup:2.14</span><span class="w"> </span><span class="c1">#(7)!</span>
+</span><span class="w">    </span><span class="c1"># Rest of config...</span>
+
+<span class="w">  </span><span class="nt">watchtower</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">containrrr/watchtower:latest</span>
+<span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">watchtower</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nautical-backup</span><span class="w"> </span><span class="c1"># (9)! </span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+<li>
+<p>Which containers to use. </p>
+<p>Remove this line to update all containers.</p>
+</li>
+</ol>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>nautical-backup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\ </span><span class="c1">#(1)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/config:/config<span class="w"> </span><span class="se">\ </span><span class="c1">#(9)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/source:/app/source<span class="w"> </span><span class="se">\ </span><span class="c1">#(2)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/destination:/app/destination<span class="w"> </span><span class="se">\ </span><span class="c1">#(3)!</span>
+<span class="hll"><span class="w">  </span>minituff/nautical-backup:2.14<span class="w"> </span><span class="c1">#(7)!</span>
+</span>
+docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>watchtower<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>containrrr/watchtower<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nautical-backup<span class="w"> </span><span class="c1">#(9)!</span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+<li>
+<p>Which containers to use. </p>
+<p>Remove this line to update all containers.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="admonition note">
+<p>These examples specify the <a href="https://semver.org">Semver</a> <code>vMAJOR</code> number, leaving <code>MINOR</code> <code>PATCH</code> out--this means that Watchtower will update <code>MINOR</code> and <code>PATCH</code> versions if available.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Docker Compose</label><label for="__tabbed_4_2">Docker Cli</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nautical-backup</span><span class="p">:</span>
+<span class="hll"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minituff/nautical-backup:2</span>
+</span><span class="w">    </span><span class="c1"># Rest of config...</span>
+
+<span class="w">  </span><span class="nt">watchtower</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">containrrr/watchtower:latest</span>
+<span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">watchtower</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nautical-backup</span><span class="w"> </span><span class="c1"># (9)! </span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+<li>
+<p>Which containers to use. </p>
+<p>Remove this line to update all containers.</p>
+</li>
+</ol>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>nautical-backup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\ </span><span class="c1">#(1)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/config:/config<span class="w"> </span><span class="se">\ </span><span class="c1">#(9)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/source:/app/source<span class="w"> </span><span class="se">\ </span><span class="c1">#(2)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/destination:/app/destination<span class="w"> </span><span class="se">\ </span><span class="c1">#(3)!</span>
+<span class="hll"><span class="w">  </span>minituff/nautical-backup:2
+</span>
+docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>watchtower<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>containrrr/watchtower<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nautical-backup<span class="w"> </span><span class="c1">#(9)!</span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+<li>
+<p>Which containers to use. </p>
+<p>Remove this line to update all containers.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="admonition note">
+<p>If you're really feeling like living on the bleeding edge. You can use the <code>latest</code> tag to ensure you are always up to date.
+This will get the latest <a href="https://semver.org">Semver</a> <code>MAJOR</code>, <code>MINOR</code>, and <code>PATCH</code> updates.</p>
+<div class="admonition danger">
+<p class="admonition-title">This will most likely break things at some point</p>
+<p>If you go this route, just ensure you aren't using Nautical for anything mission critical, and be prepared to either help troubleshoot or wait for a new version with a bug fix.</p>
+</div>
+<p>This is an example of using <a href="https://github.com/containrrr/watchtower/">Watchtower</a> to keep Nautical on the <code>latest</code> version.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Docker Compose</label><label for="__tabbed_5_2">Docker Cli</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nautical-backup</span><span class="p">:</span>
+<span class="hll"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minituff/nautical-backup:latest</span>
+</span><span class="w">    </span><span class="c1"># Rest of config...</span>
+
+<span class="w">  </span><span class="nt">watchtower</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">containrrr/watchtower:latest</span>
+<span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">watchtower</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nautical-backup</span><span class="w"> </span><span class="c1"># (9)! </span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+<li>
+<p>Which containers to use. </p>
+<p>Remove this line to update all containers.</p>
+</li>
+</ol>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>nautical-backup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\ </span><span class="c1">#(1)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/config:/config<span class="w"> </span><span class="se">\ </span><span class="c1">#(9)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/source:/app/source<span class="w"> </span><span class="se">\ </span><span class="c1">#(2)!</span>
+<span class="w">  </span>-v<span class="w"> </span>/destination:/app/destination<span class="w"> </span><span class="se">\ </span><span class="c1">#(3)!</span>
+<span class="hll"><span class="w">  </span>minituff/nautical-backup:latest
+</span>
+docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>watchtower<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>/var/run/docker.sock:/var/run/docker.sock<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>containrrr/watchtower<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nautical-backup<span class="w"> </span><span class="c1">#(9)!</span>
+</code></pre></div>
+<ol>
+<li>Mount the docker socket. Used to start and stop containers. See the <a href="https://minituff.github.io/nautical-backup/docker-socket-proxy">Docker Socket Proxy page</a> for more information.</li>
+<li>Mount the <code>source</code> directory.</li>
+<li>Mount the <code>destination</code> directory.</li>
+<li><em>TIP</em>: Avoid using "quotes" in the enviornment variables.</li>
+<li>Scheduled time to run backups. Use <a href="https://crontab.guru">this website</a> to help pick a CRON schedule.<ul>
+<li>Default = <code>0 4 * * *</code> - Every day at 4am.</li>
+</ul>
+</li>
+<li>Containers to skip for backup. A comma-separated list.</li>
+<li>It is recommended to avoid using the <code>latest</code> tag.<ul>
+<li>This project is under active development, using a exact tag can help avoid updates breaking things.</li>
+</ul>
+</li>
+<li>Set the time-zone. See this <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">Wikipedia page</a> for a list of available time-zones.</li>
+<li>Configuration folder. This directory will will Nautical's internal database which stores metrics and history.</li>
+<li>
+<p>Which containers to use. </p>
+<p>Remove this line to update all containers.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+  
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" hidden>
+        
+          
+          <a href="../labels/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Docker Labels">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Docker Labels
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../rest-api/" class="md-footer__link md-footer__link--next" aria-label="Next: Rest API">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Rest API
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.instant", "navigation.top", "navigation.path", "navigation.tracking", "search.suggest", "search.share", "search.highlight", "content.code.annotate", "content.code.copy", "content.code.select", "header.autohide", "announce.dismiss", "toc.follow", "content.action.edit", "content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

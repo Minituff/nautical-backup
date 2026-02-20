@@ -1,0 +1,2098 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A simple Docker volume backup tool.">
+      
+      
+        <meta name="author" content="James Tufarelli">
+      
+      
+        <link rel="canonical" href="https://minituff.github.io/nautical-backup/labels/">
+      
+      
+        <link rel="prev" href="../arguments/">
+      
+      
+        <link rel="next" href="../updates/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Docker Labels - Nautical Backup</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-to-add-labels" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Nautical Backup" class="md-header__button md-logo" aria-label="Nautical Backup" data-md-component="logo">
+      
+  <img src="../media/Logo-large.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Nautical Backup
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Docker Labels
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="orange"  aria-label="Burn my eyes!"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Burn my eyes!" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Love my eyes!"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Love my eyes!" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/minituff/nautical-backup" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Nautical Backup" class="md-nav__button md-logo" aria-label="Nautical Backup" data-md-component="logo">
+      
+  <img src="../media/Logo-large.png" alt="logo">
+
+    </a>
+    Nautical Backup
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/minituff/nautical-backup" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../arguments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Labels
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Labels
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-add-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to add labels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#label-vs-environment-variable-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Label vs Environment Variable Priority
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-or-disable-nautical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or Disable Nautical
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop-container-before-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Container Before Backup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Timeout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Groups
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group-priority-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Group Priority (Order)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#require-source-folder-for-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Require Source Folder for Backup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Folders
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Folders">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-backup-additional-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to backup additional folders?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#override-source-directory-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Override Source Directory Name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#override-destination-directory-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Override Destination Directory Name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mirror-source-directory-name-to-destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mirror Source Directory Name to Destination
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execute Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle Hooks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lifecycle Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-hook-timeouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle Hook Timeouts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-default-rsync-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Default rsync Arguments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-rsync-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom rsync Arguments
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../updates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Updating Nautical
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rest-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rest API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker-socket-proxy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Socket Proxy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Usage
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Usage
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Source & Destination Mappings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/nfs-share/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NFS Shares
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/remote-backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Remote Backups
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/homepage-dashboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../q-and-a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Q & A
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Documentation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Documentation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/dev-container/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev Container
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/tests/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to the Docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developers/env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Env Variables
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-add-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to add labels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#label-vs-environment-variable-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Label vs Environment Variable Priority
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-or-disable-nautical" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enable or Disable Nautical
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop-container-before-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Container Before Backup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stop-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Timeout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Groups
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#group-priority-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Group Priority (Order)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#require-source-folder-for-backup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Require Source Folder for Backup
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Folders
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Additional Folders">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-backup-additional-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to backup additional folders?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#override-source-directory-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Override Source Directory Name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#override-destination-directory-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Override Destination Directory Name
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mirror-source-directory-name-to-destination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mirror Source Directory Name to Destination
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execute Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lifecycle-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle Hooks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lifecycle Hooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lifecycle-hook-timeouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lifecycle Hook Timeouts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-default-rsync-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Default rsync Arguments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-rsync-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom rsync Arguments
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/minituff/nautical-backup/edit/main/docs/labels.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/minituff/nautical-backup/raw/main/docs/labels.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+  <h1>Docker Labels</h1>
+
+<p>Docker Labels allow us to apply settings to Nautical on a per-container basis. Instead of applying <a href="../arguments/">environment variables</a>, we can apply the label to the each container separately.</p>
+<h3 id="how-to-add-labels">How to add labels<a class="headerlink" href="#how-to-add-labels" title="Permanent link">&para;</a></h3>
+<p>Here are a few examples of how to add labels to a Docker container.
+Remember, these labels can be added to any container <small> (other than Nautical itself).</small></p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Docker Compose Example 1</label><label for="__tabbed_1_2">Docker Compose Example 2</label><label for="__tabbed_1_3">Docker Run Example 1</label><label for="__tabbed_1_4">Docker Run Example 2</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3&#39;</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Service config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.enable=true&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.stop-before-backup=true&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.rsync-custom-args=</span><span class="nv"> </span><span class="s">&quot;</span><span class="w"> </span><span class="c1"># Disable custom rsync args</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3&#39;</span>
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">pihole</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pihole</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pihole/pihole:latest</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;53:53/tcp&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;53:53/udp&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;80:80/tcp&quot;</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;./etc-pihole:/etc/pihole&#39;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;./etc-dnsmasq.d:/etc/dnsmasq.d&#39;</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.enable=true&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.stop-before-backup=true&quot;</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>--name<span class="w"> </span>example-image<span class="w"> </span><span class="se">\</span>
+-l<span class="w"> </span>nautical-backup.enable<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+-l<span class="w"> </span>nautical-backup.stop-before-backup<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+my-image:latest
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>pihole<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="m">53</span>:53/tcp<span class="w"> </span>-p<span class="w"> </span><span class="m">53</span>:53/udp<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="m">80</span>:80<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">TZ</span><span class="o">=</span><span class="s2">&quot;America/Chicago&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PIHOLE_BASE</span><span class="si">}</span><span class="s2">/etc-pihole:/etc/pihole&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">PIHOLE_BASE</span><span class="si">}</span><span class="s2">/etc-dnsmasq.d:/etc/dnsmasq.d&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-l<span class="w"> </span>nautical-backup.enable<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-l<span class="w"> </span>nautical-backup.stop-before-backup<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>pihole/pihole:latest
+</code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="label-vs-environment-variable-priority">Label vs Environment Variable Priority<a class="headerlink" href="#label-vs-environment-variable-priority" title="Permanent link">&para;</a></h3>
+<p>If a container has an Environment Variable applied as well as a conflicting Label, then:</p>
+<blockquote>
+<p>The container Label takes priority over the global Nautical environment variable.</p>
+</blockquote>
+<h2 id="enable-or-disable-nautical">Enable or Disable Nautical<a class="headerlink" href="#enable-or-disable-nautical" title="Permanent link">&para;</a></h2>
+<p>This Docker label can be used to achieve 2 things:</p>
+<ol>
+<li>Opt a container <strong>OUT</strong> of backup</li>
+<li>Opt a container <strong>IN</strong> to a backup <small>(with the Nautical <a href="../arguments/#require-label">Require Label</a> environment variable set to <code>true</code>)</small></li>
+</ol>
+<blockquote>
+<p><strong>Default If Missing</strong>: true <small> (all containers will be enabled, unless <a href="../arguments/#require-label">Require Label</a> is set to <code>true</code>).</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.enable</span><span class="o">=</span><span class="s">true</span>
+</code></pre></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Example 1 (Opt out)</label><label for="__tabbed_2_2">Example 2 (Opt in)</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition note">
+<p>With the <a href="../arguments/#require-label">Require Label</a> environment variable <em>not set</em> or set to <code>false</code>.
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example Service #1 config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.enable=false&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example Service #2 config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.enable=true&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example Service #3 config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span>
+<span class="w">    </span><span class="c1"># No labels</span>
+</code></pre></div>
+The results of this configuration would be:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Service 1 - <em>Skipped</em> since <code>nautical-backup.enable</code> was set to <code>false</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Service 2 - <em>Backed up</em> since the label <code>nautical-backup.enable=true</code> was present</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Service 3 - <em>Backed up</em> since no <code>nautical-backup.enable=false</code> label was found<ul>
+<li>The <a href="../arguments/#require-label">Require Label</a> environment variable was either <em>not set</em> or set to <code>false</code> for this example</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="admonition note">
+<p>With the <a href="../arguments/#require-label">Require Label</a> environment variable set to <code>true</code>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example Service #1 config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.enable=true&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example Service #2 config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.enable=false&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span><span class="w"> </span><span class="c1"># Example Service #3 config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span><span class="w"> </span>
+<span class="w">    </span><span class="c1"># No labels</span>
+</code></pre></div></p>
+<p>The results of this configuration would be:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Service 1 - <em>Backed up</em> since the label <code>nautical-backup.enable=true</code> was present</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Service 2 - <em>Skipped</em> since <code>nautical-backup.enable</code> was set to <code>false</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Service 3 - <em>Skipped</em> since no <code>nautical-backup.enable=true</code> label was found</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<p><small>🔄 <code>nautical-backup.enable=false</code> is the same action as the <a href="../arguments/#skip-containers">Skip Containers</a> variable, but applied only to this container.</small></p>
+<h2 id="stop-container-before-backup">Stop Container Before Backup<a class="headerlink" href="#stop-container-before-backup" title="Permanent link">&para;</a></h2>
+<p>With this label set to <code>false</code>, the container will not be stopped before performing a backup.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: true <small> (container <ins>will</ins> be stopped before backup).</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.stop-before-backup</span><span class="o">=</span><span class="s">false</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Not stopping containers can produce <em>corrupt</em> backups.</p>
+<p>Containers with databases--particularly SQL--need to be shutdown before backup.</p>
+<p>Only do this on containers you know for certain do not need to be shutdown before backup.</p>
+</div>
+<p><small>🔄 This is a similar action to the <a href="../arguments/#skip-stopping-containers">Skip Stopping Containers</a> variable, but applied only to this container.</small></p>
+<h2 id="stop-timeout">Stop Timeout<a class="headerlink" href="#stop-timeout" title="Permanent link">&para;</a></h2>
+<p>Nautical will allow the container  <em>x</em> amount of <em>seconds</em> to shutdown gracefully before killing the container.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <a href="../arguments/#stop-timeout">Stop Timeout</a> Environment value<small> (Defaults to 10 seconds)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.stop-timeout</span><span class="o">=</span><span class="s">10</span>
+</code></pre></div>
+<p><small>🔄 This is a similar action to the <a href="../arguments/#stop-timeout">Stop Timeout</a> variable, but applied only to this container.</small></p>
+<h2 id="groups">Groups<a class="headerlink" href="#groups" title="Permanent link">&para;</a></h2>
+<p>Use this label to have multiple containers stopped, backed up, and restarted at the same time.</p>
+<p>This is useful for services that require multiple containers.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <em>none</em> <small> (no groups, will be handed independently)</small></p>
+<p><strong>Format</strong>: <code>&lt;string&gt;</code>  <small>(comma separated for multiple items)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.group</span><span class="o">=</span><span class="s">group_name</span>
+</code></pre></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">Example 1</label><label for="__tabbed_3_2">Example 2</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition example">
+<p>In this example, we define two groups: <code>paperless</code> and <code>authentic</code>. 
+The <code>redis</code> container is shared between two groups and will be backed up both times.</p>
+<p><div class="highlight"><pre><span></span><code><span class="nt">paperless-ngx</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=paperless&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">redis</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=paperless,authentic&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">authentic-worker</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+</code></pre></div></p>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="admonition example">
+<p>In this example, the <code>authentic</code> folder is defined for all the containers used by Authentic.</p>
+<p>They do <em>not</em> need to be part of the same docker-compose file.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">authentik-worker-1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+<span class="w">  </span><span class="nt">authentik-postgresql-1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+<span class="w">  </span><span class="nt">authentik-redis-1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+</div>
+<h2 id="group-priority-order">Group Priority (Order)<a class="headerlink" href="#group-priority-order" title="Permanent link">&para;</a></h2>
+<p>When using the <a href="#groups">Groups</a> feature, the Priority will allow you to control the order in which containers are started/stopped.</p>
+<p>Containers within a group are backed up with the <mark>highest priority first</mark>, in descending order.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <em>100</em></p>
+<p><strong>Format</strong>: <code>&lt;integer&gt;</code></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.group.&lt;group_name&gt;.priority</span><span class="o">=</span><span class="s">&lt;integer&gt;</span>
+</code></pre></div>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><div class="tabbed-labels"><label for="__tabbed_4_1">Example 1</label><label for="__tabbed_4_2">Example 2</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition example">
+<ul>
+<li>The backup order for the group <code>paperless</code> is: <em>paperless-ngx</em> <small>(105)</small> &rarr; <em>redis</em>  <small>(90)</small></li>
+<li>The backup order for the group <code>authentic</code> is: <em>authentic-worker</em>  <small>(100/default)</small> &rarr; <em>redis</em>  <small>(85)</small></li>
+</ul>
+<p><div class="highlight"><pre><span></span><code><span class="nt">paperless-ngx</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=paperless&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group.paperless.priority=105&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">redis</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=paperless,authentic&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group.paperless.priority=90&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group.authentic.priority=85&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="nt">authentic-worker</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+</code></pre></div></p>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="admonition example">
+<ul>
+<li>The backup order for the group <code>authentic</code> is: <em>worker</em>  <small>(110)</small> &rarr; <em>redis</em>  <small>(105)</small> &rarr; <em>postgresql</em>  <small>(100)</small></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">authentik-worker-1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group.authentic.priority=110&quot;</span>
+<span class="w">  </span><span class="nt">authentik-postgresql-1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group.authentic.priority=100&quot;</span>
+<span class="w">  </span><span class="nt">authentik-redis-1</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=authentic&quot;</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group.authentic.priority=105&quot;</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+</div>
+<h2 id="require-source-folder-for-backup">Require Source Folder for Backup<a class="headerlink" href="#require-source-folder-for-backup" title="Permanent link">&para;</a></h2>
+<p>Use this label to tell Nautical to process <small> (start/stop)</small> this container even if it cannot find a matching source directory.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <em>true</em> <small> (container will be skipped if no matching source folder is found)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.source-dir-required</span><span class="o">=</span><span class="s">false</span>
+</code></pre></div>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<p>Here we have an example <a href="https://immich.app">Immich</a> deployment. Notice the <code>immich-server</code> does not have any mounted directories, but we still want to stop/start it along with it's other services. This is especially helpful when combined with the <a href="#groups">Groups</a> feature.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">immich-server</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">immich_server</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="hll"><span class="w">    </span><span class="c1"># No volumes to backup</span>
+</span><span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=immich&quot;</span>
+<span class="hll"><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.source-dir-required=false&quot;</span>
+</span>
+<span class="nt">immich-redis</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">immich_redis</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${APPDATADIR}/immich/redis:/data</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=immich&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.override-source-dir=immich/redis&quot;</span>
+
+<span class="nt">immich-database</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">immich_postgres</span>
+<span class="w">  </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${APPDATADIR}/immich/database:/var/lib/postgresql/data</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.group=immich&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.override-source-dir=immich/database&quot;</span>
+</code></pre></div>
+</div>
+<h2 id="additional-folders">Additional Folders<a class="headerlink" href="#additional-folders" title="Permanent link">&para;</a></h2>
+<p>Use this label to backup more folders associated with the container.</p>
+<p>The additional folders must either exist or be mounted into the <code>app/source</code> folder within Nautical.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <em>none</em> <small> (no additional folders)</small></p>
+<p><strong>Format</strong>: <code>&lt;folder_name&gt;</code>  <small>(comma separated for multiple items)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.additional-folders</span><span class="o">=</span><span class="s">folder1,folder_name2</span>
+</code></pre></div>
+<h3 id="when-to-backup-additional-folders">When to backup additional folders?<a class="headerlink" href="#when-to-backup-additional-folders" title="Permanent link">&para;</a></h3>
+<p>Use this setting to decide if when the additional folders are backed up.</p>
+<blockquote>
+<p><strong>Default</strong>: during</p>
+<p><strong>Options</strong>: during, before, after</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.additional-folders.when</span><span class="o">=</span><span class="s">after</span>
+</code></pre></div>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <strong>During</strong> <small>(Default)</small> - Backup the additional folders while the parent container  is stopped. <small>(This is the safest option)</small>.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Before</strong> -  Backup the additional folders <em>before</em> the parent container is stopped.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>After</strong> -  Backup the additional folders <em>after</em> the parent container is restarted.</li>
+</ul>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><div class="tabbed-labels"><label for="__tabbed_5_1">Example 1</label><label for="__tabbed_5_2">Example 2</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition example">
+<p>In this example, the <code>service-additional</code> folder already exists withing the <code>source</code> directory, so no additional mount point is needed.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Service config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.additional-folders=service-additional&quot;</span>
+
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nautical-backup</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minituff/nautical-backup:2.14</span>
+<span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nautical-backup</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/config:/config</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/source:/app/source</span>
+</code></pre></div>
+</div>
+</div>
+<div class="tabbed-block">
+<div class="admonition example">
+<p>In this example, the <code>service-additional</code> folder is mounted from a different directory on the host machine.</p>
+<p>Also, the additional folders are backed up <em>after</em> the service is restarted.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Service config ...</span>
+<span class="w">  </span><span class="nt">labels</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.additional-folders=service-additional&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.additional-folders.when=after&quot;</span>
+
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">nautical-backup</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minituff/nautical-backup:2.14</span>
+<span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nautical-backup</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/run/docker.sock:/var/run/docker.sock</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/config:/config</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/source:/app/source</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/mnt/service-additional:/app/source/service-additional</span><span class="w"> </span><span class="c1">#(1)!</span>
+</code></pre></div>
+<ol>
+<li>Mount <code>service-additional</code> inside the <code>/app/source</code> directory in the container</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+<div class="admonition abstract">
+<p class="admonition-title">If the same folder is called out by the <a href="../arguments/#additional-folders">Additional Folders</a> variable and a service label--it will be backed up twice.</p>
+</div>
+<p><small>🔄 This is the same action as the <a href="../arguments/#additional-folders">Additional Folders</a> variable, but applied only to this container.</small></p>
+<h2 id="override-source-directory-name">Override Source Directory Name<a class="headerlink" href="#override-source-directory-name" title="Permanent link">&para;</a></h2>
+<p>Changes the source directory name that Nautical will look for.</p>
+<p>By default, Nautical will look for the source directory that is the same name as the container name.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <em>empty</em> <small>(use container name)</small></p>
+</blockquote>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:3"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><input id="__tabbed_6_3" name="__tabbed_6" type="radio" /><div class="tabbed-labels"><label for="__tabbed_6_1">Example 1</label><label for="__tabbed_6_2">Example 2</label><label for="__tabbed_6_3">Example 3</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.override-source-dir</span><span class="o">=</span><span class="s">new_folder_name</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>To backup the container <code>Pi.Alert</code>, the source directory name must be named <code>Pi.Alert</code>, but we can use the override to allow a backup of the folder named <code>pialert</code>.
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.override-source-dir</span><span class="o">=</span><span class="s">pialert</span>
+</code></pre></div></p>
+</div>
+<div class="tabbed-block">
+<p>We can use a nested folder by simply appending it to the source path
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.override-source-dir</span><span class="o">=</span><span class="s">subfolder/example1</span>
+</code></pre></div>
+<small> The example above would yield the following results:</small></p>
+<table>
+<thead>
+<tr>
+<th>Container Name</th>
+<th>Old Source Directory</th>
+<th>New Source Directory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>example1</td>
+<td><code>src/example1</code></td>
+<td><code>src/subfolder/example1</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition tip">
+<p class="admonition-title">Another nested folder example can be found <a href="#require-source-folder-for-backup">here</a></p>
+</div>
+</div>
+</div>
+</div>
+<p><small>🔄 This is the same action as the <a href="../arguments/#override-source-directory">Override Source Directory</a> variable, but applied only to this container.</small></p>
+<h2 id="override-destination-directory-name">Override Destination Directory Name<a class="headerlink" href="#override-destination-directory-name" title="Permanent link">&para;</a></h2>
+<p>Changes the destination/output directory name that Nautical will create during backups.</p>
+<p>By default, Nautical will create destination directory that is the same name as the container name.</p>
+<blockquote>
+<p><strong>Default If Missing</strong>: <em>empty</em> <small>(use container name)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.override-destination-dir</span><span class="o">=</span><span class="s">new_folder_name</span>
+</code></pre></div>
+<p><small>🔄 This is the same action as the <a href="../arguments/#override-destination-directory">Override Destination Directory</a> variable, but applied only to this container.</small></p>
+<h2 id="mirror-source-directory-name-to-destination">Mirror Source Directory Name to Destination<a class="headerlink" href="#mirror-source-directory-name-to-destination" title="Permanent link">&para;</a></h2>
+<p>Mirror the source folder name to the destination folder name. By default <small>(without any <a href="#override-source-directory-name">overrides</a>)</small>, this means both the <code>source</code> and <code>destination</code> folder names are the <ins>same as the container name</ins>.</p>
+<p>When using a <a href="#override-source-directory-name">source directory override</a>, then the <code>nautical-backup.keep_src_dir_name=true</code> setting<small> (which is the default) </small>will mean the destination directory will be the same as the source directory, without using a <a href="#override-destination-directory-name">destination directory overrides</a>.</p>
+<p>If a <a href="#override-destination-directory-name">destination directory override</a> is applied for a container, then the override <ins>will</ins> be used instead of mirroring the source name, regardless of the <code>KEEP_SRC_DIR_NAME</code> setting. </p>
+<blockquote>
+<p><strong>Default If Missing</strong>: true</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.keep_src_dir_name</span><span class="o">=</span><span class="s">false</span>
+</code></pre></div>
+<p><small>🔄 This is the same action as the <a href="../arguments/#mirror-source-directory-name-to-destination">Mirror Source Directory Name to Destination</a> variable, but applied only to this container.</small></p>
+<h2 id="execute-commands">Execute Commands<a class="headerlink" href="#execute-commands" title="Permanent link">&para;</a></h2>
+<p>Execute a command <em>before</em>, <em>after</em> or <em>during</em> backing up the container. This can be used to alert the service before shutdown and/or ensure the service came online correctly.</p>
+<blockquote>
+<p><strong>Default</strong>: <em>empty</em> <small>(nothing will be done)</small></p>
+<p><strong>FORMAT</strong>: The entirety of a <code>command</code></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.exec.before</span><span class="o">=</span><span class="s">/config/prepare-for-backup.sh</span>
+<span class="na">nautical-backup.exec.after</span><span class="o">=</span><span class="s">curl -X POST &#39;http://192.168.1.21.com/do-something&#39;</span>
+<span class="na">nautical-backup.exec.during</span><span class="o">=</span><span class="s">curl -X PATCH &#39;bing.com&#39;</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Remeber, these commands are exectuted by the Nautical-Backup container, not the child container.</p>
+<p>If you need to exectute commands inside the continer being backed up, see <a href="#lifecycle-hooks">lifecycle hooks</a>.</p>
+</div>
+<p>There are 3 moments when you can run a <em>command</em> <small>(You can use more than 1)</small>:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>Before</strong> - Run the command <em>before</em> the parent container is stopped.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>After</strong> -  Run the command <em>after</em> the parent container is restarted.</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <strong>During</strong> - Run the command while the parent container is stopped <small>(Before it is restarted)</small>.</li>
+</ul>
+<details class="example">
+<summary>Test your <code>exec</code></summary>
+<p>Before setting the variable/label, it is a good idea to ensure it works first. Here is an example.</p>
+<p>Ensure Nautical is running first, then run:
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>nautical-backup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s1">&#39;google.com&#39;</span>
+</code></pre></div>
+<strong>Note:</strong> You can only have 1 <em>before</em> and 1 <em>after</em> Curl Request. This applies to Nautical itself, not to each container.</p>
+</details>
+<details class="quote">
+<summary>Available Enviornment Variables</summary>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_CONTAINER_NAME</code></td>
+<td style="text-align: left;">The container name*</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_CONTAINER_ID</code></td>
+<td style="text-align: left;">The contianer ID*</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_BEFORE_DURING_OR_AFTER</code></td>
+<td style="text-align: left;">When is this command being. <a href="../arguments/#when-to-backup-additional-folders">Options</a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_COMMAND</code></td>
+<td style="text-align: left;">The exact command exectuted</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_ATTACHED_TO_CONTAINER</code></td>
+<td style="text-align: left;">Is this exec command attached to a container</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_TOTAL_ERRORS</code></td>
+<td style="text-align: left;">The total errors on the last run+</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_TOTAL_CONTAINERS_COMPLETED</code></td>
+<td style="text-align: left;">The amount of containers processed successfully+</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_TOTAL_CONTAINERS_SKIPPED</code></td>
+<td style="text-align: left;">The amount of containers skipped (for any reason)+</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS</code></td>
+<td style="text-align: left;">The amount of containers Nautical looked at+</td>
+</tr>
+</tbody>
+</table>
+<p><small> * Require access to a container. Eg. When <code>NB_EXEC_ATTACHED_TO_CONTAINER=true</code></small> </p>
+<p><small> + Must be used <code>AFTER</code> so there are values to fill. Eg. When <code>nautical-backup.exec.after</code></small> </p>
+<p>💰 <strong>Tip:</strong> To use the enviornment variables in a docker-compose file, you will need to escape them with a double <code>$</code>:
+<div class="highlight"><pre><span></span><code><span class="nt">labels</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nautical-backup.exec.before=echo</span><span class="nv"> </span><span class="s">name:</span><span class="nv"> </span><span class="s">$$NB_EXEC_CONTAINER_NAME&quot;</span><span class="w"> </span><span class="c1"># (1)!</span>
+</code></pre></div></p>
+<ol>
+<li>Notice the double <code>$$</code></li>
+</ol>
+<p>🛎️ Want any additional enviornment variables? Submit an <a href="https://github.com/Minituff/nautical-backup/issues/new">issue</a>.</p>
+</details>
+<details class="abstract">
+<summary>Executing a script</summary>
+<p>If you need to run more than a simple one-liner, we can run an entire script instead.
+Here is a basic example:</p>
+<p>Create a file <small>(we will name it <code>script.sh</code>)</small> and place it in the mounted <code>/config</code> directory.</p>
+<p><strong>Remember:</strong> We mounted the <code>/config</code> folder as part of the <a href="../installation/">Installation</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env bash</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Hello from script.sh&quot;</span>
+
+<span class="c1"># Variable usage example</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NB_EXEC_CONTAINER_NAME: </span><span class="nv">$NB_EXEC_CONTAINER_NAME</span><span class="s2">&quot;</span><span class="w"> </span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;NB_EXEC_CONTAINER_ID: </span><span class="nv">$NB_EXEC_CONTAINER_ID</span><span class="s2">&quot;</span><span class="w"> </span>
+</code></pre></div>
+<p>Give the file execution permission: <code>chmod +x /config/script.sh</code></p>
+<p><strong>Test the script</strong></p>
+<p>Ensure Nautical is running first, then run:
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>nautical-backup<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>/bin/bash<span class="w"> </span>/config/script.sh
+</code></pre></div></p>
+<p>Add your script to the label of your container's config
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.exec.before</span><span class="o">=</span><span class="s">/config/script.sh</span>
+</code></pre></div></p>
+</details>
+<p><small>🔄 This is the same action as the <a href="../arguments/#execute-commands-before-or-after-backup">Execute Commands</a> variable, but applied only to this container.</small></p>
+<h2 id="lifecycle-hooks">Lifecycle Hooks<a class="headerlink" href="#lifecycle-hooks" title="Permanent link">&para;</a></h2>
+<p>Lifecycle Hooks allow you to run a command <mark><em>inside</em> the container that Nautical is backing up</mark>.
+This can be used to shutdown services and/or test for a successful restart.</p>
+<blockquote>
+<p><strong>Default</strong>: <em>empty</em> <small>(no hooks)</small></p>
+<p><strong>FORMAT</strong>: <a href="https://docs.docker.com/engine/reference/commandline/exec">docker exec format</a></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.lifecycle.before</span><span class="o">=</span><span class="s">echo &#39;Hello from the container&#39;</span>
+<span class="na">nautical-backup.lifecycle.after</span><span class="o">=</span><span class="s">/bin/sh ./script.sh</span>
+</code></pre></div>
+<div class="admonition example">
+<p class="admonition-title">Test your lifecycle hooks</p>
+<p>Before setting the label, it is a good idea to ensure it works first. Here is an example.</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container-name&gt;<span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;Hello from the container&#39;</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container-name&gt;<span class="w"> </span>/bin/sh<span class="w"> </span>./script.sh
+</code></pre></div>
+<p><strong>Remember:</strong> <code>./script.sh</code> is inside the container itself, not within Nautical.</p>
+</div>
+<h3 id="lifecycle-hook-timeouts">Lifecycle Hook Timeouts<a class="headerlink" href="#lifecycle-hook-timeouts" title="Permanent link">&para;</a></h3>
+<p>The default timeout for all lifecycle hooks is <code>60 seconds</code> <small>(60s)</small>.
+We can change this using another label.</p>
+<blockquote>
+<p><strong>Default</strong>: 60s</p>
+<p><strong>FORMAT</strong>: <a href="https://ss64.com/bash/timeout.html">timeout command format</a>
+<small>(<code>s</code> for seconds, <code>m</code> for minutes <code>h</code> for hours, <code>d</code> for days, <code>0</code> to disable)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.lifecycle.before.timeout</span><span class="o">=</span><span class="s">1m</span>
+<span class="na">nautical-backup.lifecycle.after.timeout</span><span class="o">=</span><span class="s">0 # Disable timeout completely</span>
+</code></pre></div>
+<details class="tip" open="open">
+<summary>Test your timeouts</summary>
+<p>You can test out the command timeout using the following format:
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container-name&gt;<span class="w"> </span>timeout<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">&#39;Hello from the other side&#39;</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;container-name&gt;<span class="w"> </span>timeout<span class="w"> </span>1m<span class="w"> </span>/bin/sh<span class="w"> </span>./script.sh
+</code></pre></div></p>
+</details>
+<h2 id="use-default-rsync-arguments">Use Default rsync Arguments<a class="headerlink" href="#use-default-rsync-arguments" title="Permanent link">&para;</a></h2>
+<p>Use the default <code>rsync</code> arguments <code>-raq</code> <small>(recursive, archive, quiet)</small></p>
+<p>Useful when using <a href="#custom-rsync-arguments">Custom rsync Arguments</a></p>
+<blockquote>
+<p><strong>Default</strong>: <em>none</em> <small>(use global setting)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.use-default-rsync-args</span><span class="o">=</span><span class="s">false</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">This label will <em>override</em> the global setting applied through <a href="../arguments/">Environment Variables</a></p>
+<ul>
+<li>A value of <code>true</code> will use the default rsync arguments regardless of the global setting.</li>
+<li>A value of <code>false</code> will <ins><strong>not</strong></ins> use the default rsync arguments regardless of the global setting.</li>
+<li>Not setting the label value will use the <a href="../arguments/#custom-rsync-arguments">global setting</a></li>
+</ul>
+</div>
+<p><small>🔄 Not setting a label is the same action as the <a href="../arguments/#use-default-rsync-arguments">Use Default rsync Arguments</a> variable, but applied only to this container.</small></p>
+<h2 id="custom-rsync-arguments">Custom rsync Arguments<a class="headerlink" href="#custom-rsync-arguments" title="Permanent link">&para;</a></h2>
+<p>Apply custom <code>rsync</code> args <small>(in addition to the <a href="#use-default-rsync-arguments">default</a> args)</small></p>
+<blockquote>
+<p><strong>Default</strong>: <em>empty</em> <small>(use global setting)</small></p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="na">nautical-backup.rsync-custom-args</span><span class="o">=</span><span class="s">--exclude=&#39;*.log&#39; --exclude=&#39;*.txt&#39;</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">This label will <em>override</em> the global setting applied through <a href="../arguments/">Environment Variables</a></p>
+<ul>
+<li><em>Any value</em> will override the global rsync arguments configured through <a href="../arguments/#custom-rsync-arguments">global settings</a>.</li>
+<li>A value of <small>(space)</small> <code>"nautical-backup.rsync-custom-args= "</code> will <ins>cancel</ins> any <a href="../arguments/#custom-rsync-arguments">global setting</a> for this container only.</li>
+<li>Not setting the label value will use the <a href="../arguments/#custom-rsync-arguments">global setting</a>.</li>
+</ul>
+</div>
+<p><small>🔄 Not setting a label is the same action as the <a href="../arguments/#custom-rsync-arguments">Custom rsync Arguments</a> variable, but applied only to this container.</small></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../arguments/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Environment Variables">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Environment Variables
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../updates/" class="md-footer__link md-footer__link--next" aria-label="Next: Updating Nautical">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Updating Nautical
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.indexes", "navigation.instant", "navigation.top", "navigation.path", "navigation.tracking", "search.suggest", "search.share", "search.highlight", "content.code.annotate", "content.code.copy", "content.code.select", "header.autohide", "announce.dismiss", "toc.follow", "content.action.edit", "content.action.view", "navigation.footer"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
