@@ -782,13 +782,13 @@ class NauticalBackup:
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
         end_time = datetime.now()
-        exeuction_time = end_time - self.start_time
-        duration = datetime.fromtimestamp(exeuction_time.total_seconds())
+        execution_time = end_time - self.start_time
+        duration = datetime.fromtimestamp(execution_time.total_seconds())
 
         self.db.put("backup_running", False)
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
-        self.db.put("last_backup_seconds_taken", round(exeuction_time.total_seconds()))
+        self.db.put("last_backup_seconds_taken", round(execution_time.total_seconds()))
 
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
@@ -812,7 +812,7 @@ if __name__ == "__main__":
         docker_client = docker.from_env()
         docker_client.ping()  # Test connection to Docker
     except Exception as e:
-        print(f"Error connecting to Docker. Please either mount the Docker socket or set DOCKER_HOST.")
+        print(f"Error connecting to Docker: {e}\nPlease either mount the Docker socket or set DOCKER_HOST.")
         exit(1)
 
     nautical = NauticalBackup(docker_client)

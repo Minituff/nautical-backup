@@ -7,7 +7,7 @@ export_env() {
     local var_value="$2"
     local env_file="/var/run/s6/container_environment/$var_name"
     printf "%s" "$var_value" >"$env_file"
-    export "${var_name}"
+    export "${var_name}=${var_value}"
 }
 
 cecho() {
@@ -83,7 +83,7 @@ initialize_nautical() {
         
         ln -s /app/nautical.sh /usr/local/bin/nautical
         chmod +x /usr/local/bin/nautical
-        logThis "ln -s /app/backup.sh /usr/local/bin/nautical" "TRACE" "init"
+        logThis "ln -s /app/nautical.sh /usr/local/bin/nautical" "TRACE" "init"
     fi
 }
 

@@ -7,17 +7,20 @@ install_cron(){
     # Echo the CRON schedule for logging/debugging
     logThis "Installing CRON schedule: $CRON_SCHEDULE in TZ: $TZ" "DEBUG" "init"
 
-    # Dump the current cron jobs to a temporary file
-    crontab -l >tempcron
+    local tempcron="/tmp/tempcron.$$"
 
-    # Remove the existing cron job for your backup script from the file
-    sed -i '/nautical/d' tempcron
+    # Dump the current cron jobs to a temporary file, ignoring errors if no crontab exists
+    crontab -l 2>/dev/null >"$tempcron" || true
+
+    # Remove any existing cron jobs for nautical or old-style backup entries
+    sed -i '/nautical\|\/app\/backup\.py/d' "$tempcron"
 
     # Add the new cron job to the file
-    echo "$CRON_SCHEDULE with-contenv nautical" >>tempcron
+    echo "$CRON_SCHEDULE with-contenv nautical" >>"$tempcron"
 
     # Install the new cron jobs and remove the tempcron file
-    crontab tempcron && rm tempcron
+    crontab "$tempcron"
+    rm -f "$tempcron"
 }
 
 if [ "$CRON_SCHEDULE_ENABLED" = "true" ]; then
@@ -27,8 +30,8 @@ else
 fi
 
 # Verify the source and destination locations
-verify_source_location $SOURCE_LOCATION
-verify_destination_location $DEST_LOCATION
+verify_source_location "$SOURCE_LOCATION"
+verify_destination_location "$DEST_LOCATION"
 
 #? Old bash methods
 # initialize_db "$NAUTICAL_DB_PATH" "$NAUTICAL_DB_NAME"
