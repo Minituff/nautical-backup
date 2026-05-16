@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import docker
 from docker.errors import APIError, ImageNotFound
 from docker.models.containers import Container
+from requests.exceptions import ReadTimeout
 
 from app.api.config import Settings
 from app.db import DB
@@ -454,6 +455,9 @@ class NauticalBackup:
         self.log_this(f"Stopping {c.name}...", "INFO")
         try:
             c.stop(timeout=stop_timeout)  # * Actually stop the container
+        except ReadTimeout:
+            self.log_this(f"Timed out waiting for {c.name} to stop. Checking container status...", "WARN")
+            # Fall through to c.reload() — container may have stopped despite the timeout
         except APIError as e:
             self.log_this(f"Error stopping container {c.name}. Skipping backup for this container.", "ERROR")
             return False
@@ -476,6 +480,9 @@ class NauticalBackup:
         try:
             self.log_this(f"Starting {c.name}...")
             c.start()  # * Actually stop the container
+        except ReadTimeout:
+            self.log_this(f"Timed out waiting for {c.name} to start. Checking container status...", "WARN")
+            # Fall through to c.reload() — container may have started despite the timeout
         except APIError as e:
             self.log_this(f"Error starting container {c.name}.", "ERROR")
             return False
