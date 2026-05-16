@@ -22,10 +22,20 @@
     | `NB_EXEC_TOTAL_CONTAINERS_COMPLETED` | The amount of containers processed successfully+                                        |
     | `NB_EXEC_TOTAL_CONTAINERS_SKIPPED`   | The amount of containers skipped (for any reason)+                                      |
     | `NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS` | The amount of containers Nautical looked at+                                            |
+    | `NB_EXEC_BACKUP_STATUS`              | Overall result: `success`, `warning`, or `error`+                                      |
+    | `NB_EXEC_BACKUP_STARTED_AT`          | Backup start time in ISO format+                                                       |
+    | `NB_EXEC_BACKUP_FINISHED_AT`         | Backup finish time in ISO format+                                                      |
+    | `NB_EXEC_BACKUP_DURATION_SECONDS`    | Backup duration in seconds+                                                            |
+    | `NB_EXEC_CONTAINERS_COMPLETED`       | Comma-separated completed container names+                                             |
+    | `NB_EXEC_CONTAINERS_SKIPPED`         | Comma-separated skipped container names+                                               |
+    | `NB_EXEC_CONTAINERS_FAILED`          | Comma-separated failed container names+                                                |
+    | `NB_EXEC_CONTAINER_SKIP_REASONS`     | Semicolon-separated `container=reason` skip entries+                                   |
+    | `NB_EXEC_CONTAINER_FAILURE_REASONS`  | Semicolon-separated `container=reason` failure entries+                                |
+    | `NB_EXEC_ERROR_MESSAGES`             | Semicolon-separated backup error messages+                                             |
 
     <small> * Require access to a container. Eg. When `NB_EXEC_ATTACHED_TO_CONTAINER=true`</small> 
 
-    <small> + Must be used `AFTER` so there are values to fill. Eg. When `nautical-backup.exec.after`</small> 
+    <small> + Must be used with the global `POST_BACKUP_EXEC` so there are values to fill after the full backup run.</small> 
 
     💰 **Tip:** To use the enviornment variables in a docker-compose file, you will need to escape them with a double `$`:
     ```yaml
@@ -56,6 +66,19 @@
     echo "NB_EXEC_CONTAINER_ID: $NB_EXEC_CONTAINER_ID" 
     ```
 
+    For a global `POST_BACKUP_EXEC` script, the summary variables can be used for notifications:
+
+    ```bash
+    #!/usr/bin/env bash
+
+    if [ "$NB_EXEC_BACKUP_STATUS" != "success" ]; then
+      echo "Nautical Backup finished with status: $NB_EXEC_BACKUP_STATUS"
+      echo "Skipped: $NB_EXEC_CONTAINERS_SKIPPED"
+      echo "Failed: $NB_EXEC_CONTAINERS_FAILED"
+      echo "Errors: $NB_EXEC_ERROR_MESSAGES"
+    fi
+    ```
+
     Give the file execution permission: `chmod +x /config/script.sh`
 
     **Test the script**
@@ -65,4 +88,3 @@
     docker exec -it nautical-backup \
       /bin/bash /config/script.sh
     ```
-

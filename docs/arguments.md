@@ -540,6 +540,8 @@ Set the console log level for the container.
 LOG_LEVEL=INFO
 ```
 
+Skipped containers are logged at `WARN`. Backup failures, such as rsync failures or containers that cannot be stopped or started, are logged at `ERROR`.
+
 ## Report Log Level
 Set the log level for the generated report file.
 Only used if the report file is [enabled](#report-file).
