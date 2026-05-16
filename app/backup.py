@@ -822,8 +822,16 @@ class NauticalBackup:
             if not to_keep and not to_delete:
                 return
 
-            keep_names = ", ".join(f.name for _, f in to_keep)
-            self.log_this(f"Retention policy{dry_run_tag}: keeping {len(to_keep)} in '{parent}': {keep_names}", "DEBUG")
+            if to_keep:
+                newest = to_keep[0][1].name
+                oldest_kept = to_keep[-1][1].name
+                self.log_this(
+                    f"Retention policy{dry_run_tag}: '{parent.name}' keeping {len(to_keep)} backup(s) "
+                    f"({oldest_kept} to {newest}), {len(to_delete)} older backup(s) will be removed",
+                    "DEBUG",
+                )
+                keep_names = ", ".join(f.name for _, f in to_keep)
+                self.log_this(f"Retention policy{dry_run_tag}: keeping in '{parent}': {keep_names}", "TRACE")
 
             for _, folder in to_delete:
                 if dry_run:

@@ -2,24 +2,24 @@
 # cd dev && docker compose up
 ---
 services:
-  # watchtower:
-  #   image: containrrr/watchtower
-  #   container_name: watchtower
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - watchtower-data:/data/test:ro # Named volume
-  #     - /data/test2 # Anonymous volume
-  #     - ./source/watchtower:/data/watchtower:ro # Bind mount
-  #   ports:
-  #     - 8080:8080
-  #   environment:
-  #     - TZ=America/Los_Angeles
-  #     - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
-  #   labels:
-  #     - "nautical-backup.enable=true"
-  #     # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
-  #     # - "nautical-backup.curl.before=/config/script.sh"
-  #     # - "nautical-backup.override-source-dir=folder/watchtower"
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - watchtower-data:/data/test:ro # Named volume
+      # - /data/test2 # Anonymous volume
+      # - ./source/watchtower:/data/watchtower:ro # Bind mount
+    ports:
+      - 8080:8080
+    environment:
+      - TZ=America/Los_Angeles
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Every day at 4am
+    labels:
+      - "nautical-backup.enable=true"
+      # - "nautical-backup.curl.before=echo NB_EXEC_ATTACHED_TO_CONTAINER: $$NB_EXEC_ATTACHED_TO_CONTAINER"
+      # - "nautical-backup.curl.before=/config/script.sh"
+      # - "nautical-backup.override-source-dir=folder/watchtower"
 
   # docker_socket_proxy:
   #   image: tecnativa/docker-socket-proxy
@@ -48,9 +48,9 @@ services:
           path: ${LOCAL_WORKSPACE_FOLDER-./}/app
     volumes:
       - ${LOCAL_WORKSPACE_FOLDER-./}/dev/config:/config
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/data/source:ro
-      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/data/destination
-      # - /var/lib/docker/volumes:/data/volumes:ro
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/source:/app/source:ro
+      - ${LOCAL_WORKSPACE_FOLDER-./}/dev/destination:/app/destination
+      # - /var/lib/docker/volumes:/app/volumes:ro
       # Optional, or you can use the docker_socket_proxy service
       - /var/run/docker.sock:/var/run/docker.sock
       # - ${LOCAL_WORKSPACE_FOLDER-./}/app:/app # Allows code to be edited on the fly
@@ -69,6 +69,8 @@ services:
       # - RUN_ONCE=true
       - USE_DEST_DATE_FOLDER=true
       - DEST_DATE_PATH_FORMAT=container/date
+      - NUMBER_OF_BACKUPS_TO_KEEP=7
+      - RETENTION_DRY_RUN=true
       # - DEST_DATE_FORMAT=Nautical Backup - %Y-%m-%d
     # entrypoint: ["sleep", "infinity"]
 
