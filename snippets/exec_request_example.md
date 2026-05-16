@@ -12,8 +12,8 @@
 
     | Method                               | Description                                                                             |
     |:-------------------------------------|:----------------------------------------------------------------------------------------|
-    | `NB_EXEC_CONTAINER_NAME`             | The container name*                                                                     |
-    | `NB_EXEC_CONTAINER_ID`               | The contianer ID*                                                                       |
+    | `NB_EXEC_CONTAINER_NAME`             | The container name, or `None` for global `PRE_BACKUP_EXEC`/`POST_BACKUP_EXEC`*          |
+    | `NB_EXEC_CONTAINER_ID`               | The container ID, or `None` for global `PRE_BACKUP_EXEC`/`POST_BACKUP_EXEC`*            |
     | `NB_EXEC_BEFORE_DURING_OR_AFTER`     | When is this command being. [Options](./arguments.md#when-to-backup-additional-folders) |
     | `NB_EXEC_COMMAND`                    | The exact command exectuted                                                             |
     | `NB_EXEC_ATTACHED_TO_CONTAINER`      | Is this exec command attached to a container                                            |
@@ -33,7 +33,7 @@
     | `NB_EXEC_CONTAINER_FAILURE_REASONS`  | Semicolon-separated `container=reason` failure entries+                                |
     | `NB_EXEC_ERROR_MESSAGES`             | Semicolon-separated backup error messages+                                             |
 
-    <small> * Require access to a container. Eg. When `NB_EXEC_ATTACHED_TO_CONTAINER=true`</small> 
+    <small> * Only populated for per-container exec labels, such as `nautical-backup.exec.before`, `nautical-backup.exec.during`, or `nautical-backup.exec.after`. Global `PRE_BACKUP_EXEC` and `POST_BACKUP_EXEC` are not attached to one container, so these values are `None`.</small> 
 
     <small> + Must be used with the global `POST_BACKUP_EXEC` so there are values to fill after the full backup run.</small> 
 
