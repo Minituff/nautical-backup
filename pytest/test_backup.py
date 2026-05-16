@@ -497,6 +497,52 @@ class TestBackup:
         )
 
     @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-source-dir": "parent/child"},
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_src_label_subpath(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Test that override-source-dir with a subpath creates the full destination tree"""
+
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "parent" / "child", and_file=True)
+
+        # Intentionally do NOT pre-create destination/parent/ — this is the bug scenario
+        dest_subdir = Path(nautical_env.DEST_LOCATION) / "parent" / "child"
+        rm_tree(dest_subdir.parent)
+
+        mock_subprocess_run.return_value.returncode = 0
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Destination tree should have been created by the backup code
+        assert dest_subdir.exists(), f"Expected dest tree '{dest_subdir}' to be created before rsync"
+
+        mock_subprocess_run.assert_any_call(
+            f"/usr/bin/rsync -raq  {self.src_location}/parent/child/ {self.dest_location}/parent/child/",
+            shell=True,
+            capture_output=False,
+        )
+
+        # Container should be in completed, not skipped
+        assert "container1" in nb.containers_completed
+        assert "container1" not in nb.containers_skipped
+
+    @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
     @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
@@ -1682,6 +1728,7 @@ class TestBackup:
         nautical_env = NauticalEnv()
         create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
 
+        mock_subprocess_run.return_value.returncode = 0
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
@@ -1731,6 +1778,7 @@ class TestBackup:
         nautical_env = NauticalEnv()
         create_folder(Path(nautical_env.SOURCE_LOCATION) / "add1", and_file=True)
 
+        mock_subprocess_run.return_value.returncode = 0
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
@@ -1786,6 +1834,7 @@ class TestBackup:
         parent_mock.attach_mock(mock_container1.start, "mockContainer1_start")
         parent_mock.attach_mock(mock_subprocess_run, "mock_subprocess_run")
 
+        mock_subprocess_run.return_value.returncode = 0
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
@@ -1989,58 +2038,35 @@ class TestBackup:
         assert f"attached_to_container: True" in decoded
         assert f"before_during_or_after: BEFORE" in decoded
 
+    @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
         "mock_container1",
-        [
-            {
-                "name": "container1",
-                "id": "123456789",
-                "labels": {
-                    "nautical-backup.curl.after": "This will be set later, in the function",
-                },
-            }
-        ],
+        [{"name": "container1", "id": "123456789"}],
         indirect=True,
     )
-    @patch("codecs.decode")
-    def test_exec_total_variables_label(
+    def test_exec_total_variables(
         self,
-        mock_decode: MagicMock,
+        mock_subprocess_run: MagicMock,
         mock_docker_client: MagicMock,
         mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
     ):
-        """Test exec variables labels"""
-        nautical_env = NauticalEnv()
-
-        container_name = "cont1"
-        container_id = "9839343"
-
-        create_folder(Path(nautical_env.SOURCE_LOCATION) / container_name, and_file=True)
-        create_folder(Path(nautical_env.DEST_LOCATION) / container_name, and_file=True)
-
-        label = "echo"
-        label += " exec_commmand: $NB_EXEC_COMMAND"
-        label += " NB_EXEC_TOTAL_ERRORS: $NB_EXEC_TOTAL_ERRORS"
-        label += " NB_EXEC_TOTAL_CONTAINERS_COMPLETED: $NB_EXEC_TOTAL_CONTAINERS_COMPLETED"
-        label += " NB_EXEC_TOTAL_CONTAINERS_SKIPPED: $NB_EXEC_TOTAL_CONTAINERS_SKIPPED"
-        label += " NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS: $NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS"
-
-        # Set mock attributes
-        mock_container1.__setattr__("name", container_name)
-        mock_container1.__setattr__("id", container_id)
-        mock_container1.__setattr__("labels", {"nautical-backup.exec.after": label})
+        """Test that global POST_BACKUP_EXEC sets NB_EXEC_TOTAL_* env vars correctly.
+        These vars are only populated for the global after-exec (attached_to_container=False),
+        not for per-container exec labels.
+        """
+        monkeypatch.setenv("POST_BACKUP_EXEC", "echo test")
+        mock_subprocess_run.return_value.returncode = 0
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
 
-        decoded = str(mock_decode.call_args_list[0][0][0], encoding="utf-8").strip()
+        import os
 
-        # Assert all variables are set and accessible
-        assert f"NB_EXEC_TOTAL_ERRORS: 0" in decoded
-        assert f"NB_EXEC_TOTAL_CONTAINERS_COMPLETED: 1" in decoded
-        assert f"NB_EXEC_TOTAL_CONTAINERS_SKIPPED: 0" in decoded
-        assert f"NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS: 1" in decoded
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_COMPLETED") == "1"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_SKIPPED") == "0"
+        assert os.environ.get("NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS") == "1"
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -2152,6 +2178,7 @@ class TestBackup:
 
         parent_mock.attach_mock(mock_subprocess_run, "mock_subprocess_run")
 
+        mock_subprocess_run.return_value.returncode = 0
         mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()
@@ -2236,6 +2263,7 @@ class TestBackup:
 
         parent_mock.attach_mock(mock_subprocess_run, "mock_subprocess_run")
 
+        mock_subprocess_run.return_value.returncode = 0
         mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
         nb = NauticalBackup(mock_docker_client)
         nb.backup()

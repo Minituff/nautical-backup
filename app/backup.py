@@ -604,10 +604,13 @@ class NauticalBackup:
                 self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
         if src_dir.exists():
+            os.makedirs(dest_dir, exist_ok=True)
             self.log_this(f"Backing up {c.name}...", "INFO")
 
             rsync_args = self._get_rsync_args(c)
-            self._run_rsync(c, rsync_args, src_dir, dest_dir)
+            rsync_ok = self._run_rsync(c, rsync_args, src_dir, dest_dir)
+            if not rsync_ok:
+                self.containers_skipped.add(c.name)
         elif src_dir_required == "false":
             # Do nothing. This container is still started and stopped, but there is nothing to backup
             # Likely this container is part of a group and the source directory is not required
@@ -619,7 +622,7 @@ class NauticalBackup:
         if not additional_folders_when or additional_folders_when == "during":
             self._backup_additional_folders(c, dest_path)
 
-    def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path):
+    def _run_rsync(self, c: Optional[Container], rsync_args: str, src_dir: Path, dest_dir: Path) -> bool:
         src_folder = f"{src_dir.absolute()}/"
         dest_folder = f"{dest_dir.absolute()}/"
 
@@ -630,6 +633,12 @@ class NauticalBackup:
         # args = command.split()  # Split the command into a list of arguments
         out = subprocess.run(f"/usr/bin/rsync {command}", shell=True, capture_output=False)
         # out = subprocess.run(args, shell=True, executable="/usr/bin/rsync", capture_output=False)
+
+        if out.returncode != 0:
+            name = c.name if c else "unknown"
+            self.log_this(f"rsync exited with code {out.returncode} for {name}", "ERROR")
+            return False
+        return True
 
     def _get_rsync_args(self, c: Optional[Container], log=False) -> str:
         default_rsync_args = self.env.DEFAULT_RNC_ARGS
