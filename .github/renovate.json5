@@ -5,7 +5,6 @@
     ":dependencyDashboard",
     "docker:enableMajor"
   ],
-  "platform": "github",
   "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   "prHourlyLimit": 0,
   "customManagers": [
