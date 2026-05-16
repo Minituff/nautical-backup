@@ -9,6 +9,7 @@ from docker.models.containers import Container
 from itertools import cycle
 import shlex
 from mock import call
+from requests.exceptions import ReadTimeout
 
 from app.nautical_env import NauticalEnv
 from app.backup import NauticalBackup
@@ -2749,3 +2750,83 @@ class TestBackup:
 
         # Ensure the set timeout is 20
         mock_container1.stop.assert_called_once_with(timeout=20)
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_stop_container_read_timeout_container_stopped(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+    ):
+        """ReadTimeout on stop, but container actually stopped — backup should proceed normally"""
+        mock_subprocess_run.return_value.returncode = 0
+        mock_container1.stop.side_effect = ReadTimeout()
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Both containers should be backed up (container1 stopped despite timeout)
+        assert mock_subprocess_run.call_count == 2
+        mock_container1.start.assert_called()
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                # Container never reaches exited state after the timeout
+                "status_side_effect": ["running", "running", "running", "running", "running"],
+            }
+        ],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_stop_container_read_timeout_container_not_stopped(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+    ):
+        """ReadTimeout on stop and container never stopped — container1 fails, container2 still runs"""
+        mock_subprocess_run.return_value.returncode = 0
+        mock_container1.stop.side_effect = ReadTimeout()
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # container1 was not stopped so it should not be backed up
+        # container2 should still be processed
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+        assert mock_subprocess_run.call_count == 1
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_start_container_read_timeout(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """ReadTimeout on start — backup should not crash and container failure should be recorded"""
+        mock_subprocess_run.return_value.returncode = 0
+        mock_container1.start.side_effect = ReadTimeout()
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Backup ran and rsync was called despite the start timeout
+        mock_subprocess_run.assert_called_once()
+        mock_container1.stop.assert_called()
+        mock_container1.start.assert_called()
