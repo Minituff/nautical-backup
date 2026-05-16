@@ -370,9 +370,13 @@ class ContainerFunctions:
         size_in_bytes = get_folder_size(path)
         max_size_as_float, unit = separate_number_and_unit(str(max_size))
 
-        max_size_in_bytes = convert_bytes(max_size_as_float, unit)
+        max_size_in_bytes = convert_bytes(max_size_as_float, "B")
+        size_in_given_unit = round(convert_bytes(size_in_bytes, unit), 2)
         if size_in_bytes > max_size_in_bytes:
-            self.log_this(f"{c.name} - Mount source '{path}' exceeds maximum size of {max_size}", LogLevel.WARN)
+            self.log_this(
+                f"{c.name} - Mount source '{path}' ({size_in_given_unit} {unit}) exceeds maximum size of {max_size}",
+                LogLevel.WARN,
+            )
             return False
         return True
 
