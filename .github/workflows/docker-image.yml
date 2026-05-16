@@ -71,7 +71,7 @@ jobs:
     # For more information, see "Usage" in the README of the docker/build-push-action repository. https://github.com/docker/build-push-action#usage
     # It uses the tags and labels parameters to tag and label the image with the output from the "meta" step.
     - name: Build and push Docker images
-      uses: docker/build-push-action@v6.18.0
+      uses: docker/build-push-action@v6.19.2
       with:
         context: .
         push: true
