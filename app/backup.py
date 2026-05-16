@@ -528,6 +528,17 @@ class NauticalBackup:
 
         return src_dir, src_dir_no_path
 
+    def _get_label_src_dirs(self, c: Container) -> List[Tuple[Path, str]]:
+        """Return list of (src_dir, src_dir_no_path) honoring comma-separated override-source-dir labels.
+        Falls back to _get_src_dir (which includes env var overrides) when the label is absent.
+        """
+        base_src_dir = Path(self.env.SOURCE_LOCATION)
+        label_src = str(self.get_label(c, "override-source-dir", ""))
+        if not label_src:
+            return [self._get_src_dir(c)]
+        folders = [f.strip() for f in label_src.split(",") if f.strip()]
+        return [(base_src_dir / f, f) for f in folders]
+
     def _get_dest_dir(self, c: Container, src_dir_name: str) -> Tuple[Path, str]:
         base_dest_dir = Path(self.env.DEST_LOCATION)
         dest_dir_full: Path = base_dest_dir / str(c.name)
@@ -668,39 +679,41 @@ class NauticalBackup:
             self._run_rsync(c, rsync_args, src_dir, dest_dir)
 
     def _backup_container_folders(self, c: Container, dest_path: Optional[Path] = None):
-        src_dir, src_dir_no_path = self._get_src_dir(c, log=False)
-
-        dest_dir, dest_dir_no_path = self._get_dest_dir(c, src_dir_no_path)
-
-        if dest_path:  # Secondary dest given
-            dest_dir = dest_path / dest_dir_no_path
-        else:  # Only container given (no secondary dest)
+        is_secondary = dest_path is not None
+        if not dest_path:
             dest_path = Path(self.env.DEST_LOCATION)
 
         src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
         if src_dir_required == "true":
             self.verify_destination_location(dest_path)
-            if not dest_dir.exists():
+
+        rsync_args = self._get_rsync_args(c)
+
+        for src_dir, src_dir_no_path in self._get_label_src_dirs(c):
+            dest_dir, dest_dir_no_path = self._get_dest_dir(c, src_dir_no_path)
+            if is_secondary:
+                dest_dir = dest_path / dest_dir_no_path
+
+            if src_dir_required == "true" and not dest_dir.exists():
                 self.log_this(f"Destination directory '{dest_dir}' does not exist", "ERROR")
 
-        if src_dir.exists():
-            os.makedirs(dest_dir, exist_ok=True)
-            self.log_this(f"Backing up {c.name}...", "INFO")
+            if src_dir.exists():
+                os.makedirs(dest_dir, exist_ok=True)
+                self.log_this(f"Backing up {c.name}...", "INFO")
 
-            rsync_args = self._get_rsync_args(c)
-            rsync_ok = self._run_rsync(c, rsync_args, src_dir, dest_dir)
-            if not rsync_ok:
+                rsync_ok = self._run_rsync(c, rsync_args, src_dir, dest_dir)
+                if not rsync_ok:
+                    self._record_container_skipped(
+                        c, "rsync_failed", f"Skipping completion of {c.name} because rsync failed", log=False
+                    )
+            elif src_dir_required == "false":
+                # Do nothing. This container is still started and stopped, but there is nothing to backup
+                # Likely this container is part of a group and the source directory is not required
+                pass
+            else:
                 self._record_container_skipped(
-                    c, "rsync_failed", f"Skipping completion of {c.name} because rsync failed", log=False
+                    c, "source_directory_missing", f"Source directory {src_dir} does not exist. Skipping"
                 )
-        elif src_dir_required == "false":
-            # Do nothing. This container is still started and stopped, but there is nothing to backup
-            # Likely this container is part of a group and the source directory is not required
-            pass
-        else:
-            self._record_container_skipped(
-                c, "source_directory_missing", f"Source directory {src_dir} does not exist. Skipping"
-            )
 
         additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
@@ -819,18 +832,17 @@ class NauticalBackup:
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
 
-                src_dir, src_dir_no_path = self._get_src_dir(c)
-                if not src_dir.exists():
+                label_src_dirs = self._get_label_src_dirs(c)
+                any_src_exists = any(src_dir.exists() for src_dir, _ in label_src_dirs)
+                if not any_src_exists:
                     src_dir_required = str(self.get_label(c, "source-dir-required", "true")).lower()
                     if src_dir_required == "false":
-                        self.log_this(
-                            f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
-                        )
+                        self.log_this(f"{c.name} - Source directory does not exist, but that's okay", "DEBUG")
                     else:
                         self._record_container_skipped(
                             c,
                             "source_directory_missing",
-                            f"{c.name} - Source directory '{src_dir}' does not exist. Skipping",
+                            f"{c.name} - Source directory does not exist. Skipping",
                         )
                         continue
 

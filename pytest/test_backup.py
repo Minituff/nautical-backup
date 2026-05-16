@@ -544,6 +544,87 @@ class TestBackup:
         assert "container1" not in nb.containers_skipped
 
     @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-source-dir": "folder_one,folder_two"},
+                "source_exists": False,  # disable auto-create for container1 name
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_src_label_multiple(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Comma-separated override-source-dir label backs up each folder separately"""
+
+        mock_subprocess_run.return_value.returncode = 0
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "folder_one", and_file=True)
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "folder_two", and_file=True)
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # rsync should be called once per source folder
+        assert mock_subprocess_run.call_count == 2
+        mock_subprocess_run.assert_any_call(
+            f"/usr/bin/rsync -raq  {self.src_location}/folder_one/ {self.dest_location}/folder_one/",
+            shell=True,
+            capture_output=False,
+        )
+        mock_subprocess_run.assert_any_call(
+            f"/usr/bin/rsync -raq  {self.src_location}/folder_two/ {self.dest_location}/folder_two/",
+            shell=True,
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.override-source-dir": "exists_folder,missing_folder"},
+                "source_exists": False,
+            }
+        ],
+        indirect=True,
+    )
+    def test_override_src_label_multiple_one_missing(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """When one of the comma-separated source dirs is missing, only the existing one is backed up"""
+
+        mock_subprocess_run.return_value.returncode = 0
+        nautical_env = NauticalEnv()
+        create_folder(Path(nautical_env.SOURCE_LOCATION) / "exists_folder", and_file=True)
+        rm_tree(Path(nautical_env.SOURCE_LOCATION) / "missing_folder")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Only one rsync call for the folder that exists
+        assert mock_subprocess_run.call_count == 1
+        mock_subprocess_run.assert_any_call(
+            f"/usr/bin/rsync -raq  {self.src_location}/exists_folder/ {self.dest_location}/exists_folder/",
+            shell=True,
+            capture_output=False,
+        )
+
+    @mock.patch("subprocess.run")
     @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
     @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
     @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "1112131415"}], indirect=True)
