@@ -43,6 +43,10 @@ class NauticalBackup:
 
         self.containers_completed = set()
         self.containers_skipped = set()
+        self.containers_failed = set()
+        self.container_skip_reasons: Dict[str, str] = {}
+        self.container_failure_reasons: Dict[str, str] = {}
+        self.error_messages: List[str] = []
         self.prefix = self.env.LABEL_PREFIX
 
         # Grab the backup starting time
@@ -57,6 +61,52 @@ class NauticalBackup:
     def log_this(self, log_message, log_priority="INFO", log_type=LogType.DEFAULT) -> None:
         """Wrapper for log this"""
         return self.logger.log_this(log_message, log_priority, log_type)
+
+    def _format_set_for_exec(self, input_set: set) -> str:
+        """Return stable comma-separated values for script-friendly env vars."""
+        return ",".join(sorted(str(i) for i in input_set))
+
+    def _format_reasons_for_exec(self, reasons: Dict[str, str]) -> str:
+        """Return stable semicolon-separated name=reason pairs for script-friendly env vars."""
+        return ";".join(f"{name}={reason}" for name, reason in sorted(reasons.items()))
+
+    def _format_error_messages_for_exec(self) -> str:
+        cleaned_messages = []
+        for message in self.error_messages:
+            cleaned_messages.append(str(message).replace("\n", " ").replace(";", ",").strip())
+        return ";".join(cleaned_messages)
+
+    def _record_error(self, message: str) -> None:
+        if message not in self.error_messages:
+            self.error_messages.append(message)
+
+    def _record_container_skipped(self, c: Container, reason: str, message: str, log=True) -> None:
+        self.containers_skipped.add(c.name)
+        self.container_skip_reasons.setdefault(c.name, reason)
+        if log:
+            self.log_this(message, "WARN")
+
+    def _record_container_failed(self, c: Container, reason: str, message: str, log=True) -> None:
+        self.containers_failed.add(c.name)
+        self.container_failure_reasons.setdefault(c.name, reason)
+        self._record_error(message)
+        if log:
+            self.log_this(message, "ERROR")
+
+    def _backup_status(self) -> str:
+        if self.containers_failed or self.error_messages:
+            return "error"
+        if self.containers_skipped:
+            return "warning"
+        return "success"
+
+    def _reset_outcomes(self) -> None:
+        self.containers_completed.clear()
+        self.containers_skipped.clear()
+        self.containers_failed.clear()
+        self.container_skip_reasons.clear()
+        self.container_failure_reasons.clear()
+        self.error_messages.clear()
 
     def get_label(self, container: Container, target: str, default=None):
         """Apply the label prefix and return the label value
@@ -128,20 +178,32 @@ class NauticalBackup:
             # Attempt to pull info from container. Skip if not found
             info = str(c.name) + " " + str(c.id) + " " + str(c.image) + " " + str(c.labels)
         except ImageNotFound as e:
-            self.log_this(f"Skipping container because it's info was not found.", "TRACE")
+            self._record_container_skipped(c, "image_not_found", "Skipping container because its info was not found.")
             return True
 
         if "minituff/nautical-backup" in str(c.image):
-            self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'minituff/nautical-backup'.", "TRACE")
+            self._record_container_skipped(
+                c,
+                "nautical_backup_image",
+                f"Skipping {c.name} {c.id} because its image matches 'minituff/nautical-backup'.",
+            )
             return True
         if c.labels.get("org.opencontainers.image.title") == "nautical-backup":
-            self.log_this(f"Skipping {c.name} {c.id} because it's image matches 'nautical-backup'.", "TRACE")
+            self._record_container_skipped(
+                c,
+                "nautical_backup_image",
+                f"Skipping {c.name} {c.id} because its image matches 'nautical-backup'.",
+            )
             return True
         if c.id == SELF_CONTAINER_ID:
-            self.log_this(f"Skipping {c.name} {c.id} because it's ID is the same as Nautical", "TRACE")
+            self._record_container_skipped(
+                c, "self_container", f"Skipping {c.name} {c.id} because its ID is the same as Nautical"
+            )
             return True
         if c.name == SELF_CONTAINER_ID:
-            self.log_this(f"Skipping {c.name} because it's ID is the same as Nautical", "TRACE")
+            self._record_container_skipped(
+                c, "self_container", f"Skipping {c.name} because its ID is the same as Nautical"
+            )
             return True
 
         # Read the environment variables
@@ -159,21 +221,23 @@ class NauticalBackup:
             nautical_backup_enable = None
 
         if nautical_backup_enable == False:
-            self.log_this(f"Skipping {c.name} based on label", "DEBUG")
+            self._record_container_skipped(c, "enable_label_false", f"Skipping {c.name} based on label")
             return True
 
         if self.env.REQUIRE_LABEL == True and nautical_backup_enable is not True:
-            self.log_this(
-                f"Skipping {c.name} as '{self.prefix}.enable=true' was not found and REQUIRE_LABEL is true.", "DEBUG"
+            self._record_container_skipped(
+                c,
+                "require_label_missing",
+                f"Skipping {c.name} as '{self.prefix}.enable=true' was not found and REQUIRE_LABEL is true.",
             )
             return True
 
         if c.name in skip_containers_set:
-            self.log_this(f"Skipping {c.name} based on name", "DEBUG")
+            self._record_container_skipped(c, "skip_containers_name", f"Skipping {c.name} based on name")
             return True
 
         if c.id in skip_containers_set:
-            self.log_this(f"Skipping {c.name} based on ID {c.id}", "DEBUG")
+            self._record_container_skipped(c, "skip_containers_id", f"Skipping {c.name} based on ID {c.id}")
             return True
 
         # No reason to skip
@@ -196,7 +260,6 @@ class NauticalBackup:
 
         for c in containers:
             if self._should_skip_container(c) == True:
-                self.containers_skipped.add(c.name)
                 continue  # Skip this container
 
             # Create a default group, so ungrouped items are not grouped together
@@ -322,6 +385,16 @@ class NauticalBackup:
             vars["NB_EXEC_TOTAL_CONTAINERS_COMPLETED"] = str(self.db.get("containers_completed", ""))
             vars["NB_EXEC_TOTAL_CONTAINERS_SKIPPED"] = str(self.db.get("containers_skipped", ""))
             vars["NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS"] = str(self.db.get("number_of_containers", ""))
+            vars["NB_EXEC_BACKUP_STATUS"] = self._backup_status()
+            vars["NB_EXEC_BACKUP_STARTED_AT"] = self.start_time.isoformat()
+            vars["NB_EXEC_BACKUP_FINISHED_AT"] = getattr(self, "end_time", datetime.now()).isoformat()
+            vars["NB_EXEC_BACKUP_DURATION_SECONDS"] = str(self.db.get("last_backup_seconds_taken", ""))
+            vars["NB_EXEC_CONTAINERS_COMPLETED"] = self._format_set_for_exec(self.containers_completed)
+            vars["NB_EXEC_CONTAINERS_SKIPPED"] = self._format_set_for_exec(self.containers_skipped)
+            vars["NB_EXEC_CONTAINERS_FAILED"] = self._format_set_for_exec(self.containers_failed)
+            vars["NB_EXEC_CONTAINER_SKIP_REASONS"] = self._format_reasons_for_exec(self.container_skip_reasons)
+            vars["NB_EXEC_CONTAINER_FAILURE_REASONS"] = self._format_reasons_for_exec(self.container_failure_reasons)
+            vars["NB_EXEC_ERROR_MESSAGES"] = self._format_error_messages_for_exec()
 
         self._set_exec_environment_variables(vars)
 
@@ -610,13 +683,17 @@ class NauticalBackup:
             rsync_args = self._get_rsync_args(c)
             rsync_ok = self._run_rsync(c, rsync_args, src_dir, dest_dir)
             if not rsync_ok:
-                self.containers_skipped.add(c.name)
+                self._record_container_skipped(
+                    c, "rsync_failed", f"Skipping completion of {c.name} because rsync failed", log=False
+                )
         elif src_dir_required == "false":
             # Do nothing. This container is still started and stopped, but there is nothing to backup
             # Likely this container is part of a group and the source directory is not required
             pass
         else:
-            self.log_this(f"Source directory {src_dir} does not exist. Skipping", "DEBUG")
+            self._record_container_skipped(
+                c, "source_directory_missing", f"Source directory {src_dir} does not exist. Skipping"
+            )
 
         additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
         if not additional_folders_when or additional_folders_when == "during":
@@ -636,7 +713,12 @@ class NauticalBackup:
 
         if out.returncode != 0:
             name = c.name if c else "unknown"
-            self.log_this(f"rsync exited with code {out.returncode} for {name}", "ERROR")
+            message = f"rsync exited with code {out.returncode} for {name}"
+            if c:
+                self._record_container_failed(c, "rsync_failed", message)
+            else:
+                self._record_error(message)
+                self.log_this(message, "ERROR")
             return False
         return True
 
@@ -683,6 +765,7 @@ class NauticalBackup:
         """Reset the database values to their defaults"""
         self.db.put("containers_completed", 0)
         self.db.put("containers_skipped", 0)
+        self.db.put("errors", 0)
         self.db.put("last_backup_seconds_taken", 0)
         self.db.put("last_cron", "None")
         self.db.put("completed", "0")
@@ -694,6 +777,7 @@ class NauticalBackup:
 
         self.log_this("Starting backup...", "INFO")
 
+        self._reset_outcomes()
         self.reset_db()
         self.db.put("backup_running", True)
 
@@ -736,11 +820,21 @@ class NauticalBackup:
                             f"{c.name} - Source directory '{src_dir}' does not exist, but that's okay", "DEBUG"
                         )
                     else:
-                        self.log_this(f"{c.name} - Source directory '{src_dir}' does not exist. Skipping", "DEBUG")
-                        self.containers_skipped.add(c.name)
+                        self._record_container_skipped(
+                            c,
+                            "source_directory_missing",
+                            f"{c.name} - Source directory '{src_dir}' does not exist. Skipping",
+                        )
                         continue
 
                 stop_result = self._stop_container(c)  # Stop containers
+                if not stop_result:
+                    self._record_container_failed(
+                        c,
+                        "stop_failed",
+                        f"Error stopping container {c.name}. Skipping backup for this container.",
+                        log=False,
+                    )
 
             # During backup
             for c in containers:
@@ -759,8 +853,13 @@ class NauticalBackup:
 
                     if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
                         if c.name not in self.containers_skipped:
-                            self.log_this(f"Skipping backup of {c.name} because it was not stopped", "WARN")
-                        self.containers_skipped.add(c.name)
+                            self._record_container_skipped(
+                                c, "not_stopped", f"Skipping backup of {c.name} because it was not stopped"
+                            )
+                        else:
+                            self._record_container_skipped(
+                                c, "not_stopped", f"Skipping backup of {c.name} because it was not stopped", log=False
+                            )
                         continue
 
                 self._backup_container_folders(c)
@@ -775,6 +874,8 @@ class NauticalBackup:
             for c in containers:
 
                 start_result = self._start_container(c)  # Start containers
+                if not start_result:
+                    self._record_container_failed(c, "start_failed", f"Error starting container {c.name}.", log=False)
 
                 self._run_lifecyle_hook(c, BeforeOrAfter.AFTER)
                 self._run_exec(c, BeforeAfterorDuring.AFTER, attached_to_container=True)
@@ -790,19 +891,31 @@ class NauticalBackup:
 
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
-        end_time = datetime.now()
-        exeuction_time = end_time - self.start_time
+        self.end_time = datetime.now()
+        exeuction_time = self.end_time - self.start_time
         duration = datetime.fromtimestamp(exeuction_time.total_seconds())
 
         self.db.put("backup_running", False)
         self.db.put("containers_completed", len(self.containers_completed))
         self.db.put("containers_skipped", len(self.containers_skipped))
+        self.db.put("errors", len(self.error_messages))
         self.db.put("last_backup_seconds_taken", round(exeuction_time.total_seconds()))
 
         self._run_exec(None, BeforeAfterorDuring.AFTER, attached_to_container=False)
 
         self.log_this("Containers completed: " + self.logger.set_to_string(self.containers_completed), "DEBUG")
         self.log_this("Containers skipped: " + self.logger.set_to_string(self.containers_skipped), "DEBUG")
+        if self.containers_skipped:
+            skipped_names = self.logger.set_to_string(self.containers_skipped)
+            self.log_this(
+                f"Skipped {len(self.containers_skipped)} containers: {skipped_names}",
+                "WARN",
+            )
+        if self.containers_failed:
+            self.log_this(
+                f"Failed {len(self.containers_failed)} containers: {self.logger.set_to_string(self.containers_failed)}",
+                "ERROR",
+            )
         self.log_this(f"Completed in {duration.strftime('%Mm %Ss')}", "INFO")
 
         self.log_this(

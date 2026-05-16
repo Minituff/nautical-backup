@@ -2067,6 +2067,133 @@ class TestBackup:
         assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_COMPLETED") == "1"
         assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_SKIPPED") == "0"
         assert os.environ.get("NB_EXEC_TOTAL_NUMBER_OF_CONTAINERS") == "1"
+        assert os.environ.get("NB_EXEC_BACKUP_STATUS") == "success"
+        assert os.environ.get("NB_EXEC_CONTAINERS_COMPLETED") == "container1"
+        assert os.environ.get("NB_EXEC_CONTAINERS_SKIPPED") == ""
+        assert os.environ.get("NB_EXEC_CONTAINERS_FAILED") == ""
+        assert os.environ.get("NB_EXEC_CONTAINER_SKIP_REASONS") == ""
+        assert os.environ.get("NB_EXEC_CONTAINER_FAILURE_REASONS") == ""
+        assert os.environ.get("NB_EXEC_ERROR_MESSAGES") == ""
+        assert os.environ.get("NB_EXEC_BACKUP_STARTED_AT") != ""
+        assert os.environ.get("NB_EXEC_BACKUP_FINISHED_AT") != ""
+        assert os.environ.get("NB_EXEC_BACKUP_DURATION_SECONDS") != ""
+
+    @mock.patch("builtins.print")
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    def test_post_backup_exec_variables_for_configured_skips(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_print: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test configured skips are warnings and available to POST_BACKUP_EXEC."""
+
+        monkeypatch.setenv("SKIP_CONTAINERS", "container1")
+        monkeypatch.setenv("POST_BACKUP_EXEC", "echo test")
+        mock_subprocess_run.return_value.returncode = 0
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        printed = [call_args[0][0] for call_args in mock_print.call_args_list]
+
+        assert "WARN: Skipping container1 based on name" in printed
+        assert "WARN: Skipped 1 containers: container1" in printed
+        assert os.environ.get("NB_EXEC_BACKUP_STATUS") == "warning"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_COMPLETED") == "1"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_SKIPPED") == "1"
+        assert os.environ.get("NB_EXEC_TOTAL_ERRORS") == "0"
+        assert os.environ.get("NB_EXEC_CONTAINERS_COMPLETED") == "container2"
+        assert os.environ.get("NB_EXEC_CONTAINERS_SKIPPED") == "container1"
+        assert os.environ.get("NB_EXEC_CONTAINERS_FAILED") == ""
+        assert os.environ.get("NB_EXEC_CONTAINER_SKIP_REASONS") == "container1=skip_containers_name"
+
+    @mock.patch("builtins.print")
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "source_exists": False,
+                "status_side_effect": ["running", "running", "running", "running", "running"],
+            }
+        ],
+        indirect=True,
+    )
+    def test_post_backup_exec_variables_for_missing_source_skip(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_print: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test missing required source directory is a warning and script-visible skip."""
+
+        monkeypatch.setenv("POST_BACKUP_EXEC", "echo test")
+        mock_subprocess_run.return_value.returncode = 0
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        printed = [call_args[0][0] for call_args in mock_print.call_args_list]
+
+        assert any(
+            line.startswith("WARN: container1 - Source directory") and line.endswith("does not exist. Skipping")
+            for line in printed
+        )
+        assert os.environ.get("NB_EXEC_BACKUP_STATUS") == "warning"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_COMPLETED") == "0"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_SKIPPED") == "1"
+        assert os.environ.get("NB_EXEC_CONTAINERS_SKIPPED") == "container1"
+        assert os.environ.get("NB_EXEC_CONTAINER_SKIP_REASONS") == "container1=source_directory_missing"
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_post_backup_exec_variables_for_rsync_failure(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Test rsync failures are errors and available to POST_BACKUP_EXEC."""
+
+        monkeypatch.setenv("POST_BACKUP_EXEC", "echo test")
+
+        rsync_result = MagicMock()
+        rsync_result.returncode = 23
+        exec_result = MagicMock()
+        exec_result.returncode = 0
+        exec_result.stderr = b""
+        exec_result.stdout = b""
+        mock_subprocess_run.side_effect = [rsync_result, exec_result]
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert "container1" in nb.containers_skipped
+        assert "container1" in nb.containers_failed
+        assert "container1" not in nb.containers_completed
+        assert os.environ.get("NB_EXEC_BACKUP_STATUS") == "error"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_COMPLETED") == "0"
+        assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_SKIPPED") == "1"
+        assert os.environ.get("NB_EXEC_TOTAL_ERRORS") == "1"
+        assert os.environ.get("NB_EXEC_CONTAINERS_SKIPPED") == "container1"
+        assert os.environ.get("NB_EXEC_CONTAINERS_FAILED") == "container1"
+        assert os.environ.get("NB_EXEC_CONTAINER_SKIP_REASONS") == "container1=rsync_failed"
+        assert os.environ.get("NB_EXEC_CONTAINER_FAILURE_REASONS") == "container1=rsync_failed"
+        assert os.environ.get("NB_EXEC_ERROR_MESSAGES") == "rsync exited with code 23 for container1"
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
