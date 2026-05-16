@@ -110,6 +110,8 @@
   "hostRules": [
     {
       "hostType": "repology",
+      "matchHost": "repology.org",
+      "abortOnError": false,
       "timeout": 60000
     }
   ]
