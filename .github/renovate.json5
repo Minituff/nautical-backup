@@ -84,6 +84,28 @@
         "default:automergeDigest",
         "default:automergeBranchPush"
       ]
+    },
+    {
+      "description": "GitHub Actions dependencies",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "labels": ["dependency", "github-actions"],
+      "assignees": ["minituff"],
+      "rangeStrategy": "bump",
+      "ignoreTests": false,
+      "schedule": ["at any time"],
+      "minimumReleaseAge": "2 days",
+      "commitBody": "[bump version]"
+    },
+    {
+      "description": "Auto merge low-risk GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "extends": [
+        "default:automergeDigest",
+        "default:automergeBranchPush"
+      ]
     }
   ],
   "hostRules": [
