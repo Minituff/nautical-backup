@@ -386,6 +386,8 @@ By default, Nautical will look for the source directory that is the same name as
 
 > **Default If Missing**: *empty* <small>(use container name)</small>
 
+> **Format**: `<folder_name>` <small>(comma separated for multiple folders)</small>
+
 === "Example 1"
     ```properties
     nautical-backup.override-source-dir=new_folder_name
@@ -408,6 +410,18 @@ By default, Nautical will look for the source directory that is the same name as
     | example1       | `src/example1`       | `src/subfolder/example1`          |
 
     !!! tip "Another nested folder example can be found [here](#require-source-folder-for-backup)"
+
+=== "Example 4 (Multiple folders)"
+    Containers that use multiple named volumes can specify all folders as a comma-separated list. Each folder is backed up to its own destination directory.
+    ```properties
+    nautical-backup.override-source-dir=nginxproxymanager_app_data,nginxproxymanager_app_letsencrypt
+    ```
+    <small> The example above would yield the following results:</small>
+
+    | Container Name          | Source Directory                          | Destination Directory                     |
+    | ----------------------- | ----------------------------------------- | ----------------------------------------- |
+    | nginx_proxy_manager_app | `src/nginxproxymanager_app_data`          | `dest/nginxproxymanager_app_data`         |
+    | nginx_proxy_manager_app | `src/nginxproxymanager_app_letsencrypt`   | `dest/nginxproxymanager_app_letsencrypt`  |
 
 <small>🔄 This is the same action as the [Override Source Directory](./arguments.md#override-source-directory) variable, but applied only to this container.</small>
 
