@@ -2,6 +2,7 @@
 
 import copy
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -83,13 +84,13 @@ class NauticalBackup:
 
     def _record_container_skipped(self, c: Container, reason: str, message: str, log=True) -> None:
         self.containers_skipped.add(c.name)
-        self.container_skip_reasons.setdefault(c.name, reason)
+        self.container_skip_reasons.setdefault(c.name if c.name else str(c.id), reason)
         if log:
             self.log_this(message, "WARN")
 
     def _record_container_failed(self, c: Container, reason: str, message: str, log=True) -> None:
         self.containers_failed.add(c.name)
-        self.container_failure_reasons.setdefault(c.name, reason)
+        self.container_failure_reasons.setdefault(c.name if c.name else str(c.id), reason)
         self._record_error(message)
         if log:
             self.log_this(message, "ERROR")
@@ -781,6 +782,66 @@ class NauticalBackup:
 
         return f"{default_rsync_args} {custom_rsync_args}"
 
+    def _apply_retention_policy(self, base_dest_dir: Path) -> None:
+        """Delete old date-stamped backup folders, keeping the N most recent.
+
+        Only runs when NUMBER_OF_BACKUPS_TO_KEEP > 0 and USE_DEST_DATE_FOLDER is true.
+        Folders whose names cannot be parsed with DEST_DATE_FORMAT are left untouched.
+        When RETENTION_DRY_RUN is true, logs candidates without deleting.
+        """
+        keep = self.env.NUMBER_OF_BACKUPS_TO_KEEP
+        if keep <= 0 or str(self.env.USE_DEST_DATE_FOLDER).lower() != "true":
+            # Retention policy is disabled, so do nothing
+            return
+
+        dry_run = self.env.RETENTION_DRY_RUN
+        fmt = self.env.DEST_DATE_FORMAT
+        dry_run_tag = " (DRY RUN)" if dry_run else ""
+
+        def _parse(name: str) -> Optional[datetime]:
+            try:
+                return datetime.strptime(name, fmt)
+            except ValueError:
+                return None
+
+        def _prune(parent: Path) -> None:
+            if not parent.is_dir():
+                return
+            dated = []
+            for child in parent.iterdir():
+                if not child.is_dir():
+                    continue
+                parsed = _parse(child.name)
+                if parsed is not None:
+                    dated.append((parsed, child))
+            dated.sort(key=lambda t: t[0], reverse=True)
+
+            to_keep = dated[:keep]
+            to_delete = dated[keep:]
+
+            if not to_keep and not to_delete:
+                return
+
+            keep_names = ", ".join(f.name for _, f in to_keep)
+            self.log_this(f"Retention policy{dry_run_tag}: keeping {len(to_keep)} in '{parent}': {keep_names}", "DEBUG")
+
+            for _, folder in to_delete:
+                if dry_run:
+                    self.log_this(f"Retention policy (DRY RUN): would remove '{folder}'", "INFO")
+                else:
+                    self.log_this(f"Retention policy: removing '{folder}'", "INFO")
+                    shutil.rmtree(folder)
+
+        if self.env.DEST_DATE_PATH_FORMAT == "container/date":
+            # Structure: base_dest_dir/container_name/date_folder
+            if base_dest_dir.is_dir():
+                for container_dir in base_dest_dir.iterdir():
+                    if container_dir.is_dir():
+                        _prune(container_dir)
+        else:
+            # Structure: base_dest_dir/date_folder/container_name  (default: date/container)
+            _prune(base_dest_dir)
+
     def reset_db(self) -> None:
         """Reset the database values to their defaults"""
         self.db.put("containers_completed", 0)
@@ -910,6 +971,12 @@ class NauticalBackup:
 
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
+
+        self._apply_retention_policy(Path(self.env.DEST_LOCATION))
+        if self.env.RETENTION_SECONDARY_DESTINATIONS:
+            for dir in self.env.SECONDARY_DEST_DIRS:
+                self._apply_retention_policy(dir)
+
         self.end_time = datetime.now()
         exeuction_time = self.end_time - self.start_time
         duration = datetime.fromtimestamp(exeuction_time.total_seconds())

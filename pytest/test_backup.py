@@ -2911,3 +2911,234 @@ class TestBackup:
         mock_subprocess_run.assert_called_once()
         mock_container1.stop.assert_called()
         mock_container1.start.assert_called()
+
+    # -------------------------------------------------------------------------
+    # Retention policy tests
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_date_container_format(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Retention with date/container path format: oldest date folders are removed."""
+        nautical_env = NauticalEnv()
+        dest = Path(nautical_env.DEST_LOCATION)
+        rm_tree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        # Pre-create 4 dated folders (date/container layout)
+        dates = ["2025-01-01", "2025-01-02", "2025-01-03", "2025-01-04"]
+        for d in dates:
+            (dest / d / "container1").mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "2")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb._apply_retention_policy(dest)
+
+        remaining = sorted(p.name for p in dest.iterdir() if p.is_dir())
+        assert "2025-01-01" not in remaining
+        assert "2025-01-02" not in remaining
+        assert "2025-01-03" in remaining
+        assert "2025-01-04" in remaining
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_container_date_format(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Retention with container/date path format: oldest date folders per container are removed."""
+        nautical_env = NauticalEnv()
+        dest = Path(nautical_env.DEST_LOCATION)
+        rm_tree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        dates = ["2025-01-01", "2025-01-02", "2025-01-03"]
+        for d in dates:
+            (dest / "container1" / d).mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "container/date")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "2")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb._apply_retention_policy(dest)
+
+        remaining = sorted(p.name for p in (dest / "container1").iterdir() if p.is_dir())
+        assert "2025-01-01" not in remaining
+        assert "2025-01-02" in remaining
+        assert "2025-01-03" in remaining
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_custom_date_format(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Retention correctly parses and sorts a non-ISO custom DEST_DATE_FORMAT."""
+        nautical_env = NauticalEnv()
+        dest = Path(nautical_env.DEST_LOCATION)
+        rm_tree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        # Use day-first format: oldest should be removed
+        dates = ["01-2025-01", "02-2025-01", "03-2025-01"]
+        for d in dates:
+            (dest / d / "container1").mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
+        monkeypatch.setenv("DEST_DATE_FORMAT", "%d-%Y-%m")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "2")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb._apply_retention_policy(dest)
+
+        remaining = sorted(p.name for p in dest.iterdir() if p.is_dir())
+        assert "01-2025-01" not in remaining
+        assert "02-2025-01" in remaining
+        assert "03-2025-01" in remaining
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_disabled_without_date_folder(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Retention does nothing when USE_DEST_DATE_FOLDER is not true."""
+        nautical_env = NauticalEnv()
+        dest = Path(nautical_env.DEST_LOCATION)
+        rm_tree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        (dest / "container1").mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "false")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "1")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb._apply_retention_policy(dest)
+
+        assert (dest / "container1").exists()
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_non_date_folders_untouched(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Folders that don't match DEST_DATE_FORMAT are never deleted."""
+        nautical_env = NauticalEnv()
+        dest = Path(nautical_env.DEST_LOCATION)
+        rm_tree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        (dest / "not-a-date").mkdir(parents=True, exist_ok=True)
+        (dest / "also-not-a-date").mkdir(parents=True, exist_ok=True)
+        dates = ["2025-01-01", "2025-01-02", "2025-01-03"]
+        for d in dates:
+            (dest / d / "container1").mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "1")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb._apply_retention_policy(dest)
+
+        assert (dest / "not-a-date").exists()
+        assert (dest / "also-not-a-date").exists()
+        assert not (dest / "2025-01-01").exists()
+        assert not (dest / "2025-01-02").exists()
+        assert (dest / "2025-01-03").exists()
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_dry_run(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Dry-run mode logs candidates but does not delete anything."""
+        nautical_env = NauticalEnv()
+        dest = Path(nautical_env.DEST_LOCATION)
+        rm_tree(dest)
+        dest.mkdir(parents=True, exist_ok=True)
+
+        dates = ["2025-01-01", "2025-01-02", "2025-01-03"]
+        for d in dates:
+            (dest / d / "container1").mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "1")
+        monkeypatch.setenv("RETENTION_DRY_RUN", "true")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb._apply_retention_policy(dest)
+
+        # Nothing deleted in dry-run mode
+        for d in dates:
+            assert (dest / d).exists()
+
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_retention_policy_secondary_destinations_disabled(
+        self,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: pytest.TempPathFactory,
+    ):
+        """RETENTION_SECONDARY_DESTINATIONS=false skips secondary dirs but still prunes primary."""
+        nautical_env = NauticalEnv()
+        primary = Path(nautical_env.DEST_LOCATION)
+        rm_tree(primary)
+        primary.mkdir(parents=True, exist_ok=True)
+
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+
+        # 3 dated folders in primary, 3 in secondary
+        dates = ["2025-01-01", "2025-01-02", "2025-01-03"]
+        for d in dates:
+            (primary / d / "container1").mkdir(parents=True, exist_ok=True)
+            (secondary / d / "container1").mkdir(parents=True, exist_ok=True)
+
+        monkeypatch.setenv("USE_DEST_DATE_FOLDER", "true")
+        monkeypatch.setenv("DEST_DATE_PATH_FORMAT", "date/container")
+        monkeypatch.setenv("NUMBER_OF_BACKUPS_TO_KEEP", "1")
+        monkeypatch.setenv("RETENTION_SECONDARY_DESTINATIONS", "false")
+        monkeypatch.setenv("SECONDARY_DEST_DIRS", str(secondary))
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+
+        # Apply retention manually to primary; secondary skipped because of the env flag
+        nb._apply_retention_policy(primary)
+        if nb.env.RETENTION_SECONDARY_DESTINATIONS:
+            nb._apply_retention_policy(secondary)
+
+        # Primary pruned
+        assert not (primary / "2025-01-01").exists()
+        assert not (primary / "2025-01-02").exists()
+        assert (primary / "2025-01-03").exists()
+
+        # Secondary untouched
+        for d in dates:
+            assert (secondary / d).exists()

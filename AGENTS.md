@@ -26,6 +26,7 @@ Key docs pages:
 - `docs/labels.md` — all Docker label options (per-container config)
 - `docs/arguments.md` — all environment variable options (global config)
 - `docs/introduction.md` — high-level overview
+- `app/defaults.env` — default environment variable values
 
 ## Tests — Do Not Change Without Explicit Justification
 

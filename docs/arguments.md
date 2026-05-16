@@ -119,6 +119,54 @@ USE_CONTAINER_BACKUP_DATE=true
     By setting `USE_CONTAINER_BACKUP_DATE=false`, then the date used will be the time Nautical actually started, not the time when each container is processed.
     Meaning that even if the containers take a few minutes to backup, the folder format will remain the same for each of them.
 
+## Backup Retention
+
+Automatically delete old dated backup folders, keeping only the most recent *N* copies.
+
+Requires [`USE_DEST_DATE_FOLDER=true`](#create-a-dated-destination-folder). When that is disabled, this setting has no effect.
+
+> **Default**: 0 <small>(disabled — keep all backups)</small>
+
+> **Format**: integer
+
+```properties
+NUMBER_OF_BACKUPS_TO_KEEP=7
+```
+
+Nautical parses each dated folder's name using the configured [`DEST_DATE_FORMAT`](#destination-folder-format) to determine age — so if this value is changed Nautical will not be able to parse the old folders' names and they will skipped.
+
+Both [`DEST_DATE_PATH_FORMAT`](#destination-folder-path) layouts are supported:
+
+* `date/container` — the oldest *date* folders under the destination root are removed.
+* `container/date` — the oldest *date* folders are removed independently for each container subfolder.
+
+!!! warning "This permanently deletes old backups"
+    Once a folder is removed it cannot be recovered. Start with a conservative value and verify the results before reducing further.
+
+    It's recommended to use the [Retention Dry Run](#retention-dry-run) option first to verify which folders would be deleted before enabling live deletions.
+
+### Retention Dry Run
+
+Preview which folders *would* be deleted without actually removing anything. Useful for verifying your configuration before enabling live deletions.
+
+> **Default**: false
+
+```properties
+RETENTION_DRY_RUN=true
+```
+
+Candidates are logged at `INFO` level with a `(DRY RUN)` tag so they are easy to spot in the output.
+
+### Retention on Secondary Destinations
+
+Control whether the retention policy is also applied to directories listed in [`SECONDARY_DEST_DIRS`](#secondary-destination-locations).
+
+> **Default**: true <small>(retention applies to secondary destinations)</small>
+
+```properties
+RETENTION_SECONDARY_DESTINATIONS=false
+```
+
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 
