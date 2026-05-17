@@ -73,6 +73,9 @@ class NauticalEnv:
         _keep = os.environ.get("NUMBER_OF_BACKUPS_TO_KEEP", "0")
         self.NUMBER_OF_BACKUPS_TO_KEEP = int(_keep) if _keep.isdigit() else 0
 
+        _min_keep = os.environ.get("MIN_BACKUPS_TO_KEEP", "0")
+        self.MIN_BACKUPS_TO_KEEP = int(_min_keep) if _min_keep.isdigit() else 0
+
         self.RETENTION_DRY_RUN = False
         if os.environ.get("RETENTION_DRY_RUN", "false").lower() == "true":
             self.RETENTION_DRY_RUN = True

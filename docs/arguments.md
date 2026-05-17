@@ -145,6 +145,20 @@ Both [`DEST_DATE_PATH_FORMAT`](#destination-folder-path) layouts are supported:
 
     It's recommended to use the [Retention Dry Run](#retention-dry-run) option first to verify which folders would be deleted before enabling live deletions.
 
+### Minimum Backups to Keep
+
+A safety floor: even if `NUMBER_OF_BACKUPS_TO_KEEP` would allow fewer, Nautical will never reduce a container's backup count below this value. Useful as a guardrail against misconfiguration.
+
+> **Default**: 0 <small>(disabled)</small>
+
+> **Format**: integer
+
+```properties
+MIN_BACKUPS_TO_KEEP=3
+```
+
+If `MIN_BACKUPS_TO_KEEP` is greater than `NUMBER_OF_BACKUPS_TO_KEEP`, it takes precedence and a `DEBUG` message is logged to indicate the override.
+
 ### Retention Dry Run
 
 Preview which folders *would* be deleted without actually removing anything. Useful for verifying your configuration before enabling live deletions.
