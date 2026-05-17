@@ -2,6 +2,7 @@
 
 import copy
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -83,13 +84,13 @@ class NauticalBackup:
 
     def _record_container_skipped(self, c: Container, reason: str, message: str, log=True) -> None:
         self.containers_skipped.add(c.name)
-        self.container_skip_reasons.setdefault(c.name, reason)
+        self.container_skip_reasons.setdefault(c.name if c.name else str(c.id), reason)
         if log:
             self.log_this(message, "WARN")
 
     def _record_container_failed(self, c: Container, reason: str, message: str, log=True) -> None:
         self.containers_failed.add(c.name)
-        self.container_failure_reasons.setdefault(c.name, reason)
+        self.container_failure_reasons.setdefault(c.name if c.name else str(c.id), reason)
         self._record_error(message)
         if log:
             self.log_this(message, "ERROR")
@@ -781,6 +782,168 @@ class NauticalBackup:
 
         return f"{default_rsync_args} {custom_rsync_args}"
 
+    def _apply_retention_policy(self, base_dest_dir: Path) -> None:
+        """Delete old date-stamped backup folders, keeping the N most recent backups.
+
+        Only runs when NUMBER_OF_BACKUPS_TO_KEEP > 0 and USE_DEST_DATE_FOLDER is true.
+        Folders whose names cannot be parsed with DEST_DATE_FORMAT are left untouched.
+        When RETENTION_DRY_RUN is true, candidates are logged but nothing is deleted.
+
+        Path formats are pruned according to their folder shape:
+          - container/date: destination/<container>/<date>/  — date folders pruned per container dir
+          - date/container: destination/<date>/<container>/  — date folders pruned as atomic backup sets
+        """
+        backups_to_keep: int = self.env.NUMBER_OF_BACKUPS_TO_KEEP
+        if backups_to_keep <= 0 or str(self.env.USE_DEST_DATE_FOLDER).lower() != "true":
+            return
+
+        if base_dest_dir.is_symlink() or not base_dest_dir.is_dir():
+            self.log_this(f"Retention policy: destination '{base_dest_dir}' is not a directory; skipping", "DEBUG")
+            return
+
+        min_backups_to_keep: int = self.env.MIN_BACKUPS_TO_KEEP
+        if min_backups_to_keep > 0 and min_backups_to_keep > backups_to_keep:
+            self.log_this(
+                f"Retention policy: MIN_BACKUPS_TO_KEEP ({min_backups_to_keep}) overrides "
+                f"NUMBER_OF_BACKUPS_TO_KEEP ({backups_to_keep})",
+                "DEBUG",
+            )
+            backups_to_keep = min_backups_to_keep
+
+        is_dry_run: bool = self.env.RETENTION_DRY_RUN
+        date_format: str = self.env.DEST_DATE_FORMAT
+        log_tag: str = " (DRY RUN)" if is_dry_run else ""
+
+        def _parse_date(folder_name: str) -> Optional[datetime]:
+            """Return a datetime if folder_name matches date_format, otherwise None."""
+            try:
+                return datetime.strptime(folder_name, date_format)
+            except ValueError:
+                return None
+
+        def _record_retention_error(message: str, error: OSError) -> None:
+            """Record retention failures without aborting the completed backup."""
+            log_message = f"Retention policy: {message}: {error}"
+            self._record_error(log_message)
+            self.log_this(log_message, "ERROR")
+
+        def _iter_child_dirs(parent: Path) -> List[Path]:
+            """Return real child directories, skipping symlinks to avoid pruning outside the destination."""
+            try:
+                return [child for child in parent.iterdir() if not child.is_symlink() and child.is_dir()]
+            except OSError as error:
+                _record_retention_error(f"unable to inspect '{parent}'", error)
+                return []
+
+        def _log_and_delete(target_folder: Path) -> None:
+            """Log and conditionally delete a single backup folder."""
+            if is_dry_run:
+                self.log_this(f"Retention policy (DRY RUN): would remove '{target_folder}'", "INFO")
+            else:
+                self.log_this(f"Retention policy: removing '{target_folder}'", "INFO")
+                try:
+                    shutil.rmtree(target_folder)
+                except OSError as error:
+                    _record_retention_error(f"failed to remove '{target_folder}'", error)
+
+        def _log_retention_summary(
+            container_name: str,
+            date_label_newest: str,
+            date_label_oldest_kept: str,
+            num_kept: int,
+            num_to_delete: int,
+            kept_date_labels: str,
+        ) -> None:
+            """Emit the per-container retention summary at DEBUG/TRACE."""
+            self.log_this(
+                f"Retention policy{log_tag}: '{container_name}' keeping {num_kept} backup(s) "
+                f"({date_label_oldest_kept} to {date_label_newest}), {num_to_delete} older backup(s) will be removed",
+                "DEBUG",
+            )
+            self.log_this(f"Retention policy{log_tag}: keeping '{container_name}' in: {kept_date_labels}", "TRACE")
+
+        def _prune_container_date(container_dir: Path) -> None:
+            """Prune date folders inside a single container directory (container/date layout)."""
+            if container_dir.is_symlink() or not container_dir.is_dir():
+                return
+
+            # Collect all date-named subfolders for this container
+            dated_backups: List[Tuple[datetime, Path]] = []
+            for date_folder in _iter_child_dirs(container_dir):
+                parsed_date = _parse_date(date_folder.name)
+                if parsed_date is not None:
+                    dated_backups.append((parsed_date, date_folder))
+
+            dated_backups.sort(key=lambda entry: entry[0], reverse=True)  # newest first
+            backups_kept = dated_backups[:backups_to_keep]
+            backups_to_remove = dated_backups[backups_to_keep:]
+
+            if not backups_kept and not backups_to_remove:
+                return
+
+            if backups_kept:
+                date_label_newest = backups_kept[0][1].name
+                date_label_oldest_kept = backups_kept[-1][1].name
+                kept_date_labels = ", ".join(folder.name for _, folder in backups_kept)
+                _log_retention_summary(
+                    container_dir.name,
+                    date_label_newest,
+                    date_label_oldest_kept,
+                    len(backups_kept),
+                    len(backups_to_remove),
+                    kept_date_labels,
+                )
+
+            for _, backup_folder in backups_to_remove:
+                _log_and_delete(backup_folder)
+
+        def _prune_date_container(destination_dir: Path) -> None:
+            """Prune dated backup folders (date/container layout).
+
+            Treats each date folder as the atomic unit of retention. The N most
+            recent date folders are kept; all older ones are removed entirely.
+            """
+            if destination_dir.is_symlink() or not destination_dir.is_dir():
+                return
+
+            dated_folders: List[Tuple[datetime, Path]] = []
+            for entry in _iter_child_dirs(destination_dir):
+                parsed_date = _parse_date(entry.name)
+                if parsed_date is not None:
+                    dated_folders.append((parsed_date, entry))
+
+            if not dated_folders:
+                return
+
+            dated_folders.sort(key=lambda e: e[0], reverse=True)  # newest first
+            folders_kept = dated_folders[:backups_to_keep]
+            folders_to_remove = dated_folders[backups_to_keep:]
+
+            if folders_kept:
+                date_label_newest = folders_kept[0][1].name
+                date_label_oldest_kept = folders_kept[-1][1].name
+                kept_labels = ", ".join(f.name for _, f in folders_kept)
+                self.log_this(
+                    f"Retention policy{log_tag}: keeping {len(folders_kept)} date folder(s) "
+                    f"({date_label_oldest_kept} to {date_label_newest}), "
+                    f"{len(folders_to_remove)} older folder(s) will be removed",
+                    "DEBUG",
+                )
+                self.log_this(f"Retention policy{log_tag}: keeping: {kept_labels}", "TRACE")
+
+            for _, folder in folders_to_remove:
+                _log_and_delete(folder)
+
+        if self.env.DEST_DATE_PATH_FORMAT == "container/date":
+            for container_dir in _iter_child_dirs(base_dest_dir):
+                _prune_container_date(container_dir)
+        elif self.env.DEST_DATE_PATH_FORMAT == "date/container":
+            _prune_date_container(base_dest_dir)
+        else:
+            self.log_this(
+                f"Unknown DEST_DATE_PATH_FORMAT '{self.env.DEST_DATE_PATH_FORMAT}' for retention policy", "ERROR"
+            )
+
     def reset_db(self) -> None:
         """Reset the database values to their defaults"""
         self.db.put("containers_completed", 0)
@@ -910,6 +1073,12 @@ class NauticalBackup:
 
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
+
+        self._apply_retention_policy(Path(self.env.DEST_LOCATION))
+        if self.env.RETENTION_SECONDARY_DESTINATIONS:
+            for dir in self.env.SECONDARY_DEST_DIRS:
+                self._apply_retention_policy(dir)
+
         self.end_time = datetime.now()
         exeuction_time = self.end_time - self.start_time
         duration = datetime.fromtimestamp(exeuction_time.total_seconds())

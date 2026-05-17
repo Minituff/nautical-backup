@@ -119,6 +119,158 @@ USE_CONTAINER_BACKUP_DATE=true
     By setting `USE_CONTAINER_BACKUP_DATE=false`, then the date used will be the time Nautical actually started, not the time when each container is processed.
     Meaning that even if the containers take a few minutes to backup, the folder format will remain the same for each of them.
 
+## Backup Retention
+
+Automatically delete old dated backup folders, keeping only the most recent *N* copies.
+
+Requires [`USE_DEST_DATE_FOLDER=true`](#create-a-dated-destination-folder). When that is disabled, this setting has no effect.
+
+> **Default**: 0 <small>(disabled — keep all backups)</small>
+
+> **Format**: integer
+
+```properties
+NUMBER_OF_BACKUPS_TO_KEEP=7
+```
+
+Retention runs automatically at the end of each backup, after all containers have been backed up. The newly created backup folder is counted, so if you set `NUMBER_OF_BACKUPS_TO_KEEP=7`, you will always have exactly 7 folders after the backup completes.
+
+Nautical parses each dated folder's name using the configured [`DEST_DATE_FORMAT`](#destination-folder-format) to determine age — <small>so if this value is changed Nautical will not be able to parse the old folders' names and they will be skipped.</small>
+
+Both [`DEST_DATE_PATH_FORMAT`](#destination-folder-path) layouts are supported:
+
+* `date/container` — only the most recent *N* date folders under the destination root are kept; older date folders are removed entirely.
+* `container/date` — only the most recent *N* date folders are kept independently for each container subfolder.
+
+Folders and files that do not match the configured dated backup structure are left untouched.
+
+??? example "Retention Examples"
+    === "`date/container`"
+        With `NUMBER_OF_BACKUPS_TO_KEEP=2`, Nautical runs a backup on `2024-04-04`, then removes all but the 2 most recent date folders.
+
+        Before backup:
+        ```
+        /destination
+        ├── 2024-04-01
+        │   ├── container-a
+        │   └── container-b
+        ├── 2024-04-02
+        │   ├── container-a
+        │   └── container-b
+        └── 2024-04-03
+            ├── container-a
+            └── container-b
+        ```
+
+        After backup + retention:
+        ```
+        /destination
+        ├── 2024-04-03        ← kept
+        │   ├── container-a
+        │   └── container-b
+        └── 2024-04-04        ← kept (today's backup)
+            ├── container-a
+            └── container-b
+        # 2024-04-01 and 2024-04-02 removed entirely
+        ```
+
+    === "`container/date`"
+        With `NUMBER_OF_BACKUPS_TO_KEEP=2`, Nautical runs a backup on `2024-04-04`, then removes all but the 2 most recent dated folders for each container independently.
+
+        Before backup:
+        ```
+        /destination
+        ├── container-a
+        │   ├── 2024-04-01
+        │   ├── 2024-04-02
+        │   └── 2024-04-03
+        └── container-b
+            ├── 2024-04-01
+            ├── 2024-04-02
+            └── 2024-04-03
+        ```
+
+        After backup + retention:
+        ```
+        /destination
+        ├── container-a
+        │   ├── 2024-04-03    ← kept
+        │   └── 2024-04-04    ← kept (today's backup)
+        │   # 2024-04-01 and 2024-04-02 removed
+        └── container-b
+            ├── 2024-04-03    ← kept
+            └── 2024-04-04    ← kept (today's backup)
+            # 2024-04-01 and 2024-04-02 removed
+        ```
+
+!!! warning "This permanently deletes old backups"
+    Once a folder is removed it cannot be recovered. Start with a conservative value and verify the results before reducing further.
+
+    It's recommended to use the [Retention Dry Run](#retention-dry-run) option first to verify which folders would be deleted before enabling live deletions.
+
+### Minimum Backups to Keep
+
+A safety floor: even if `NUMBER_OF_BACKUPS_TO_KEEP` would allow fewer, Nautical will never reduce a container's backup count below this value. Useful as a guardrail against misconfiguration.
+
+> **Default**: 0 <small>(disabled)</small>
+
+> **Format**: integer
+
+```properties
+MIN_BACKUPS_TO_KEEP=3
+```
+
+If `MIN_BACKUPS_TO_KEEP` is greater than `NUMBER_OF_BACKUPS_TO_KEEP`, it takes precedence and a `DEBUG` message is logged to indicate the override.
+
+??? example "Minimum Backups Examples"
+    === "3 existing backups"
+        With `NUMBER_OF_BACKUPS_TO_KEEP=1` and `MIN_BACKUPS_TO_KEEP=3`, Nautical runs a backup on `2024-04-04`. The floor prevents deletion since there are only 4 folders after the new backup is added:
+
+        ```
+        /destination
+        ├── 2024-04-01    ← kept (floor)
+        ├── 2024-04-02    ← kept (floor)
+        ├── 2024-04-03    ← kept (floor)
+        └── 2024-04-04    ← kept (today's backup)
+        # Nothing deleted — 4 folders total, floor is 3
+        ```
+
+    === "6 existing backups"
+        With the same settings and 6 existing backups, Nautical runs a backup on `2024-04-07`. After adding today's folder there are 7 total — the oldest 4 are removed so the floor of 3 is satisfied:
+
+        ```
+        /destination
+        ├── 2024-04-01    # removed
+        ├── 2024-04-02    # removed
+        ├── 2024-04-03    # removed
+        ├── 2024-04-04    # removed
+        ├── 2024-04-05    ← kept (floor)
+        ├── 2024-04-06    ← kept (floor)
+        └── 2024-04-07    ← kept (today's backup)
+        ```
+
+### Retention Dry Run
+
+Preview which folders *would* be deleted without actually removing anything. Useful for verifying your configuration before enabling live deletions.
+
+> **Default**: false
+
+```properties
+RETENTION_DRY_RUN=true
+```
+
+Candidates are logged at `INFO` level with a `(DRY RUN)` tag so they are easy to spot in the output.
+
+### Retention on Secondary Destinations
+
+Control whether the retention policy is also applied to directories listed in [`SECONDARY_DEST_DIRS`](#secondary-destination-locations).
+
+> **Default**: true <small>(retention applies to secondary destinations)</small>
+
+```properties
+RETENTION_SECONDARY_DESTINATIONS=false
+```
+
 ## Additional Folders
 Allows Nautical to backup folders that are not associated with containers.
 

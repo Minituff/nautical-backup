@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "nb pytest",
+            "timeout": 60,
+            "statusMessage": "Running tests..."
+          }
+        ]
+      }
+    ]
+  }
+}
