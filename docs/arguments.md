@@ -133,12 +133,14 @@ Requires [`USE_DEST_DATE_FOLDER=true`](#create-a-dated-destination-folder). When
 NUMBER_OF_BACKUPS_TO_KEEP=7
 ```
 
-Nautical parses each dated folder's name using the configured [`DEST_DATE_FORMAT`](#destination-folder-format) to determine age — so if this value is changed Nautical will not be able to parse the old folders' names and they will skipped.
+Nautical parses each dated folder's name using the configured [`DEST_DATE_FORMAT`](#destination-folder-format) to determine age — so if this value is changed Nautical will not be able to parse the old folders' names and they will be skipped.
 
 Both [`DEST_DATE_PATH_FORMAT`](#destination-folder-path) layouts are supported:
 
-* `date/container` — the oldest *date* folders under the destination root are removed.
-* `container/date` — the oldest *date* folders are removed independently for each container subfolder.
+* `date/container` — only the most recent *N* date folders under the destination root are kept; older date folders are removed entirely.
+* `container/date` — only the most recent *N* date folders are kept independently for each container subfolder.
+
+Folders and files that do not match the configured dated backup structure are left untouched.
 
 !!! warning "This permanently deletes old backups"
     Once a folder is removed it cannot be recovered. Start with a conservative value and verify the results before reducing further.

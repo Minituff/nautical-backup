@@ -783,19 +783,22 @@ class NauticalBackup:
         return f"{default_rsync_args} {custom_rsync_args}"
 
     def _apply_retention_policy(self, base_dest_dir: Path) -> None:
-        """Delete old date-stamped backup folders, keeping the N most recent per container.
+        """Delete old date-stamped backup folders, keeping the N most recent backups.
 
         Only runs when NUMBER_OF_BACKUPS_TO_KEEP > 0 and USE_DEST_DATE_FOLDER is true.
         Folders whose names cannot be parsed with DEST_DATE_FORMAT are left untouched.
         When RETENTION_DRY_RUN is true, candidates are logged but nothing is deleted.
 
-        Both path formats prune per-container independently:
+        Path formats are pruned according to their folder shape:
           - container/date: destination/<container>/<date>/  — date folders pruned per container dir
-          - date/container: destination/<date>/<container>/  — container dirs pruned across date dirs;
-                            a date dir is only removed once all its container subdirs are gone
+          - date/container: destination/<date>/<container>/  — date folders pruned as atomic backup sets
         """
         backups_to_keep: int = self.env.NUMBER_OF_BACKUPS_TO_KEEP
         if backups_to_keep <= 0 or str(self.env.USE_DEST_DATE_FOLDER).lower() != "true":
+            return
+
+        if base_dest_dir.is_symlink() or not base_dest_dir.is_dir():
+            self.log_this(f"Retention policy: destination '{base_dest_dir}' is not a directory; skipping", "DEBUG")
             return
 
         min_backups_to_keep: int = self.env.MIN_BACKUPS_TO_KEEP
@@ -818,13 +821,30 @@ class NauticalBackup:
             except ValueError:
                 return None
 
+        def _record_retention_error(message: str, error: OSError) -> None:
+            """Record retention failures without aborting the completed backup."""
+            log_message = f"Retention policy: {message}: {error}"
+            self._record_error(log_message)
+            self.log_this(log_message, "ERROR")
+
+        def _iter_child_dirs(parent: Path) -> List[Path]:
+            """Return real child directories, skipping symlinks to avoid pruning outside the destination."""
+            try:
+                return [child for child in parent.iterdir() if not child.is_symlink() and child.is_dir()]
+            except OSError as error:
+                _record_retention_error(f"unable to inspect '{parent}'", error)
+                return []
+
         def _log_and_delete(target_folder: Path) -> None:
             """Log and conditionally delete a single backup folder."""
             if is_dry_run:
                 self.log_this(f"Retention policy (DRY RUN): would remove '{target_folder}'", "INFO")
             else:
                 self.log_this(f"Retention policy: removing '{target_folder}'", "INFO")
-                shutil.rmtree(target_folder)
+                try:
+                    shutil.rmtree(target_folder)
+                except OSError as error:
+                    _record_retention_error(f"failed to remove '{target_folder}'", error)
 
         def _log_retention_summary(
             container_name: str,
@@ -844,14 +864,12 @@ class NauticalBackup:
 
         def _prune_container_date(container_dir: Path) -> None:
             """Prune date folders inside a single container directory (container/date layout)."""
-            if not container_dir.is_dir():
+            if container_dir.is_symlink() or not container_dir.is_dir():
                 return
 
             # Collect all date-named subfolders for this container
             dated_backups: List[Tuple[datetime, Path]] = []
-            for date_folder in container_dir.iterdir():
-                if not date_folder.is_dir():
-                    continue
+            for date_folder in _iter_child_dirs(container_dir):
                 parsed_date = _parse_date(date_folder.name)
                 if parsed_date is not None:
                     dated_backups.append((parsed_date, date_folder))
@@ -880,79 +898,45 @@ class NauticalBackup:
                 _log_and_delete(backup_folder)
 
         def _prune_date_container(destination_dir: Path) -> None:
-            """Prune container subdirs across date folders (date/container layout).
+            """Prune dated backup folders (date/container layout).
 
-            Each container's history is pruned independently. A date folder is only
-            removed after all of its container subdirs have been deleted.
+            Treats each date folder as the atomic unit of retention. The N most
+            recent date folders are kept; all older ones are removed entirely.
             """
-            if not destination_dir.is_dir():
+            if destination_dir.is_symlink() or not destination_dir.is_dir():
                 return
 
-            # Build a map of container_name -> [(parsed_date, container_subfolder), ...]
-            # by scanning every date folder in the destination
-            container_backup_map: Dict[str, List[Tuple[datetime, Path]]] = {}
-            for date_folder in destination_dir.iterdir():
-                if not date_folder.is_dir():
-                    continue
-                parsed_date = _parse_date(date_folder.name)
-                if parsed_date is None:
-                    continue  # not a date-named folder — leave it untouched
-                for container_subfolder in date_folder.iterdir():
-                    if container_subfolder.is_dir():
-                        container_backup_map.setdefault(container_subfolder.name, []).append(
-                            (parsed_date, container_subfolder)
-                        )
+            dated_folders: List[Tuple[datetime, Path]] = []
+            for entry in _iter_child_dirs(destination_dir):
+                parsed_date = _parse_date(entry.name)
+                if parsed_date is not None:
+                    dated_folders.append((parsed_date, entry))
 
-            # Prune each container's history independently
-            for container_name, dated_backups in sorted(container_backup_map.items()):
-                dated_backups.sort(key=lambda entry: entry[0], reverse=True)  # newest first
-                backups_kept = dated_backups[:backups_to_keep]
-                backups_to_remove = dated_backups[backups_to_keep:]
+            if not dated_folders:
+                return
 
-                if not backups_kept and not backups_to_remove:
-                    continue
+            dated_folders.sort(key=lambda e: e[0], reverse=True)  # newest first
+            folders_kept = dated_folders[:backups_to_keep]
+            folders_to_remove = dated_folders[backups_to_keep:]
 
-                if backups_kept:
-                    # parent.name gives the date folder name (one level up from the container subfolder)
-                    date_label_newest = backups_kept[0][1].parent.name
-                    date_label_oldest_kept = backups_kept[-1][1].parent.name
-                    kept_date_labels = ", ".join(entry[1].parent.name for entry in backups_kept)
-                    _log_retention_summary(
-                        container_name,
-                        date_label_newest,
-                        date_label_oldest_kept,
-                        len(backups_kept),
-                        len(backups_to_remove),
-                        kept_date_labels,
-                    )
+            if folders_kept:
+                date_label_newest = folders_kept[0][1].name
+                date_label_oldest_kept = folders_kept[-1][1].name
+                kept_labels = ", ".join(f.name for _, f in folders_kept)
+                self.log_this(
+                    f"Retention policy{log_tag}: keeping {len(folders_kept)} date folder(s) "
+                    f"({date_label_oldest_kept} to {date_label_newest}), "
+                    f"{len(folders_to_remove)} older folder(s) will be removed",
+                    "DEBUG",
+                )
+                self.log_this(f"Retention policy{log_tag}: keeping: {kept_labels}", "TRACE")
 
-                for _, container_subfolder in backups_to_remove:
-                    _log_and_delete(container_subfolder)
-
-            # Second pass: remove date folders that are now empty.
-            # We verify both that no container subdirectories remain AND that total file
-            # content is 0 bytes before deleting — rmdir() can behave unexpectedly on
-            # Docker bind mounts, so we use shutil.rmtree for reliability.
-            if not is_dry_run:
-                for date_folder in destination_dir.iterdir():
-                    if not date_folder.is_dir() or _parse_date(date_folder.name) is None:
-                        continue
-                    try:
-                        has_child_dirs = any(child.is_dir() for child in date_folder.iterdir())
-                        folder_bytes = sum(f.stat().st_size for f in date_folder.rglob("*") if f.is_file())
-                    except OSError:
-                        continue
-                    if not has_child_dirs and folder_bytes == 0:
-                        try:
-                            shutil.rmtree(date_folder)
-                            self.log_this(f"Retention policy: removing empty date folder '{date_folder}'", "DEBUG")
-                        except OSError:
-                            pass
+            for _, folder in folders_to_remove:
+                _log_and_delete(folder)
 
         if self.env.DEST_DATE_PATH_FORMAT == "container/date":
-            for container_dir in base_dest_dir.iterdir():
-                if container_dir.is_dir():
-                    _prune_container_date(container_dir)
+            for container_dir in _iter_child_dirs(base_dest_dir):
+                _prune_container_date(container_dir)
         elif self.env.DEST_DATE_PATH_FORMAT == "date/container":
             _prune_date_container(base_dest_dir)
         else:
