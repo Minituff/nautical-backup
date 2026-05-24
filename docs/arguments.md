@@ -744,6 +744,12 @@ There are many `rsync` [arguments](https://linux.die.net/man/1/rsync) that be be
     RSYNC_CUSTOM_ARGS=--exclude='*.log' --exclude='*.txt'
     ```
 
+!!! tip "Symlinks on unsupported filesystems"
+    If your destination doesn't support symlinks (e.g. SMB, FAT/exFAT), rsync will exit with code 23. All regular files are still backed up — only symlinks are skipped, which is normal. Use `--no-links` to suppress the error.
+    ```properties
+    RSYNC_CUSTOM_ARGS=--no-links
+    ```
+
 The `RSYNC_CUSTOM_ARGS` will be inserted after the `$DEFAULT_RSYNC_ARGS` as shown:
 ```bash
 rsync $DEFAULT_RSYNC_ARGS $RSYNC_CUSTOM_ARGS $src_dir/ $dest_dir/
