@@ -2275,7 +2275,10 @@ class TestBackup:
         assert os.environ.get("NB_EXEC_CONTAINERS_FAILED") == "container1"
         assert os.environ.get("NB_EXEC_CONTAINER_SKIP_REASONS") == "container1=rsync_failed"
         assert os.environ.get("NB_EXEC_CONTAINER_FAILURE_REASONS") == "container1=rsync_failed"
-        assert os.environ.get("NB_EXEC_ERROR_MESSAGES") == "rsync exited with code 23 for container1"
+        assert (
+            os.environ.get("NB_EXEC_ERROR_MESSAGES")
+            == "rsync exited with code 23 for container1 (symlinks may have been skipped — use RSYNC_CUSTOM_ARGS=--no-links to suppress)"
+        )
 
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
@@ -2911,6 +2914,94 @@ class TestBackup:
         mock_subprocess_run.assert_called_once()
         mock_container1.stop.assert_called()
         mock_container1.start.assert_called()
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                # Reads: stop-check, after-stop, pre-rsync, start-attempt-1,
+                #        after-c.start (restarting), retry-2 (restarting), retry-3 (running)
+                "status_side_effect": ["running", "exited", "exited", "exited", "restarting", "restarting", "running"],
+            }
+        ],
+        indirect=True,
+    )
+    def test_start_container_transitional_state_eventually_running(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Container in transitional state (e.g. 'restarting') after c.start() should be retried
+        until it reaches 'running', and the backup should be marked as completed — not failed."""
+        mock_subprocess_run.return_value.returncode = 0
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_container1.stop.assert_called()
+        mock_container1.start.assert_called()
+        assert "container1" in nb.containers_completed
+        assert "container1" not in nb.containers_failed
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                # Reads: stop-check, after-stop, pre-rsync, start-attempt-1,
+                #        after-c.start (not running yet), start-attempt-2, after-c.start-2 (running)
+                "status_side_effect": ["running", "exited", "exited", "exited", "exited", "exited", "running"],
+            }
+        ],
+        indirect=True,
+    )
+    def test_start_container_retry_success_propagates(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """When container start fails on attempt 1 but succeeds on attempt 2, the backup should be
+        marked completed (not failed). This tests the missing-return bug fix."""
+        mock_subprocess_run.return_value.returncode = 0
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert mock_container1.start.call_count == 2
+        assert "container1" in nb.containers_completed
+        assert "container1" not in nb.containers_failed
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize("mock_container1", [{"name": "container1", "id": "123456789"}], indirect=True)
+    def test_rsync_exit_code_23_includes_symlink_hint(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """rsync exit code 23 (partial transfer) should include a hint about symlinks and the
+        RSYNC_CUSTOM_ARGS=--no-links workaround in the error message."""
+        rsync_result = MagicMock()
+        rsync_result.returncode = 23
+        mock_subprocess_run.return_value = rsync_result
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert len(nb.error_messages) == 1
+        assert "--no-links" in nb.error_messages[0]
+        assert "symlinks" in nb.error_messages[0]
+        assert "container1" in nb.containers_failed
 
     # -------------------------------------------------------------------------
     # Retention policy tests

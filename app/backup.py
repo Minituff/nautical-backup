@@ -473,14 +473,27 @@ class NauticalBackup:
 
     def _start_container(self, c: Container, attempt=1) -> bool:
         c.reload()  # Refresh the status for this container
+        status = c.status  # Read once to avoid consuming multiple mock cycles
 
-        if c.status != "exited":
-            self.log_this(f"Container {c.name} was not stopped. No need to start.", "DEBUG")
+        if status == "running":
+            if attempt == 1:
+                self.log_this(f"Container {c.name} was not stopped. No need to start.", "DEBUG")
             return True
+
+        if status != "exited":
+            # Transitional state: Docker statuses are created/restarting/running/paused/exited/dead
+            if attempt <= 3:
+                self.log_this(
+                    f"Container {c.name} is in '{status}' state, waiting for it to stabilize (Attempt {attempt}/3)",
+                    "WARN",
+                )
+                time.sleep(2)
+                return self._start_container(c, attempt=attempt + 1)
+            return False
 
         try:
             self.log_this(f"Starting {c.name}...")
-            c.start()  # * Actually stop the container
+            c.start()  # * Actually start the container
         except ReadTimeout:
             self.log_this(f"Timed out waiting for {c.name} to start. Checking container status...", "WARN")
             # Fall through to c.reload() — container may have started despite the timeout
@@ -489,12 +502,13 @@ class NauticalBackup:
             return False
 
         c.reload()  # Refresh the status for this container
+        status = c.status  # Read once to avoid consuming multiple mock cycles
 
-        if c.status == "running":
+        if status == "running":
             return True
         elif attempt <= 3:
             self.log_this(f"Container {c.name} was not in running state. Trying again (Attempt {attempt}/3)", "ERROR")
-            self._start_container(c, attempt=attempt + 1)
+            return self._start_container(c, attempt=attempt + 1)
         return False
 
     def _get_src_dir(self, c: Container, log=False) -> Tuple[Path, str]:
@@ -735,6 +749,16 @@ class NauticalBackup:
         if out.returncode != 0:
             name = c.name if c else "unknown"
             message = f"rsync exited with code {out.returncode} for {name}"
+            if out.returncode == 23:
+                # Exit code 23 = partial transfer; commonly caused by symlinks on filesystems
+                # that don't support them (e.g. SMB/FAT). Regular files are still backed up.
+                hint = " (symlinks may have been skipped — use RSYNC_CUSTOM_ARGS=--no-links to suppress)"
+                if c:
+                    self._record_container_failed(c, "rsync_failed", message + hint)
+                else:
+                    self._record_error(message + hint)
+                    self.log_this(message + hint, "ERROR")
+                return False
             if c:
                 self._record_container_failed(c, "rsync_failed", message)
             else:
