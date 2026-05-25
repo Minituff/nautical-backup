@@ -2999,10 +2999,21 @@ class TestBackup:
                 "name": "container1",
                 "id": "123456789",
                 "labels": {"nautical-backup.start-timeout": "10"},
-                # Needs 2 retries after c.start() to reach running.
-                # With START_TIMEOUT=2 (max_attempts=1) this would fail;
-                # the label overrides to 10s (max_attempts=5) so it succeeds.
-                "status_side_effect": ["running", "exited", "exited", "exited", "restarting", "restarting", "running"],
+                # Needs 4 retries after c.start() to reach running.
+                # START_TIMEOUT=2 → max_attempts=2 (formula: (2//2)+1=2), so attempt=3 sees
+                # "restarting" and returns False — failure without the label.
+                # Label start-timeout=10 → max_attempts=6 ((10//2)+1), so it succeeds.
+                "status_side_effect": [
+                    "running",
+                    "exited",
+                    "exited",
+                    "exited",
+                    "restarting",
+                    "restarting",
+                    "restarting",
+                    "restarting",
+                    "running",
+                ],
             }
         ],
         indirect=True,
@@ -3016,7 +3027,7 @@ class TestBackup:
     ):
         """Per-container start-timeout label should override the global START_TIMEOUT env var."""
         mock_subprocess_run.return_value.returncode = 0
-        monkeypatch.setenv("START_TIMEOUT", "2")  # max_attempts=1 — would fail without the label
+        monkeypatch.setenv("START_TIMEOUT", "2")  # max_attempts=2 — exhausted before container is running
 
         mock_docker_client.containers.list.return_value = [mock_container1]
         nb = NauticalBackup(mock_docker_client)
@@ -3079,6 +3090,54 @@ class TestBackup:
         assert "--no-links" in nb.error_messages[0]
         assert "symlinks" in nb.error_messages[0]
         assert "container1" in nb.containers_failed
+
+    @mock.patch("builtins.print")
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                # Container never reaches running after start — stays restarting through all attempts.
+                # START_TIMEOUT=2 → max_attempts=(2//2)+1=2.
+                # Reads: stop-check, after-stop, during-backup, attempt-1, post-start, attempt-2, attempt-3(→False)
+                "status_side_effect": [
+                    "running",
+                    "exited",
+                    "exited",
+                    "exited",
+                    "restarting",
+                    "restarting",
+                    "restarting",
+                ],
+            }
+        ],
+        indirect=True,
+    )
+    def test_start_container_exhausted_retries_not_in_completed(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_print: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """When _start_container exhausts all retries, container must be in containers_failed,
+        NOT in containers_completed, and a WARN about the partial backup should be logged."""
+        mock_subprocess_run.return_value.returncode = 0
+        monkeypatch.setenv("START_TIMEOUT", "2")  # max_attempts=2 → 3 total attempts before giving up
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert "container1" in nb.containers_failed
+        assert "container1" not in nb.containers_completed
+
+        printed = [call_args[0][0] for call_args in mock_print.call_args_list]
+        assert any("failed to restart within the start timeout" in line for line in printed)
+        assert not any("Backup of container1 complete!" in line for line in printed)
 
     # -------------------------------------------------------------------------
     # Retention policy tests
