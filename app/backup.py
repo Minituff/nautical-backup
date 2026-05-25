@@ -471,24 +471,30 @@ class NauticalBackup:
             self._stop_container(c, attempt=attempt + 1)
         return False
 
-    def _start_container(self, c: Container, attempt=1) -> bool:
+    def _start_container(self, c: Container, attempt=1, max_attempts: Optional[int] = None) -> bool:
+        if max_attempts is None:
+            start_timeout = int(self.get_label(c, "start-timeout", str(self.env.START_TIMEOUT)))
+            max_attempts = max(1, start_timeout // 2)
+
         c.reload()  # Refresh the status for this container
         status = c.status  # Read once to avoid consuming multiple mock cycles
 
         if status == "running":
             if attempt == 1:
                 self.log_this(f"Container {c.name} was not stopped. No need to start.", "DEBUG")
+            else:
+                self.log_this(f"Container {c.name} is now running.", "INFO")
             return True
 
         if status != "exited":
             # Transitional state: Docker statuses are created/restarting/running/paused/exited/dead
-            if attempt <= 3:
+            if attempt <= max_attempts:
                 self.log_this(
-                    f"Container {c.name} is in '{status}' state, waiting for it to stabilize (Attempt {attempt}/3)",
+                    f"Container {c.name} is in '{status}' state, waiting for it to stabilize (Attempt {attempt}/{max_attempts})",
                     "WARN",
                 )
                 time.sleep(2)
-                return self._start_container(c, attempt=attempt + 1)
+                return self._start_container(c, attempt=attempt + 1, max_attempts=max_attempts)
             return False
 
         try:
@@ -505,10 +511,14 @@ class NauticalBackup:
         status = c.status  # Read once to avoid consuming multiple mock cycles
 
         if status == "running":
+            if attempt > 1:
+                self.log_this(f"Container {c.name} is now running.", "INFO")
             return True
-        elif attempt <= 3:
-            self.log_this(f"Container {c.name} was not in running state. Trying again (Attempt {attempt}/3)", "ERROR")
-            return self._start_container(c, attempt=attempt + 1)
+        elif attempt <= max_attempts:
+            self.log_this(
+                f"Container {c.name} was not in running state. Trying again (Attempt {attempt}/{max_attempts})", "WARN"
+            )
+            return self._start_container(c, attempt=attempt + 1, max_attempts=max_attempts)
         return False
 
     def _get_src_dir(self, c: Container, log=False) -> Tuple[Path, str]:

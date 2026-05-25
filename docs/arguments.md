@@ -569,6 +569,17 @@ STOP_TIMEOUT=10
 
 <small>🔄 This is the same action as the [Stop Timeout](./labels.md#stop-timeout) label, but applied globally.</small>
 
+## Start Timeout
+Nautical will check every 2 seconds whether a container has reached a running state after startup, giving up after *x* total seconds.
+
+> **Default**: 10 <small>(seconds)</small>
+
+```properties
+START_TIMEOUT=10
+```
+
+<small>🔄 This is the same action as the [Start Timeout](./labels.md#start-timeout) label, but applied globally.</small>
+
 ## Backup on Start
 Nautical will immediately perform a backup when the container is started in addition to the CRON scheduled backup.
 

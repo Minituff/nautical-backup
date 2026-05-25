@@ -2956,6 +2956,83 @@ class TestBackup:
                 "name": "container1",
                 "id": "123456789",
                 # Reads: stop-check, after-stop, pre-rsync, start-attempt-1,
+                #        after-c.start (restarting), retry-2 (restarting), retry-3 (restarting), retry-4 (running)
+                # Mirrors the exact sequence from issue #683 (2026-05-25 comment)
+                "status_side_effect": [
+                    "running",
+                    "exited",
+                    "exited",
+                    "exited",
+                    "restarting",
+                    "restarting",
+                    "restarting",
+                    "running",
+                ],
+            }
+        ],
+        indirect=True,
+    )
+    def test_start_container_three_restarting_states_eventually_running(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+    ):
+        """Container that stays in 'restarting' for 3 cycles before becoming running should still
+        complete successfully. Reproduces the scenario from issue #683 (2026-05-25)."""
+        mock_subprocess_run.return_value.returncode = 0
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_container1.stop.assert_called()
+        mock_container1.start.assert_called()
+        assert "container1" in nb.containers_completed
+        assert "container1" not in nb.containers_failed
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                "labels": {"nautical-backup.start-timeout": "10"},
+                # Needs 2 retries after c.start() to reach running.
+                # With START_TIMEOUT=2 (max_attempts=1) this would fail;
+                # the label overrides to 10s (max_attempts=5) so it succeeds.
+                "status_side_effect": ["running", "exited", "exited", "exited", "restarting", "restarting", "running"],
+            }
+        ],
+        indirect=True,
+    )
+    def test_START_TIMEOUT_label_supersedes_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Per-container start-timeout label should override the global START_TIMEOUT env var."""
+        mock_subprocess_run.return_value.returncode = 0
+        monkeypatch.setenv("START_TIMEOUT", "2")  # max_attempts=1 — would fail without the label
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        assert "container1" in nb.containers_completed
+        assert "container1" not in nb.containers_failed
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [
+            {
+                "name": "container1",
+                "id": "123456789",
+                # Reads: stop-check, after-stop, pre-rsync, start-attempt-1,
                 #        after-c.start (not running yet), start-attempt-2, after-c.start-2 (running)
                 "status_side_effect": ["running", "exited", "exited", "exited", "exited", "exited", "running"],
             }
