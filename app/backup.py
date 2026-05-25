@@ -474,7 +474,8 @@ class NauticalBackup:
     def _start_container(self, c: Container, attempt=1, max_attempts: Optional[int] = None) -> bool:
         if max_attempts is None:
             start_timeout = int(self.get_label(c, "start-timeout", str(self.env.START_TIMEOUT)))
-            max_attempts = max(1, start_timeout // 2)
+            max_attempts = max(1, (start_timeout // 2) + 1)
+            self.log_this(f"Container {c.name}: start-timeout={start_timeout}s (max_attempts={max_attempts})", "DEBUG")
 
         c.reload()  # Refresh the status for this container
         status = c.status  # Read once to avoid consuming multiple mock cycles
@@ -1101,9 +1102,14 @@ class NauticalBackup:
                     for dir in dest_dirs:
                         self._backup_additional_folders(c, dir)
 
-                if c.name not in self.containers_skipped:
+                if c.name not in self.containers_skipped and c.name not in self.containers_failed:
                     self.containers_completed.add(c.name)
                     self.log_this(f"Backup of {c.name} complete!", "INFO")
+                elif c.name in self.containers_failed and c.name not in self.containers_skipped:
+                    self.log_this(
+                        f"Backup data for {c.name} was completed, but the container failed to restart within the start timeout.",
+                        "WARN",
+                    )
 
         for dir in dest_dirs:
             self._backup_additional_folders_standalone(BeforeOrAfter.AFTER, dir)
