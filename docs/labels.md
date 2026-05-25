@@ -155,6 +155,17 @@ nautical-backup.stop-timeout=10
 
 <small>🔄 This is a similar action to the [Stop Timeout](./arguments.md#stop-timeout) variable, but applied only to this container.</small>
 
+## Start Timeout
+Nautical will check every 2 seconds whether a container has reached a running state after startup, giving up after *x* total seconds.
+
+> **Default If Missing**: [Start Timeout](./arguments.md#start-timeout) Environment value<small> (Defaults to 10 seconds)</small>
+
+```properties
+nautical-backup.start-timeout=10
+```
+
+<small>🔄 This is a similar action to the [Start Timeout](./arguments.md#start-timeout) variable, but applied only to this container.</small>
+
 ## Groups
 Use this label to have multiple containers stopped, backed up, and restarted at the same time.
 

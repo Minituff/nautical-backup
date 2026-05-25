@@ -69,6 +69,7 @@ class NauticalEnv:
             self.REPORT_FILE = False
 
         self.STOP_TIMEOUT = int(os.environ.get("STOP_TIMEOUT", 10))
+        self.START_TIMEOUT = int(os.environ.get("START_TIMEOUT", 10))
 
         _keep = os.environ.get("NUMBER_OF_BACKUPS_TO_KEEP", "0")
         self.NUMBER_OF_BACKUPS_TO_KEEP = int(_keep) if _keep.isdigit() else 0
