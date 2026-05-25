@@ -39,7 +39,7 @@ jobs:
       uses: docker/metadata-action@v6.1.0
       with:
         images: |
-          ${{ github.repository }}  # minituff/nautical-backup
+          ${{ github.repository }}
           ghcr.io/${{ github.repository }}
         # This stage requires being run attached to a tag, otherwise it will use the branch name
         tags: |
