@@ -1,0 +1,16 @@
+# This file is used to easily run the mkdocs-material docker image to edit the docs locally.
+# To use this file, you need to have docker installed on your machine.
+# Run the following command to start the docker container: `docker-compose up -d`
+---
+version: "3"
+services:
+  mkdocs:
+    image: squidfunk/mkdocs-material:latest
+    container_name: nautical-docs
+    hostname: nautical-docs
+    command: "" # Serve the docs at http://127.0.0.1:8000
+    volumes:
+      - ../:/docs
+    ports:
+      - 8000:8000
+    restart: unless-stopped
