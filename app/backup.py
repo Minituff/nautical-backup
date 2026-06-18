@@ -82,11 +82,11 @@ class NauticalBackup:
         if message not in self.error_messages:
             self.error_messages.append(message)
 
-    def _record_container_skipped(self, c: Container, reason: str, message: str, log=True) -> None:
+    def _record_container_skipped(self, c: Container, reason: str, message: str, log=True, level: str = "INFO") -> None:
         self.containers_skipped.add(c.name)
         self.container_skip_reasons.setdefault(c.name if c.name else str(c.id), reason)
         if log:
-            self.log_this(message, "WARN")
+            self.log_this(message, level)
 
     def _record_container_failed(self, c: Container, reason: str, message: str, log=True) -> None:
         self.containers_failed.add(c.name)
@@ -180,7 +180,9 @@ class NauticalBackup:
             # Attempt to pull info from container. Skip if not found
             info = str(c.name) + " " + str(c.id) + " " + str(c.image) + " " + str(c.labels)
         except ImageNotFound as e:
-            self._record_container_skipped(c, "image_not_found", "Skipping container because its info was not found.")
+            self._record_container_skipped(
+                c, "image_not_found", "Skipping container because its info was not found.", level="WARN"
+            )
             return True
 
         if "minituff/nautical-backup" in str(c.image):
@@ -738,7 +740,7 @@ class NauticalBackup:
                 pass
             else:
                 self._record_container_skipped(
-                    c, "source_directory_missing", f"Source directory {src_dir} does not exist. Skipping"
+                    c, "source_directory_missing", f"Source directory {src_dir} does not exist. Skipping", level="WARN"
                 )
 
         additional_folders_when = str(self.get_label(c, "additional-folders.when", "during")).lower()
@@ -1041,6 +1043,7 @@ class NauticalBackup:
                             c,
                             "source_directory_missing",
                             f"{c.name} - Source directory does not exist. Skipping",
+                            level="WARN",
                         )
                         continue
 
@@ -1071,7 +1074,10 @@ class NauticalBackup:
                     if stop_before_backup.lower() == "true" and stop_before_backup_env == True:
                         if c.name not in self.containers_skipped:
                             self._record_container_skipped(
-                                c, "not_stopped", f"Skipping backup of {c.name} because it was not stopped"
+                                c,
+                                "not_stopped",
+                                f"Skipping backup of {c.name} because it was not stopped",
+                                level="WARN",
                             )
                         else:
                             self._record_container_skipped(
@@ -1137,7 +1143,7 @@ class NauticalBackup:
             skipped_names = self.logger.set_to_string(self.containers_skipped)
             self.log_this(
                 f"Skipped {len(self.containers_skipped)} containers: {skipped_names}",
-                "WARN",
+                "INFO",
             )
         if self.containers_failed:
             self.log_this(
