@@ -2185,8 +2185,8 @@ class TestBackup:
 
         printed = [call_args[0][0] for call_args in mock_print.call_args_list]
 
-        assert "WARN: Skipping container1 based on name" in printed
-        assert "WARN: Skipped 1 containers: container1" in printed
+        assert "INFO: Skipping container1 based on name" in printed
+        assert "INFO: Skipped 1 containers: container1" in printed
         assert os.environ.get("NB_EXEC_BACKUP_STATUS") == "warning"
         assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_COMPLETED") == "1"
         assert os.environ.get("NB_EXEC_TOTAL_CONTAINERS_SKIPPED") == "1"
