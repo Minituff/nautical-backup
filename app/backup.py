@@ -244,8 +244,29 @@ class NauticalBackup:
             self._record_container_skipped(c, "skip_containers_id", f"Skipping {c.name} based on ID {c.id}")
             return True
 
+        SKIP_GROUPS = self.env.SKIP_GROUPS
+        skip_groups_set = {g.strip() for g in SKIP_GROUPS.split(",") if g.strip()}
+        if skip_groups_set:
+            matched_groups = skip_groups_set.intersection(self._get_container_groups(c))
+            if matched_groups:
+                self._record_container_skipped(
+                    c,
+                    "skip_groups",
+                    f"Skipping {c.name} because it belongs to skipped group(s): {', '.join(sorted(matched_groups))}",
+                )
+                return True
+
         # No reason to skip
         return False
+
+    def _get_container_groups(self, c: Container) -> List[str]:
+        """Return the explicit groups a container belongs to via the `group` label.
+        Returns an empty list if the container has no group label (i.e. it is not
+        part of any user-defined group)."""
+        group = str(self.get_label(c, "group", "") or "")
+        if not group:
+            return []
+        return [g.strip() for g in group.split(",") if g.strip()]
 
     def group_containers(self) -> Dict[str, List[Container]]:
         containers: List[Container] = self.docker.containers.list()  # type: ignore
@@ -266,14 +287,12 @@ class NauticalBackup:
             if self._should_skip_container(c) == True:
                 continue  # Skip this container
 
-            # Create a default group, so ungrouped items are not grouped together
-            default_group = f"{self.default_group_pfx_sfx}{str(c.id)[0:12]}{self.default_group_pfx_sfx}"
-            group = str(self.get_label(c, "group", default_group))
-            if not group or group == "":
-                group = default_group
+            groups = self._get_container_groups(c)
+            if not groups:
+                # Create a default group, so ungrouped items are not grouped together
+                default_group = f"{self.default_group_pfx_sfx}{str(c.id)[0:12]}{self.default_group_pfx_sfx}"
+                groups = [default_group]
 
-            # Split the group string into a list of groups by comma
-            groups = group.split(",")
             for g in groups:
                 # Get priority. Default=100
                 priority = int(self.get_label(c, f"group.{g}.priority", 100))

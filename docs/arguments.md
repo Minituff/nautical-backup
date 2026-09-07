@@ -393,6 +393,22 @@ This list can either be the container `name` or full `id`.
 
 <small>🔄 This is the same action as the [Disable Nautical](./labels.md#enable-or-disable-nautical) label, but applied globally.</small>
 
+## Skip Groups
+Tell Nautical to skip backup of every container belonging to any of these [Groups](./labels.md#groups).
+
+A container is skipped if it belongs to *any* group in this list, even if it also belongs to other groups that are not listed.
+
+> **Default**: *empty* <small>(no skips)</small>
+
+```properties
+SKIP_GROUPS=group1,group2
+```
+
+!!! tip "Automatically applies to new containers"
+    Group membership is re-checked on every backup run, so adding a new container to an already-skipped group is enough &mdash; there's no need to update this list.
+
+<small>Only containers with an explicit [`nautical-backup.group`](./labels.md#groups) label can match. This can be combined with [Skip Containers](#skip-containers); a container is skipped if it matches either list.</small>
+
 ## Require Label
 Require the Docker ^^Label^^ `nautical-backup.enable=true` to be present on *each* container or it will be skipped.
 

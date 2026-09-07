@@ -6,6 +6,7 @@ from typing import Dict, List
 class NauticalEnv:
     def __init__(self) -> None:
         self.SKIP_CONTAINERS = os.environ.get("SKIP_CONTAINERS", "")
+        self.SKIP_GROUPS = os.environ.get("SKIP_GROUPS", "")
         self.SKIP_STOPPING = os.environ.get("SKIP_STOPPING", "")
         self.SELF_CONTAINER_ID = os.environ.get("SELF_CONTAINER_ID", "")
 
