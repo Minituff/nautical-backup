@@ -39,6 +39,12 @@ Tests in `pytest/` exist to enforce backward compatibility. Treat them as a cont
 
 Run tests with: `nb pytest` (inside the dev environment) or `python -m pytest pytest/` locally (excluding `pytest/test_api.py` if the dev DB is not initialized).
 
+## Dev Environment Gotchas
+
+- **Bash init scripts duplicate Python logic.** `app/entry.sh`, `env.sh`, `logger.sh`, and `utils.sh` run during s6-overlay container init, *before* the Python app starts, and some of them re-implement logic that also exists in Python (e.g. `logger.sh`'s report-file naming mirrors `logger.py`). If you change one side, update the other and keep them in sync. There is no bash test framework in this repo (no bats/shellcheck), so `pytest/` never exercises the bash side — verify bash changes manually (`bash -n script.sh` at minimum; ideally build the image and run it for real).
+- **`nb pytest` touches real shared dev state**, not isolated temp dirs — `test_backup.py`'s retention-policy tests read/write the actual `dev/config/nautical-db.json`, `dev/destination`, and `dev/source`. Don't run `nb pytest` in two terminals/processes at once; it races on these files and produces spurious `JSONDecodeError`/`Directory not empty` failures that look like a real regression but aren't.
+- **`nb integration` needs a manual pre-step.** It runs `docker compose` against a `minituff/nautical-test` image it never builds itself (that step is commented out in `.devcontainer/scripts/nb.sh`). Build it first with `docker build --build-arg TEST_MODE=0 -t minituff/nautical-test .`, matching the separate build step in `.github/workflows/test_docker_image.yml`.
+
 ## Codebase Layout
 
 ```
