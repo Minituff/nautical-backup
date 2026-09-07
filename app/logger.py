@@ -20,6 +20,11 @@ class LogType(Enum):
 
 
 class Logger:
+    DEFAULT_REPORT_FILE_PREFIX = "Backup Report"
+    # All of these are treated as equivalent placeholders for LABEL_PREFIX,
+    # so users can use whichever spelling reads naturally in REPORT_FILE_NAME.
+    PREFIX_TOKENS = ("{label_prefix}", "{LABEL_PREFIX}", "{prefix}", "{PREFIX}")
+
     def __init__(self):
         self.levels = {LogLevel.TRACE: 0, LogLevel.DEBUG: 1, LogLevel.INFO: 2, LogLevel.WARN: 3, LogLevel.ERROR: 4}
         self.env = NauticalEnv()
@@ -40,7 +45,8 @@ class Logger:
             self.report_file_on_backup_only = False
 
         self.dest_location: Union[str, Path] = os.environ.get("DEST_LOCATION", "")
-        self.report_file = f"Backup Report - {datetime.datetime.now().strftime('%Y-%m-%d')}.txt"
+        self.report_file_prefix = self._resolve_report_file_prefix(self.env.REPORT_FILE_NAME)
+        self.report_file = f"{self.report_file_prefix} - {datetime.datetime.now().strftime('%Y-%m-%d')}.txt"
 
     @staticmethod
     def set_to_string(input: set) -> str:
@@ -65,14 +71,37 @@ class Logger:
             return LogLevel.ERROR
         return None
 
+    def _resolve_report_file_prefix(self, report_file_name: str) -> str:
+        """Turn REPORT_FILE_NAME into a safe report file prefix.
+
+        Falls back to the default prefix (and warns) if REPORT_FILE_NAME is unset,
+        or if it would escape dest_location via a path separator or "..".
+        """
+        prefix = report_file_name.strip()
+        if not prefix:
+            return self.DEFAULT_REPORT_FILE_PREFIX
+
+        for token in self.PREFIX_TOKENS:
+            prefix = prefix.replace(token, self.env.LABEL_PREFIX)
+
+        if "/" in prefix or "\\" in prefix or ".." in prefix:
+            print(
+                f"WARN: Invalid REPORT_FILE_NAME '{report_file_name}' (must not contain "
+                f"'/', '\\', or '..'); falling back to the default report file name."
+            )
+            return self.DEFAULT_REPORT_FILE_PREFIX
+
+        return prefix
+
     def _delete_old_report_files(self):
         """Only completed on Nautical init"""
         if not os.path.exists(self.dest_location):
             return
 
+        prefix = f"{self.report_file_prefix} - "
         for file in os.listdir(self.dest_location):
             file.strip()
-            if file.startswith("Backup Report -") and file.endswith(".txt"):
+            if file.startswith(prefix) and file.endswith(".txt"):
                 if file != self.report_file:
                     # Don't delete today's report file
                     os.remove(os.path.join(self.dest_location, file))
@@ -86,7 +115,7 @@ class Logger:
 
         # Initialize the current report file with a header
         with open(os.path.join(self.dest_location, self.report_file), "w+") as f:
-            f.write(f"Backup Report - {datetime.datetime.now()}\n")
+            f.write(f"{self.report_file_prefix} - {datetime.datetime.now()}\n")
 
     def _write_to_report_file(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO):
         level = self._parse_log_level(log_level)

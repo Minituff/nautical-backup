@@ -286,6 +286,7 @@ declare -A expected_env_vars=(
     ["LOG_LEVEL"]="INFO"
     ["REPORT_FILE_LOG_LEVEL"]="INFO"
     ["REPORT_FILE_ON_BACKUP_ONLY"]="true"
+    ["REPORT_FILE_NAME"]=""
     ["KEEP_SRC_DIR_NAME"]="true"
     ["EXIT_AFTER_INIT"]="false"
     ["LOG_RSYNC_COMMANDS"]="false"

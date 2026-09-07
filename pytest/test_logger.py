@@ -47,6 +47,59 @@ class TestLogger:
         rf = f"Backup Report - {datetime.now().strftime('%Y-%m-%d')}.txt"
         assert logger.report_file == rf
 
+    def test_report_file_name_default_unchanged(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.delenv("REPORT_FILE_NAME", raising=False)
+
+        logger = Logger()
+        expected = f"Backup Report - {datetime.now().strftime('%Y-%m-%d')}.txt"
+        assert logger.report_file_prefix == "Backup Report"
+        assert logger.report_file == expected
+
+    def test_report_file_name_custom_literal_prefix(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("REPORT_FILE_NAME", "server-1-backup")
+
+        logger = Logger()
+        expected = f"server-1-backup - {datetime.now().strftime('%Y-%m-%d')}.txt"
+        assert logger.report_file_prefix == "server-1-backup"
+        assert logger.report_file == expected
+
+    @pytest.mark.parametrize("token", ["{label_prefix}", "{LABEL_PREFIX}", "{prefix}", "{PREFIX}"])
+    def test_report_file_name_prefix_tokens(self, monkeypatch: pytest.MonkeyPatch, token: str):
+        monkeypatch.setenv("LABEL_PREFIX", "nautical-backup.inst1")
+        monkeypatch.setenv("REPORT_FILE_NAME", token)
+
+        logger = Logger()
+        expected = f"nautical-backup.inst1 - {datetime.now().strftime('%Y-%m-%d')}.txt"
+        assert logger.report_file_prefix == "nautical-backup.inst1"
+        assert logger.report_file == expected
+
+    def test_report_file_name_rejects_path_traversal(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    ):
+        monkeypatch.setenv("REPORT_FILE_NAME", "../../etc/passwd")
+
+        logger = Logger()
+        assert logger.report_file_prefix == "Backup Report"
+        assert "Invalid REPORT_FILE_NAME" in capsys.readouterr().out
+
+    def test_report_file_name_prune_custom_prefix(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("REPORT_FILE_NAME", "inst1-report")
+
+        today_file = f"inst1-report - {datetime.now().strftime('%Y-%m-%d')}.txt"
+        (tmp_path / "inst1-report - 2024-01-01.txt").touch()
+        (tmp_path / "inst1-report - 2025-01-01.txt").touch()
+        (tmp_path / today_file).touch()
+        # A different instance's report files must not be touched
+        (tmp_path / "Backup Report - 2024-01-01.txt").touch()
+
+        logger = Logger()
+        logger.dest_location = tmp_path
+
+        logger._delete_old_report_files()
+
+        files = {f.name for f in tmp_path.iterdir()}
+        assert files == {today_file, "Backup Report - 2024-01-01.txt"}
+
     @patch("builtins.open", new_callable=MagicMock)
     def test_create_report_file(self, mock_open: MagicMock, tmp_path: Path):
         logger = Logger()
