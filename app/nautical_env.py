@@ -13,6 +13,7 @@ class NauticalEnv:
         self.LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
         self.REPORT_FILE_LOG_LEVEL = os.environ.get("REPORT_FILE_LOG_LEVEL", "")
         self.REPORT_FILE_ON_BACKUP_ONLY = os.environ.get("REPORT_FILE_ON_BACKUP_ONLY", "")
+        self.REPORT_FILE_NAME = os.environ.get("REPORT_FILE_NAME", "")
 
         self.DEST_LOCATION = os.environ.get("DEST_LOCATION", "")
         self.SOURCE_LOCATION = os.environ.get("SOURCE_LOCATION", "")

@@ -25,17 +25,36 @@ if [ ! -z "$REPORT_FILE_ON_BACKUP_ONLY" ]; then
     report_file_on_backup_only=$REPORT_FILE_ON_BACKUP_ONLY
 fi
 
-report_file="Backup Report - $(date +'%Y-%m-%d').txt"
+# Resolve REPORT_FILE_NAME into a report file prefix, mirroring logger.py's
+# _resolve_report_file_prefix(). {label_prefix}/{LABEL_PREFIX}/{prefix}/{PREFIX}
+# are all equivalent placeholders for LABEL_PREFIX.
+report_file_prefix="Backup Report"
+if [ ! -z "$REPORT_FILE_NAME" ]; then
+    report_file_prefix="$REPORT_FILE_NAME"
+    report_file_prefix="${report_file_prefix//\{label_prefix\}/$LABEL_PREFIX}"
+    report_file_prefix="${report_file_prefix//\{LABEL_PREFIX\}/$LABEL_PREFIX}"
+    report_file_prefix="${report_file_prefix//\{prefix\}/$LABEL_PREFIX}"
+    report_file_prefix="${report_file_prefix//\{PREFIX\}/$LABEL_PREFIX}"
+
+    case "$report_file_prefix" in
+        */*|*'\'*|*'..'*)
+            echo "WARN: Invalid REPORT_FILE_NAME '$REPORT_FILE_NAME' (must not contain '/', '\\', or '..'); falling back to the default report file name."
+            report_file_prefix="Backup Report"
+            ;;
+    esac
+fi
+
+report_file="$report_file_prefix - $(date +'%Y-%m-%d').txt"
 
 delete_report_file() {
-    rm -f "$DEST_LOCATION/Backup Report - "*.txt
+    rm -f "$DEST_LOCATION/$report_file_prefix - "*.txt
 }
 
 create_new_report_file() {
     if [ "$REPORT_FILE" = "true" ]; then
         delete_report_file
         # Initialize the current report file with a header
-        echo "Backup Report - $(date)" >"$DEST_LOCATION/$report_file"
+        echo "$report_file_prefix - $(date)" >"$DEST_LOCATION/$report_file"
     fi
 }
 

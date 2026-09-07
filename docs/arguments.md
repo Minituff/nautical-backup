@@ -420,32 +420,6 @@ REQUIRE_LABEL=true
 
 See the [Enable or Disable Nautical](./labels.md#enable-or-disable-nautical) Label Section for more details.
 
-## Multi-Instance Label Prefix
-Sometimes, running multiple insances of nautical-backup can enable extra funcunality: such as unique CRON schedules for different containers, etc.
-
-By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid colision among instances.
-
-> **Default**: nautical-backup
-
-```yaml
-services:
-  # Multiple instance of nautical
-  nautical-inst1:
-    environment:
-      - LABEL_PREFIX=nautical-backup.inst1
-  nautical-inst2:
-    environment:
-      - LABEL_PREFIX=nautical-backup.inst2
-
-  # Multi targets
-  backuped-inst1:
-    labels:
-      - nautical-backup.inst1.enable=true
-  backuped-inst2:
-    labels:
-      - nautical-backup.inst2.enable=true
-```
-
 ## Override Source Directory
 Allows a source directory and container-name that do not match.
 
@@ -548,15 +522,6 @@ POST_BACKUP_EXEC=curl -d "Backup successful 😀" ntfy.sh/mytopic
     ```
 
 <small>🔄 This is the same action as the [Execute Commands](./labels.md#execute-commands) label, but applied globally (not per container).</small>
-
-## Report file
-Enable or Disable the automatically generated report file.
-
-> **Default**: true
-
-```properties
-REPORT_FILE=true
-```
 
 ## Skip Stopping Containers
 Bypass stopping the container before performing a backup. This can be useful for containers with minimal configuration.
@@ -721,6 +686,20 @@ LOG_LEVEL=INFO
 
 Skipped containers are logged at `WARN`. Backup failures, such as rsync failures or containers that cannot be stopped or started, are logged at `ERROR`.
 
+## Report file
+Enable or Disable the automatically generated report file.
+
+> **Default**: true
+
+```properties
+REPORT_FILE=true
+```
+
+See [Report File Name](#report-file-name) to customize the report's filename —
+particularly useful when running [multiple Nautical instances](#multi-instance-label-prefix)
+against the same `DEST_LOCATION`.
+
+
 ## Report Log Level
 Set the log level for the generated report file.
 Only used if the report file is [enabled](#report-file).
@@ -743,6 +722,79 @@ With a value of `false`, then all logs will also be sent to the report file assu
 ```properties
 REPORT_FILE_ON_BACKUP_ONLY=false
 ```
+
+## Multi-Instance Label Prefix
+Sometimes, running multiple insances of nautical-backup can enable extra funcunality: such as unique CRON schedules for different containers, etc.
+
+By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid colision among instances.
+
+> **Default**: nautical-backup
+
+!!! tip "Also set `REPORT_FILE_NAME` when running multiple instances"
+    Instances sharing a `DEST_LOCATION` also share one [report file](#report-file), so
+    the last one to run overwrites the others. Set [`REPORT_FILE_NAME={PREFIX}`](#report-file-name)
+    alongside `LABEL_PREFIX` on each instance, as shown below, to fix this.
+
+```yaml
+services:
+  # Multiple instance of nautical
+  nautical-inst1:
+    environment:
+      - LABEL_PREFIX=nautical-backup.inst1
+      - REPORT_FILE_NAME={PREFIX}
+  nautical-inst2:
+    environment:
+      - LABEL_PREFIX=nautical-backup.inst2
+      - REPORT_FILE_NAME={PREFIX}
+
+  # Multi targets
+  backuped-inst1:
+    labels:
+      - nautical-backup.inst1.enable=true
+  backuped-inst2:
+    labels:
+      - nautical-backup.inst2.enable=true
+```
+
+## Report File Name
+Customize the prefix used for the report file's name. The date is always appended
+(the report file is always named `<prefix> - YYYY-MM-DD.txt`), so this only changes
+the prefix — it will not disable daily-dated report files.
+
+This is most useful when running [multiple Nautical instances](#multi-instance-label-prefix)
+against the same `DEST_LOCATION`: by default, every instance writes to the same
+`Backup Report - YYYY-MM-DD.txt`, so whichever instance runs last silently overwrites
+the others' report. Giving each instance a distinct `REPORT_FILE_NAME` avoids this.
+
+> **Default**: `Backup Report`
+
+> **Tokens**: `{label_prefix}`, `{LABEL_PREFIX}`, `{prefix}`, and `{PREFIX}` are all
+> equivalent, and are replaced with the instance's [`LABEL_PREFIX`](#multi-instance-label-prefix)
+> value — a convenient way to reuse an identifier you're already setting per instance.
+
+=== "Example 1"
+    !!! note ""
+        ```properties
+        LABEL_PREFIX=nautical-backup.inst1
+        REPORT_FILE_NAME={PREFIX}
+        ```
+
+        The `{PREFIX}` token is replaced with `LABEL_PREFIX`, so the report file
+        will be named `nautical-backup.inst1 - 2024-04-05.txt` — useful for
+        [multiple instances](#multi-instance-label-prefix) sharing one `DEST_LOCATION`.
+
+=== "Example 2"
+    !!! note ""
+        ```properties
+        REPORT_FILE_NAME=server-1-backup
+        ```
+
+        A plain literal prefix. The report file will be named
+        `server-1-backup - 2024-04-05.txt`.
+
+!!! warning "`/`, `\` and `..` are not allowed and will cause Nautical to fall back to the default `Backup Report` prefix."
+
+<small>ℹ️ This setting is unrelated to [`DEST_DATE_FORMAT`](#destination-folder-format), which only controls destination folder naming, not the report file.</small>
 
 ## Use Default rsync Arguments
 
