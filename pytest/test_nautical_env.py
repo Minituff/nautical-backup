@@ -31,3 +31,14 @@ class TestNauticalEnv:
 
         assert "example3" in nautical_env.OVERRIDE_DEST_DIR
         assert "fake" not in nautical_env.OVERRIDE_DEST_DIR
+
+    def test_skip_groups_default(self):
+        """SKIP_GROUPS defaults to an empty string when unset"""
+        nautical_env = NauticalEnv()
+        assert nautical_env.SKIP_GROUPS == ""
+
+    def test_skip_groups_env(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("SKIP_GROUPS", "group1,group2")
+        nautical_env = NauticalEnv()
+
+        assert nautical_env.SKIP_GROUPS == "group1,group2"

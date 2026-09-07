@@ -352,6 +352,131 @@ class TestBackup:
     @mock.patch("subprocess.run")
     @pytest.mark.parametrize(
         "mock_container1",
+        [{"name": "container1", "id": "123456789", "labels": {"nautical-backup.group": "paperless"}}],
+        indirect=True,
+    )
+    @pytest.mark.parametrize(
+        "mock_container2",
+        [{"name": "container2", "id": "9876543210", "labels": {"nautical-backup.group": "authentic"}}],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container3", [{"name": "container3", "id": "6969696969"}], indirect=True)
+    def test_skip_groups_env(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """SKIP_GROUPS should skip every container in a matching group, and leave others alone"""
+        mock_subprocess_run.return_value.returncode = 0
+
+        monkeypatch.setenv("SKIP_GROUPS", "paperless")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # Container1 is in the "paperless" group, which is skipped
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+        assert "container1" in nb.containers_skipped
+        assert nb.container_skip_reasons["container1"] == "skip_groups"
+
+        # Container2 is in a different group ("authentic"), and container3 has no group at all.
+        # Neither should be affected by SKIP_GROUPS=paperless
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+        mock_container3.stop.assert_called()
+        mock_container3.start.assert_called()
+        assert "container2" not in nb.containers_skipped
+        assert "container3" not in nb.containers_skipped
+
+        # Rsync should only be called for container2 and container3
+        assert mock_subprocess_run.call_count == 2
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789", "labels": {"nautical-backup.group": "authentic,paperless"}}],
+        indirect=True,
+    )
+    def test_skip_groups_env_any_match_across_multiple_groups(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """A container belonging to multiple groups is skipped if any one of them is in SKIP_GROUPS"""
+        mock_subprocess_run.return_value.returncode = 0
+
+        monkeypatch.setenv("SKIP_GROUPS", "paperless")
+
+        mock_docker_client.containers.list.return_value = [mock_container1]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+        assert "container1" in nb.containers_skipped
+        assert mock_subprocess_run.call_count == 0
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
+        [{"name": "container1", "id": "123456789", "labels": {"nautical-backup.group": "paperless"}}],
+        indirect=True,
+    )
+    @pytest.mark.parametrize("mock_container2", [{"name": "container2", "id": "9876543210"}], indirect=True)
+    @pytest.mark.parametrize(
+        "mock_container3",
+        [{"name": "container3", "id": "6969696969", "labels": {"nautical-backup.group": "authentic"}}],
+        indirect=True,
+    )
+    def test_skip_containers_and_skip_groups_combined(
+        self,
+        mock_subprocess_run: MagicMock,
+        mock_docker_client: MagicMock,
+        mock_container1: MagicMock,
+        mock_container2: MagicMock,
+        mock_container3: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """SKIP_CONTAINERS and SKIP_GROUPS are additive and never double-skip a container"""
+        mock_subprocess_run.return_value.returncode = 0
+
+        # container1 matches both SKIP_CONTAINERS (by name) and SKIP_GROUPS (via its group)
+        monkeypatch.setenv("SKIP_CONTAINERS", "container1")
+        monkeypatch.setenv("SKIP_GROUPS", "paperless")
+
+        mock_docker_client.containers.list.return_value = [mock_container1, mock_container2, mock_container3]
+        nb = NauticalBackup(mock_docker_client)
+        nb.backup()
+
+        # container1 matches both lists but is only skipped/recorded once
+        mock_container1.stop.assert_not_called()
+        mock_container1.start.assert_not_called()
+        assert list(nb.containers_skipped).count("container1") == 1
+        assert nb.container_skip_reasons["container1"] == "skip_containers_name"
+
+        # container2 matches neither list
+        mock_container2.stop.assert_called()
+        mock_container2.start.assert_called()
+        assert "container2" not in nb.containers_skipped
+
+        # container3 is in a different group, not affected by SKIP_GROUPS=paperless
+        mock_container3.stop.assert_called()
+        mock_container3.start.assert_called()
+        assert "container3" not in nb.containers_skipped
+
+        assert mock_subprocess_run.call_count == 2
+
+    @mock.patch("subprocess.run")
+    @pytest.mark.parametrize(
+        "mock_container1",
         [{"name": "container1", "id": "123456789", "labels": {"nautical-backup.enable": "false"}}],
         indirect=True,
     )

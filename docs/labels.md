@@ -222,6 +222,7 @@ nautical-backup.group=group_name
               - "nautical-backup.group=authentic"
         ```
 
+<small>🔄 Want to skip every container in a group instead? See [Skip Groups](./arguments.md#skip-groups).</small>
 
 ## Group Priority (Order)
 When using the [Groups](#groups) feature, the Priority will allow you to control the order in which containers are started/stopped.
