@@ -724,9 +724,9 @@ REPORT_FILE_ON_BACKUP_ONLY=false
 ```
 
 ## Multi-Instance Label Prefix
-Sometimes, running multiple insances of nautical-backup can enable extra funcunality: such as unique CRON schedules for different containers, etc.
+Sometimes, running multiple instances of nautical-backup can enable extra functionality: such as unique CRON schedules for different containers, etc.
 
-By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid colision among instances.
+By default, nautical-backup will only scan containers having labels starting with `nautical-backup.*`. To be able to run multiple instances of nautical-backup, you may want to customize the label prefix to avoid collision among instances.
 
 > **Default**: nautical-backup
 
