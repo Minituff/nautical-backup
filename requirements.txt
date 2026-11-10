@@ -1,5 +1,5 @@
 fastapi==0.162.0
-pydantic==2.14.2
+pydantic==2.14.3
 uvicorn==0.54.0
 croniter==6.2.4
 pytz==2026.6
