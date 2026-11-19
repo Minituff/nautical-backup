@@ -1,0 +1,49 @@
+/* Override the "DARK" mode theme */
+[data-md-color-scheme="slate"] {
+  /* --md-hue: 200; */
+  --md-default-bg-color: hsla(var(--md-hue),26%,14%,1);
+  --md-code-hl-color--light: rgba(225, 216, 51, 0.102);
+  --md-primary-fg-color: #011b3c;
+  --md-accent-fg-color: #78c9ff;
+  --md-typeset-a-color: #5365c9;
+  --md-code-hl-color: #ffff003b;
+  --md-typeset-mark-color: #ffff003b;
+
+  /* Footer */
+  --md-footer-bg-color: hsla(var(--md-hue),26%,14%,1);
+  --md-footer-bg-color--dark: hsla(var(--md-hue),26%,14%,1);
+}
+
+[data-md-color-scheme="default"] {
+  --md-footer-bg-color: white;
+  --md-footer-bg-color--light: hsla(var(--md-hue),15%,14%,1);
+  --md-footer-bg-color--light: rgb(148, 0, 0);
+  --md-footer-fg-color--light: #011b3c;
+  --md-footer-bg-color--dark: white;
+  --md-footer-fg-color--lighter: white;
+  
+  --md-footer-fg-color: #011b3c;
+  --md-accent-fg-color: #78c9ff;
+  --md-typeset-a-color: #5365c9;
+  --md-primary-fg-color: #011b3c;
+  --md-code-hl-color: #ffff003b;
+  --md-typeset-mark-color: #ffff003b;
+}
+
+/* Makes the top left logo bigger */
+.md-header__button.md-logo {
+  scale: 1.6;
+}
+
+.md-search-result mark {
+  color: #ff9100;
+  background-color: #ffff003b;
+}
+
+.md-footer-meta__inner {
+  padding: 0;
+}
+
+.md-nav__source {
+  background-color: #223c5e;
+}
